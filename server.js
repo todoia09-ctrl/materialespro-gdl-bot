@@ -5,6 +5,7 @@
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 require('dotenv').config();
+process.env.LANG = 'en_US.UTF-8';
 const express   = require('express');
 const twilio    = require('twilio');
 const Anthropic = require('@anthropic-ai/sdk');
