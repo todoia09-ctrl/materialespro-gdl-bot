@@ -1,0 +1,169 @@
+{
+  "negocio": {
+    "nombre": "MaterialesPro GDL",
+    "ciudad": "Zapopan / Guadalajara, Jalisco",
+    "telefono": "+52 33 1346 9831 ",
+    "horario": "Lunes a Sábado 8am–6pm",
+    "whatsapp": "+52 33 1346 9831"
+  },
+
+  "envios": {
+    "gdl_zapopan": {
+      "precio": 180,
+      "tiempo": "24–48 horas",
+      "zona": "Guadalajara y Zapopan"
+    },
+    "zmg": {
+      "precio": 250,
+      "tiempo": "24–72 horas",
+      "zona": "Tlaquepaque, Tonalá, Tlajomulco, El Salto"
+    },
+    "gratis_desde": 3000,
+    "recoger_almacen": {
+      "precio": 0,
+      "tiempo": "Mismo día si hay stock"
+    }
+  },
+
+  "productos": [
+    {
+      "id": "ADH-001",
+      "categoria": "Adhesivos",
+      "nombre": "Adhesivo Cerámico Estándar",
+      "descripcion": "Para pisos y muros interiores y exteriores. Alto agarre, resistente a humedad.",
+      "usos": "Cerámica, barro, cantera en interiores y exteriores",
+      "presentacion": "Bolsa 25 kg",
+      "precio": 230,
+      "rendimiento_m2_por_unidad": 4.5,
+      "rendimiento_nota": "4 a 5 m² por bolsa con capa de 3mm",
+      "activo": true
+    },
+    {
+      "id": "ADH-002",
+      "categoria": "Adhesivos",
+      "nombre": "Adhesivo Flex Premium",
+      "descripcion": "Adhesivo flexible para grandes formatos y porcelanato. Deformación elástica hasta 5mm.",
+      "usos": "Porcelanato, grandes formatos mayores a 60x60, fachadas, albercas",
+      "presentacion": "Bolsa 25 kg",
+      "precio": 290,
+      "rendimiento_m2_por_unidad": 4,
+      "rendimiento_nota": "4 m² por bolsa",
+      "activo": true
+    },
+    {
+      "id": "ADH-003",
+      "categoria": "Adhesivos",
+      "nombre": "Adhesivo para Mosaico Blanco",
+      "descripcion": "Adhesivo blanco para mosaico, vitroblock y piezas delicadas.",
+      "usos": "Mosaico de pasta, vitroblock, aplicaciones decorativas",
+      "presentacion": "Bolsa 20 kg",
+      "precio": 195,
+      "rendimiento_m2_por_unidad": 5.5,
+      "rendimiento_nota": "5 a 6 m² por bolsa",
+      "activo": true
+    },
+    {
+      "id": "TEX-001",
+      "categoria": "Texturizados",
+      "nombre": "Texturizado Acrílico para Fachada",
+      "descripcion": "Textura decorativa para fachadas y muros exteriores. Resistente a intemperie.",
+      "usos": "Fachadas, exteriores, muros con textura gruesa o fina",
+      "presentacion": "Cubeta 20 kg",
+      "precio": 380,
+      "rendimiento_m2_por_unidad": 11,
+      "rendimiento_nota": "10 a 12 m² por cubeta",
+      "colores": "18 colores estándar, mezcla especial bajo pedido",
+      "activo": true
+    },
+    {
+      "id": "TEX-002",
+      "categoria": "Texturizados",
+      "nombre": "Texturizado Pétreo",
+      "descripcion": "Acabado tipo piedra natural para muros interiores. Alta cobertura.",
+      "usos": "Interiores, salas, recámaras, muros decorativos",
+      "presentacion": "Cubeta 20 kg",
+      "precio": 420,
+      "rendimiento_m2_por_unidad": 9,
+      "rendimiento_nota": "8 a 10 m² por cubeta",
+      "colores": "Arena, gris, café, blanco hueso",
+      "activo": true
+    },
+    {
+      "id": "TEX-003",
+      "categoria": "Texturizados",
+      "nombre": "Texturizado Fino Interior",
+      "descripcion": "Acabado liso-texturizado para interiores. Base para pintura.",
+      "usos": "Interiores previo a pintura, corrección de superficies",
+      "presentacion": "Cubeta 15 kg",
+      "precio": 290,
+      "rendimiento_m2_por_unidad": 13.5,
+      "rendimiento_nota": "12 a 15 m² por cubeta",
+      "activo": true
+    },
+    {
+      "id": "IMP-001",
+      "categoria": "Impermeabilizantes",
+      "nombre": "Impermeabilizante Textural",
+      "descripcion": "Recubrimiento texturizado con propiedades impermeabilizantes.",
+      "usos": "Azoteas, baños, áreas húmedas, muros expuestos a lluvia",
+      "presentacion": "Cubeta 19 L",
+      "precio": 460,
+      "rendimiento_m2_por_unidad": 7,
+      "rendimiento_nota": "6 a 8 m² por cubeta, doble capa recomendada",
+      "activo": true
+    },
+    {
+      "id": "IMP-002",
+      "categoria": "Impermeabilizantes",
+      "nombre": "Impermeabilizante Acrílico Blanco",
+      "descripcion": "Membrana líquida elastomérica. Refleja el calor solar.",
+      "usos": "Azoteas planas, losas, terrazas",
+      "presentacion": "Cubeta 19 L",
+      "precio": 520,
+      "rendimiento_m2_por_unidad": 6,
+      "rendimiento_nota": "5 a 7 m² por cubeta",
+      "activo": true
+    },
+    {
+      "id": "MOR-001",
+      "categoria": "Mortero y Juntas",
+      "nombre": "Mortero de Junta Estándar",
+      "descripcion": "Para sellar juntas entre piezas cerámicas. Antihongos, fácil limpieza.",
+      "usos": "Juntas estándar de 2 a 3mm en pisos y muros",
+      "presentacion": "Bolsa 5 kg",
+      "precio": 85,
+      "rendimiento_m2_por_unidad": 8,
+      "rendimiento_nota": "Aproximado según tamaño de junta",
+      "colores": "Blanco, gris, beige, negro",
+      "activo": true
+    },
+    {
+      "id": "MOR-002",
+      "categoria": "Mortero y Juntas",
+      "nombre": "Mortero de Junta Epóxica",
+      "descripcion": "Para juntas en zonas húmedas y exteriores. Alta resistencia química.",
+      "usos": "Albercas, cocinas industriales, exteriores con humedad constante",
+      "presentacion": "Kit 2 kg",
+      "precio": 145,
+      "rendimiento_m2_por_unidad": 6,
+      "rendimiento_nota": "Aproximado según tamaño de junta",
+      "activo": true
+    }
+  ],
+
+  "descuentos_volumen": {
+    "activo": true,
+    "umbral_pesos": 8000,
+    "mensaje": "Para proyectos de este tamaño tenemos precio especial de volumen. Te paso con un asesor para darte la mejor oferta."
+  },
+
+  "respuestas_rapidas": {
+    "saludo_desconocido": "¡Hola! Soy el asesor de MaterialesPro GDL 👋 ¿Qué material necesitas cotizar?",
+    "saludo_conocido": "¡Hola {nombre}! ¿En qué te ayudo hoy?",
+    "buenos_dias": "¡Buenos días{nombre}! ¿Qué material necesitas para tu obra?",
+    "buenas_tardes": "¡Buenas tardes{nombre}! ¿En qué te ayudo?",
+    "gracias": "¡Con gusto! Si necesitas algo más, aquí estoy.",
+    "asesor_humano": "Con gusto te comunico con un asesor. Te contactará al {telefono} en breve ✅",
+    "cierre_cotizacion": "¿Hacemos el pedido?"
+  }
+}

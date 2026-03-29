@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaterialesPro GDL — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --dark: #1a1a18; --cement: #2d2d2a; --dust: #3d3d38;
+  --sand: #c4a96b; --rust: #c85c2a; --rust-l: #e8713d;
+  --white: #f5f2ec; --gray: #888880; --light: #d4d0c8;
+  --green: #22c55e; --red: #ef4444; --yellow: #f59e0b; --blue: #3b82f6;
+  --sidebar: 240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--white);display:flex;min-height:100vh;overflow-x:hidden}
+
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:999}
+.login-box{background:var(--cement);border:1px solid rgba(196,169,107,.2);border-radius:12px;padding:2.5rem;width:360px}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--sand);margin-bottom:.3rem}
+.login-logo span{color:var(--rust)}
+.login-sub{font-size:.8rem;color:var(--gray);margin-bottom:2rem}
+.form-group{margin-bottom:1.2rem}
+.form-group label{display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.form-group input{width:100%;background:var(--dust);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.7rem 1rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border .2s}
+.form-group input:focus{border-color:var(--rust)}
+.btn-login{width:100%;background:var(--rust);color:var(--white);border:none;border-radius:6px;padding:.85rem;font-weight:600;font-size:.95rem;cursor:pointer;transition:background .2s;margin-top:.5rem}
+.btn-login:hover{background:var(--rust-l)}
+.login-err{color:var(--red);font-size:.8rem;margin-top:.8rem;display:none}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar);background:var(--cement);border-right:1px solid rgba(196,169,107,.1);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:10}
+.sidebar-logo{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar-logo .name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--sand)}
+.sidebar-logo .name span{color:var(--rust)}
+.sidebar-logo .sub{font-size:.68rem;color:var(--gray);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em}
+nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.7rem 1.2rem;cursor:pointer;transition:all .15s;border-left:3px solid transparent;font-size:.88rem;color:var(--light)}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--white)}
+.nav-item.active{background:rgba(200,92,42,.1);border-left-color:var(--rust);color:var(--sand)}
+.nav-item .icon{font-size:1.1rem;width:22px;text-align:center}
+.nav-section{padding:.5rem 1.2rem .25rem;font-size:.65rem;color:var(--gray);text-transform:uppercase;letter-spacing:.12em;font-family:'DM Mono',monospace}
+.sidebar-user{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.06)}
+.user-info{display:flex;align-items:center;gap:.7rem}
+.user-avatar{width:32px;height:32px;background:var(--rust);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem}
+.user-name{font-size:.82rem;font-weight:500}
+.user-role{font-size:.68rem;color:var(--gray)}
+.btn-logout{background:none;border:none;color:var(--gray);cursor:pointer;font-size:.8rem;margin-top:.5rem;padding:0;width:100%;text-align:left}
+.btn-logout:hover{color:var(--rust)}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--cement);border-bottom:1px solid rgba(196,169,107,.1);padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.05em;color:var(--white)}
+.topbar-right{display:flex;align-items:center;gap:1rem}
+.badge-live{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--green);font-family:'DM Mono',monospace}
+.badge-live::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
+.content{padding:2rem;flex:1}
+.page{display:none}
+.page.active{display:block}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.2rem 1.5rem;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%}
+.stat-card.green::before{background:var(--green)}
+.stat-card.rust::before{background:var(--rust)}
+.stat-card.sand::before{background:var(--sand)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-label{font-size:.72rem;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.stat-value{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1;color:var(--white)}
+.stat-sub{font-size:.72rem;color:var(--gray);margin-top:.3rem}
+
+/* ── TABLES ── */
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em;color:var(--sand);margin-bottom:1rem}
+.table-wrap{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;overflow:hidden;margin-bottom:2rem}
+.table-header{padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--dust)}
+th{padding:.75rem 1rem;text-align:left;font-size:.72rem;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+td{padding:.85rem 1rem;font-size:.84rem;border-bottom:1px solid rgba(255,255,255,.04)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:4px;font-size:.68rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em}
+.badge-pend{background:rgba(245,158,11,.15);color:var(--yellow)}
+.badge-conf{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-canc{background:rgba(239,68,68,.15);color:var(--red)}
+.badge-env{background:rgba(59,130,246,.15);color:var(--blue)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:6px;font-size:.82rem;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--rust);color:var(--white)}
+.btn-primary:hover{background:var(--rust-l)}
+.btn-secondary{background:var(--dust);color:var(--light);border:1px solid rgba(255,255,255,.08)}
+.btn-secondary:hover{background:rgba(255,255,255,.06)}
+.btn-sm{padding:.3rem .7rem;font-size:.75rem}
+.btn-green{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.btn-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+
+/* ── INVENTARIO ── */
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:2rem}
+.inv-card{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.2rem}
+.inv-card.alerta{border-color:rgba(239,68,68,.3)}
+.inv-name{font-weight:600;font-size:.9rem;margin-bottom:.8rem}
+.inv-stock-bar{background:var(--dust);border-radius:10px;height:8px;margin:.5rem 0}
+.inv-stock-fill{height:100%;border-radius:10px;transition:width .3s}
+.inv-nums{display:flex;justify-content:space-between;font-size:.72rem;color:var(--gray)}
+.inv-controls{display:flex;gap:.5rem;margin-top:1rem;align-items:center}
+.inv-input{flex:1;background:var(--dust);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.4rem .7rem;color:var(--white);font-size:.84rem;font-family:'DM Sans',sans-serif;outline:none}
+
+/* ── CAMPAÑAS ── */
+.camp-form{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.5rem;margin-bottom:2rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.camp-msg{width:100%;background:var(--dust);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.75rem 1rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;resize:vertical;min-height:100px}
+.camp-msg:focus,.inv-input:focus{border-color:var(--rust)}
+select{background:var(--dust);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.7rem 1rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;width:100%}
+select:focus{border-color:var(--rust)}
+.preview-badge{background:rgba(196,169,107,.1);border:1px solid rgba(196,169,107,.2);border-radius:6px;padding:.5rem 1rem;font-size:.8rem;color:var(--sand);margin-top:.5rem}
+
+/* ── CLIENTES ── */
+.search-bar{display:flex;gap:.75rem;margin-bottom:1.5rem}
+.search-input{flex:1;background:var(--cement);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.7rem 1rem;color:var(--white);font-size:.9rem;outline:none;font-family:'DM Sans',sans-serif}
+.search-input:focus{border-color:var(--rust)}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--cement);border:1px solid rgba(196,169,107,.2);border-radius:12px;padding:2rem;max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--sand);margin-bottom:1.5rem}
+.modal-close{float:right;cursor:pointer;color:var(--gray);font-size:1.2rem;background:none;border:none}
+.detail-row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.84rem}
+.detail-label{color:var(--gray)}
+
+/* ── REPORTE ── */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+.report-card{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.5rem}
+.report-card-title{font-size:.75rem;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
+
+/* ── TOASTS ── */
+#toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:.5rem}
+.toast{background:var(--cement);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.75rem 1.2rem;font-size:.84rem;animation:slideIn .3s ease;max-width:320px}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .report-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Materiales<span>Pro</span> GDL</div>
+    <div class="login-sub">Dashboard del equipo · Acceso seguro</div>
+    <div class="form-group">
+      <label>Correo electrónico</label>
+      <input type="email" id="loginEmail" placeholder="vendedor@materialespro.mx">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Entrar al dashboard</button>
+    <div class="login-err" id="loginErr">Correo o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="name">Materiales<span>Pro</span> GDL</div>
+    <div class="sub">Panel de control</div>
+  </div>
+  <nav>
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('pedidos')"><span class="icon">📦</span> Pedidos</div>
+    <div class="nav-item" onclick="showPage('clientes')"><span class="icon">👥</span> Clientes</div>
+    <div class="nav-section">Operaciones</div>
+    <div class="nav-item" onclick="showPage('inventario')"><span class="icon">🏗️</span> Inventario</div>
+    <div class="nav-item" onclick="showPage('campanas')"><span class="icon">📣</span> Campañas</div>
+    <div class="nav-section">Reportes</div>
+    <div class="nav-item" onclick="showPage('reportes')"><span class="icon">📈</span> Reportes</div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div>
+        <div class="user-name" id="userName">Cargando...</div>
+        <div class="user-role" id="userRole">—</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">⟵ Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainApp" style="display:none">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <div class="badge-live">Bot activo 24/7</div>
+      <button class="btn btn-secondary btn-sm" onclick="refreshPage()">↻ Actualizar</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card green"><div class="stat-label">Pedidos hoy</div><div class="stat-value" id="s-pedidos">—</div><div class="stat-sub">confirmados</div></div>
+        <div class="stat-card rust"><div class="stat-label">Ingresos hoy</div><div class="stat-value" id="s-ingresos">—</div><div class="stat-sub">MXN confirmado</div></div>
+        <div class="stat-card sand"><div class="stat-label">Cotizaciones</div><div class="stat-value" id="s-cots">—</div><div class="stat-sub">enviadas hoy</div></div>
+        <div class="stat-card blue"><div class="stat-label">Clientes nuevos</div><div class="stat-value" id="s-clientes">—</div><div class="stat-sub">hoy</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <span class="section-title">Pedidos recientes</span>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('pedidos')">Ver todos →</button>
+        </div>
+        <table>
+          <thead><tr><th>Folio</th><th>Cliente</th><th>Tipo</th><th>Total</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="recentOrders"><tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><span class="section-title">Alertas de stock bajo</span></div>
+        <table>
+          <thead><tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th><th>Unidad</th><th></th></tr></thead>
+          <tbody id="stockAlerts"><tr><td colspan="5" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PEDIDOS -->
+    <div class="page" id="page-pedidos">
+      <div style="display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <select id="filterEstado" onchange="loadPedidos()" style="width:auto">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmado">Confirmado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <select id="filterZona" onchange="loadPedidos()" style="width:auto">
+          <option value="">Todas las zonas</option>
+          <option value="norte">Norte / Zapopan</option>
+          <option value="sur">Sur / Tlaquepaque</option>
+          <option value="este">Este / Tonalá</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Folio</th><th>Cliente</th><th>Zona</th><th>Tipo</th><th>Total</th><th>Pago</th><th>Factura</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+          <tbody id="pedidosTable"><tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="page" id="page-clientes">
+      <div class="search-bar">
+        <input class="search-input" id="clientSearch" placeholder="Buscar por nombre o WhatsApp..." oninput="searchClientes()">
+        <select id="filterZonaC" onchange="loadClientes()" style="width:180px">
+          <option value="">Todas las zonas</option>
+          <option value="norte">Norte</option>
+          <option value="sur">Sur</option>
+          <option value="este">Este</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cliente</th><th>WhatsApp</th><th>Zona</th><th>Pedidos</th><th>Total compras</th><th>Último contacto</th><th>Crédito</th><th></th></tr></thead>
+          <tbody id="clientesTable"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVENTARIO -->
+    <div class="page" id="page-inventario">
+      <p style="color:var(--gray);font-size:.85rem;margin-bottom:1.5rem">Actualiza el stock de cada producto. El bot verificará estas cantidades antes de confirmar pedidos automáticamente.</p>
+      <div class="inv-grid" id="invGrid">
+        <div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Cargando inventario...</div>
+      </div>
+    </div>
+
+    <!-- CAMPAÑAS -->
+    <div class="page" id="page-campanas">
+      <div class="camp-form">
+        <div class="section-title">Nueva campaña</div>
+        <div class="form-row">
+          <div>
+            <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Nombre de la campaña</label>
+            <input class="inv-input" id="campNombre" placeholder="Promo adhesivos marzo" style="width:100%">
+          </div>
+          <div>
+            <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Segmento</label>
+            <select id="campSegmento" onchange="previewCamp()">
+              <option value="todos">Todos los clientes</option>
+              <option value="zona_norte">GDL Norte / Zapopan</option>
+              <option value="zona_sur">GDL Sur / Tlaquepaque</option>
+              <option value="zona_este">GDL Este / Tonalá</option>
+              <option value="sin_compras_30d">Sin compras en 30 días</option>
+              <option value="compraron_adhesivos">Compraron adhesivos</option>
+              <option value="compraron_texturas">Compraron texturizados</option>
+              <option value="compraron_imperme">Compraron impermeabilizantes</option>
+              <option value="pedidos_grandes">Pedidos > $5,000 MXN</option>
+              <option value="con_credito">Clientes con crédito</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Mensaje <span style="color:var(--gray)">(usa {nombre} para personalizar)</span></label>
+          <textarea class="camp-msg" id="campMsg" placeholder="Hola {nombre}, tenemos una promoción especial en adhesivos esta semana..."></textarea>
+        </div>
+        <div id="campPreview" class="preview-badge" style="display:none"></div>
+        <div style="display:flex;gap:.75rem;margin-top:1rem">
+          <button class="btn btn-secondary" onclick="previewCamp()">👁 Preview</button>
+          <button class="btn btn-primary" onclick="crearCampana()">📣 Crear y enviar campaña</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><span class="section-title">Historial de campañas</span></div>
+        <table>
+          <thead><tr><th>Campaña</th><th>Segmento</th><th>Enviados</th><th>Errores</th><th>Estado</th><th>Fecha</th></tr></thead>
+          <tbody id="campTable"><tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Sin campañas aún</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTES -->
+    <div class="page" id="page-reportes">
+      <div style="display:flex;gap:.75rem;margin-bottom:1.5rem">
+        <select id="reportPeriod" onchange="loadReportes()">
+          <option value="hoy">Hoy</option>
+          <option value="7d" selected>Últimos 7 días</option>
+          <option value="30d">Últimos 30 días</option>
+          <option value="mes">Este mes</option>
+        </select>
+        <button class="btn btn-secondary" onclick="loadReportes()">↻ Actualizar</button>
+      </div>
+      <div class="report-grid" id="reportGrid">
+        <div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Cargando reportes...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DETALLE PEDIDO -->
+<div class="modal-bg" id="modalPedido">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalPedido')">✕</button>
+    <div class="modal-title">Detalle del pedido</div>
+    <div id="modalPedidoContent"></div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE CLIENTE -->
+<div class="modal-bg" id="modalCliente">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+    <div class="modal-title">Perfil del cliente</div>
+    <div id="modalClienteContent"></div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div id="toasts"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────
+let TOKEN   = localStorage.getItem('mp_token') || '';
+let USER    = JSON.parse(localStorage.getItem('mp_user') || 'null');
+let CURRENT = 'dashboard';
+
+const API = '/api';
+
+// ── API HELPER ─────────────────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (res.status === 401) { logout(); return null; }
+  return res.json();
+}
+
+// ── AUTH ───────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginErr');
+  err.style.display = 'none';
+  if (!email || !pass) { err.textContent = 'Completa todos los campos'; err.style.display='block'; return; }
+  try {
+    const r = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await r.json();
+    if (!r.ok) { err.textContent = data.error || 'Error al iniciar sesión'; err.style.display='block'; return; }
+    TOKEN = data.token;
+    USER  = data.user;
+    localStorage.setItem('mp_token', TOKEN);
+    localStorage.setItem('mp_user', JSON.stringify(USER));
+    initApp();
+  } catch(e) { err.textContent = 'Error de conexión'; err.style.display='block'; }
+}
+
+function logout() {
+  TOKEN = ''; USER = null;
+  localStorage.removeItem('mp_token');
+  localStorage.removeItem('mp_user');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+
+function initApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('userName').textContent  = USER?.nombre || USER?.email || '—';
+  document.getElementById('userRole').textContent  = USER?.rol   || '—';
+  document.getElementById('userAvatar').textContent = (USER?.nombre || USER?.email || '?')[0].toUpperCase();
+  showPage('dashboard');
+}
+
+// ── NAVIGATION ─────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes("'" + name + "'")) n.classList.add('active');
+  });
+  const titles = { dashboard:'Dashboard', pedidos:'Pedidos', clientes:'Clientes (CRM)',
+                   inventario:'Inventario', campanas:'Campañas WhatsApp', reportes:'Reportes' };
+  document.getElementById('pageTitle').textContent = titles[name] || name;
+  CURRENT = name;
+  loadPage(name);
+}
+
+function refreshPage() { loadPage(CURRENT); }
+
+function loadPage(name) {
+  const loaders = { dashboard: loadDashboard, pedidos: loadPedidos,
+                    clientes: loadClientes, inventario: loadInventario,
+                    campanas: loadCampanas, reportes: loadReportes };
+  if (loaders[name]) loaders[name]();
+}
+
+// ── DASHBOARD ─────────────────────────────────────
+async function loadDashboard() {
+  const data = await api('/dashboard/stats');
+  if (!data) return;
+  document.getElementById('s-pedidos').textContent  = data.pedidos_hoy    || '0';
+  document.getElementById('s-ingresos').textContent = '$' + Number(data.ingresos_hoy||0).toLocaleString('es-MX');
+  document.getElementById('s-cots').textContent     = data.cots_hoy       || '0';
+  document.getElementById('s-clientes').textContent = data.clientes_nuevos || '0';
+
+  // Recent orders
+  const tbody = document.getElementById('recentOrders');
+  if (data.pedidos_recientes?.length) {
+    tbody.innerHTML = data.pedidos_recientes.map(p => `
+      <tr>
+        <td><code style="font-size:.75rem;color:var(--sand)">${p.folio}</code></td>
+        <td>${p.nombre || p.whatsapp || '—'}</td>
+        <td>${p.tipo === 'pickup' ? '📍 Recoger' : '🚚 Entrega'}</td>
+        <td>$${Number(p.total||0).toLocaleString('es-MX')}</td>
+        <td>${p.metodo_pago || '—'}</td>
+        <td>${badgeEstado(p.estado)}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="verPedido(${p.id})">Ver</button></td>
+      </tr>`).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:1.5rem">Sin pedidos hoy</td></tr>';
+  }
+
+  // Stock alerts
+  const sTbody = document.getElementById('stockAlerts');
+  if (data.stock_alertas?.length) {
+    sTbody.innerHTML = data.stock_alertas.map(a => `
+      <tr>
+        <td>${a.nombre}</td>
+        <td style="color:${a.stock===0?'var(--red)':'var(--yellow)'}"><b>${a.stock}</b></td>
+        <td>${a.stock_minimo}</td>
+        <td>${a.unidad}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="showPage('inventario')">Actualizar</button></td>
+      </tr>`).join('');
+  } else {
+    sTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--green);padding:1.5rem">✅ Todo el inventario en orden</td></tr>';
+  }
+}
+
+// ── PEDIDOS ───────────────────────────────────────
+async function loadPedidos() {
+  const estado = document.getElementById('filterEstado').value;
+  const zona   = document.getElementById('filterZona').value;
+  const params = new URLSearchParams({ limit:50 });
+  if (estado) params.set('estado', estado);
+  if (zona)   params.set('zona', zona);
+  const data = await api('/pedidos?' + params);
+  if (!data) return;
+
+  const tbody = document.getElementById('pedidosTable');
+  if (data.pedidos?.length) {
+    tbody.innerHTML = data.pedidos.map(p => `
+      <tr>
+        <td><code style="font-size:.72rem;color:var(--sand)">${p.folio}</code></td>
+        <td>${p.cliente_nombre || p.whatsapp || '—'}</td>
+        <td>${zonaLabel(p.zona)}</td>
+        <td>${p.tipo === 'pickup' ? '📍 Recoger' : '🚚 Entrega'}</td>
+        <td>$${Number(p.total||0).toLocaleString('es-MX')}</td>
+        <td>${p.metodo_pago||'—'}</td>
+        <td>${p.factura ? '🧾 Sí' : 'No'}</td>
+        <td>${badgeEstado(p.estado)}</td>
+        <td style="color:var(--gray);font-size:.75rem">${fmtDate(p.creado_en)}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="verPedido(${p.id})">Ver</button></td>
+      </tr>`).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem">Sin pedidos con esos filtros</td></tr>';
+  }
+}
+
+async function verPedido(id) {
+  const data = await api('/pedidos/' + id);
+  if (!data) return;
+  const p = data.pedido;
+  const c = data.cliente;
+  document.getElementById('modalPedidoContent').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Folio</span><code style="color:var(--sand)">${p.folio}</code></div>
+    <div class="detail-row"><span class="detail-label">Estado</span>${badgeEstado(p.estado)}</div>
+    <div class="detail-row"><span class="detail-label">Cliente</span>${c?.nombre || '—'}</div>
+    <div class="detail-row"><span class="detail-label">WhatsApp</span>${c?.whatsapp || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Tipo</span>${p.tipo === 'pickup' ? '📍 Recoger en almacén' : '🚚 Entrega a domicilio'}</div>
+    ${p.tipo === 'delivery' ? `
+    <div class="detail-row"><span class="detail-label">Dirección</span>${p.calle || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Colonia</span>${p.colonia || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Referencias</span>${p.referencia || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Contacto obra</span>${p.contacto_obra || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Tel alterno</span>${p.tel_alterno || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Fecha entrega</span>${p.fecha_entrega || '—'}</div>
+    ${p.maps_link ? `<div class="detail-row"><span class="detail-label">Mapa</span><a href="${p.maps_link}" target="_blank" style="color:var(--sand)">Ver en Maps →</a></div>` : ''}
+    ` : `<div class="detail-row"><span class="detail-label">Fecha recogida</span>${p.fecha_recoger || '—'}</div>`}
+    <div class="detail-row"><span class="detail-label">Total</span><b>$${Number(p.total||0).toLocaleString('es-MX')} MXN</b></div>
+    <div class="detail-row"><span class="detail-label">Pago</span>${p.metodo_pago || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Factura</span>${p.factura ? '🧾 Sí — ' + p.cfdi_email : 'No'}</div>
+    ${p.factura && p.cfdi_uso ? `<div class="detail-row"><span class="detail-label">CFDI</span>${p.cfdi_uso}</div>` : ''}
+    <div style="display:flex;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap">
+      ${p.estado==='pendiente' ? `<button class="btn btn-green btn-sm" onclick="updatePedido(${p.id},'confirmado')">✅ Confirmar</button>` : ''}
+      ${p.estado!=='cancelado' ? `<button class="btn btn-red btn-sm" onclick="updatePedido(${p.id},'cancelado')">✕ Cancelar</button>` : ''}
+    </div>`;
+  openModal('modalPedido');
+}
+
+async function updatePedido(id, estado) {
+  const r = await api('/pedidos/' + id + '/estado', { method:'PUT', body:{ estado } });
+  if (r?.ok) { toast('Pedido ' + estado, 'success'); closeModal('modalPedido'); loadPage(CURRENT); }
+  else toast('Error al actualizar', 'error');
+}
+
+// ── CLIENTES ──────────────────────────────────────
+async function loadClientes() {
+  const zona = document.getElementById('filterZonaC').value;
+  const params = new URLSearchParams({ limit: 50 });
+  if (zona) params.set('zona', zona);
+  const data = await api('/clientes?' + params);
+  if (!data) return;
+  renderClientes(data.clientes || []);
+}
+
+function searchClientes() {
+  const q = document.getElementById('clientSearch').value.toLowerCase();
+  clearTimeout(searchClientes._t);
+  searchClientes._t = setTimeout(async () => {
+    const data = await api('/clientes?buscar=' + encodeURIComponent(q) + '&limit=50');
+    if (data) renderClientes(data.clientes || []);
+  }, 300);
+}
+
+function renderClientes(list) {
+  const tbody = document.getElementById('clientesTable');
+  if (list.length) {
+    tbody.innerHTML = list.map(c => `
+      <tr>
+        <td>${c.nombre || '<i style="color:var(--gray)">Sin nombre</i>'}</td>
+        <td><code style="font-size:.75rem">${c.whatsapp}</code></td>
+        <td>${zonaLabel(c.zona)}</td>
+        <td>${c.num_pedidos || 0}</td>
+        <td>$${Number(c.total_compras||0).toLocaleString('es-MX')}</td>
+        <td style="color:var(--gray);font-size:.75rem">${fmtDate(c.ultimo_contacto)}</td>
+        <td>${c.credito_limite > 0 ? '<span style="color:var(--green)">$' + Number(c.credito_limite).toLocaleString('es-MX') + '</span>' : '—'}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="verCliente('${c.whatsapp}')">Ver</button></td>
+      </tr>`).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Sin clientes</td></tr>';
+  }
+}
+
+async function verCliente(wa) {
+  const data = await api('/clientes/' + encodeURIComponent(wa));
+  if (!data) return;
+  const c = data.cliente;
+  document.getElementById('modalClienteContent').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Nombre</span>${c.nombre || '—'}</div>
+    <div class="detail-row"><span class="detail-label">WhatsApp</span>${c.whatsapp}</div>
+    <div class="detail-row"><span class="detail-label">Zona</span>${zonaLabel(c.zona)}</div>
+    <div class="detail-row"><span class="detail-label">RFC</span>${c.rfc || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Email</span>${c.email || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Pedidos totales</span>${c.num_pedidos || 0}</div>
+    <div class="detail-row"><span class="detail-label">Total compras</span><b>$${Number(c.total_compras||0).toLocaleString('es-MX')} MXN</b></div>
+    <div class="detail-row"><span class="detail-label">Crédito</span>${c.credito_limite > 0 ? '$' + Number(c.credito_limite).toLocaleString('es-MX') + ' MXN' : 'Sin crédito'}</div>
+    <div class="detail-row"><span class="detail-label">Primer contacto</span>${fmtDate(c.primer_contacto)}</div>
+    <div class="detail-row"><span class="detail-label">Último contacto</span>${fmtDate(c.ultimo_contacto)}</div>
+    ${data.pedidos?.length ? `<div style="margin-top:1rem"><b style="color:var(--sand);font-size:.85rem">Últimos pedidos</b>
+      ${data.pedidos.slice(0,5).map(p => `<div class="detail-row"><span class="detail-label">${p.folio}</span><span>$${Number(p.total||0).toLocaleString('es-MX')} · ${badgeEstado(p.estado)}</span></div>`).join('')}</div>` : ''}`;
+  openModal('modalCliente');
+}
+
+// ── INVENTARIO ────────────────────────────────────
+async function loadInventario() {
+  const data = await api('/inventario');
+  if (!data) return;
+  const grid = document.getElementById('invGrid');
+  if (data.inventario?.length) {
+    grid.innerHTML = data.inventario.map(item => {
+      const pct  = Math.min(100, Math.round((item.stock / Math.max(item.stock_minimo * 3, 1)) * 100));
+      const color = item.stock <= 0 ? 'var(--red)' : item.stock <= item.stock_minimo ? 'var(--yellow)' : 'var(--green)';
+      const alerta = item.stock <= item.stock_minimo ? ' alerta' : '';
+      return `<div class="inv-card${alerta}">
+        <div class="inv-name">${item.nombre}</div>
+        <div class="inv-stock-bar"><div class="inv-stock-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="inv-nums"><span style="color:${color}">${item.stock} ${item.unidad}</span><span>Mín: ${item.stock_minimo}</span></div>
+        <div class="inv-controls">
+          <input class="inv-input" type="number" id="inv-${item.producto_id}" value="${item.stock}" min="0">
+          <button class="btn btn-primary btn-sm" onclick="saveStock('${item.producto_id}')">Guardar</button>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    grid.innerHTML = '<div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Sin productos en inventario. Sincroniza desde el catálogo.</div>';
+  }
+}
+
+async function saveStock(id) {
+  const val = parseInt(document.getElementById('inv-' + id).value);
+  if (isNaN(val) || val < 0) { toast('Cantidad inválida', 'error'); return; }
+  const r = await api('/inventario/' + id, { method: 'PUT', body: { stock: val } });
+  if (r?.ok) { toast('Stock actualizado ✅', 'success'); loadInventario(); }
+  else toast('Error al guardar', 'error');
+}
+
+// ── CAMPAÑAS ──────────────────────────────────────
+async function loadCampanas() {
+  const data = await api('/campanas');
+  if (!data) return;
+  const tbody = document.getElementById('campTable');
+  if (data.campanas?.length) {
+    tbody.innerHTML = data.campanas.map(c => `
+      <tr>
+        <td>${c.nombre}</td>
+        <td style="font-size:.78rem;color:var(--gray)">${c.segmento}</td>
+        <td>${c.enviados || 0} / ${c.total_envios || 0}</td>
+        <td style="color:${c.errores > 0 ? 'var(--red)' : 'var(--gray)'}">${c.errores || 0}</td>
+        <td>${badgeCamp(c.estado)}</td>
+        <td style="color:var(--gray);font-size:.75rem">${fmtDate(c.creado_en)}</td>
+      </tr>`).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Sin campañas aún. Crea la primera arriba.</td></tr>';
+  }
+}
+
+async function previewCamp() {
+  const seg  = document.getElementById('campSegmento').value;
+  const prev = document.getElementById('campPreview');
+  const data = await api('/campanas/preview?segmento=' + seg);
+  if (data) {
+    prev.style.display = 'block';
+    prev.textContent = '👥 Esta campaña llegará a ' + data.total + ' clientes — ' + data.descripcion;
+  }
+}
+
+async function crearCampana() {
+  const nombre   = document.getElementById('campNombre').value.trim();
+  const mensaje  = document.getElementById('campMsg').value.trim();
+  const segmento = document.getElementById('campSegmento').value;
+  if (!nombre || !mensaje) { toast('Nombre y mensaje son requeridos', 'error'); return; }
+  if (!confirm('¿Enviar esta campaña ahora? Los mensajes saldrán de inmediato a todos los clientes del segmento seleccionado.')) return;
+  const r = await api('/campanas', { method: 'POST', body: { nombre, mensaje, segmento } });
+  if (r?.id) {
+    toast('Campaña creada y enviando... 📣', 'success');
+    document.getElementById('campNombre').value = '';
+    document.getElementById('campMsg').value    = '';
+    document.getElementById('campPreview').style.display = 'none';
+    loadCampanas();
+  } else toast('Error al crear campaña', 'error');
+}
+
+// ── REPORTES ──────────────────────────────────────
+async function loadReportes() {
+  const period = document.getElementById('reportPeriod').value;
+  const data   = await api('/reportes?periodo=' + period);
+  if (!data) return;
+  const grid = document.getElementById('reportGrid');
+  grid.innerHTML = `
+    <div class="report-card">
+      <div class="report-card-title">Ventas</div>
+      <div class="stat-value" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--green)">$${Number(data.ingresos||0).toLocaleString('es-MX')}</div>
+      <div style="color:var(--gray);font-size:.8rem;margin-top:.3rem">MXN en pedidos confirmados</div>
+      <hr style="border-color:rgba(255,255,255,.06);margin:1rem 0">
+      <div class="detail-row"><span class="detail-label">Pedidos confirmados</span><b>${data.pedidos_conf||0}</b></div>
+      <div class="detail-row"><span class="detail-label">Ticket promedio</span><b>$${Number(data.ticket_prom||0).toLocaleString('es-MX')}</b></div>
+      <div class="detail-row"><span class="detail-label">Pedidos cancelados</span><b>${data.pedidos_canc||0}</b></div>
+    </div>
+    <div class="report-card">
+      <div class="report-card-title">Clientes & Conversaciones</div>
+      <div class="stat-value" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--sand)">${data.clientes_nuevos||0}</div>
+      <div style="color:var(--gray);font-size:.8rem;margin-top:.3rem">clientes nuevos</div>
+      <hr style="border-color:rgba(255,255,255,.06);margin:1rem 0">
+      <div class="detail-row"><span class="detail-label">Cotizaciones enviadas</span><b>${data.cots_enviadas||0}</b></div>
+      <div class="detail-row"><span class="detail-label">Conversión cot→pedido</span><b>${data.conversion||0}%</b></div>
+      <div class="detail-row"><span class="detail-label">Mensajes procesados</span><b>${data.mensajes||0}</b></div>
+    </div>
+    <div class="report-card">
+      <div class="report-card-title">Productos más vendidos</div>
+      ${(data.top_productos||[]).length ? data.top_productos.map((p,i) => `
+        <div class="detail-row">
+          <span class="detail-label">${i+1}. ${p.nombre||'—'}</span>
+          <b>${p.unidades} uds</b>
+        </div>`).join('') : '<div style="color:var(--gray);text-align:center;padding:1rem">Sin datos</div>'}
+    </div>
+    <div class="report-card">
+      <div class="report-card-title">Ventas por zona</div>
+      ${(data.por_zona||[]).length ? data.por_zona.map(z => `
+        <div class="detail-row">
+          <span class="detail-label">${zonaLabel(z.zona)}</span>
+          <b>$${Number(z.total||0).toLocaleString('es-MX')}</b>
+        </div>`).join('') : '<div style="color:var(--gray);text-align:center;padding:1rem">Sin datos de zona</div>'}
+    </div>`;
+}
+
+// ── UTILS ──────────────────────────────────────────
+function badgeEstado(e) {
+  const map = { pendiente:'badge-pend', confirmado:'badge-conf', cancelado:'badge-canc', enviando:'badge-env' };
+  return `<span class="badge ${map[e]||'badge-pend'}">${e||'—'}</span>`;
+}
+function badgeCamp(e) {
+  const map = { borrador:'badge-pend', enviando:'badge-env', completada:'badge-conf', cancelada:'badge-canc' };
+  return `<span class="badge ${map[e]||'badge-pend'}">${e}</span>`;
+}
+function zonaLabel(z) {
+  return { norte:'🔵 Norte/Zapopan', sur:'🟠 Sur/Tlaquepaque', este:'🟢 Este/Tonalá' }[z] || (z || '—');
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function toast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type; t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ── INIT ───────────────────────────────────────────
+if (TOKEN && USER) { initApp(); }
+else { document.getElementById('loginScreen').style.display = 'flex'; }
+
+// Auto-refresh dashboard cada 60 segundos
+setInterval(() => { if (CURRENT === 'dashboard') loadDashboard(); }, 60000);
+</script>
+</body>
+</html>
