@@ -3,7 +3,6 @@
 //  Auto-crea tablas al arrancar. Sin migraciones manuales.
 // ══════════════════════════════════════════════════════════════
 
-require('dotenv').config();
 const { Pool } = require('pg');
 
 let _pool = null;
@@ -11,8 +10,9 @@ function getPool() {
   if (!_pool) {
     _pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      max: 10, idleTimeoutMillis: 30000, connectionTimeoutMillis: 8000,
+      ssl: (process.env.DATABASE_URL || '').includes('railway')
+        ? { rejectUnauthorized: false } : false,
+      max: 10, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000,
     });
     _pool.on('error', e => console.error('[DB POOL]', e.message));
   }
@@ -156,7 +156,7 @@ async function initSchema() {
   console.log('[DB] Esquema listo ✅');
 }
 
-// ─── Helpers ─────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────
 async function upsertCliente(whatsapp, updates = {}) {
   const { nombre, canal, zona, rfc, email } = updates;
   const r = await query(`

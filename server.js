@@ -1,11 +1,9 @@
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  MaterialesPro GDL â€” Bot ENTERPRISE v10
-//  WhatsApp Â· Facebook Â· Instagram Â· FB Comments
-//  CRM PostgreSQL Â· Inventario Â· Dashboard Â· Scheduler Â· CampaÃ±as
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════
+//  MaterialesPro GDL — Bot ENTERPRISE v10
+//  WhatsApp · Facebook · Instagram · FB Comments
+//  CRM PostgreSQL · Inventario · Dashboard · Scheduler · Campañas
+// ══════════════════════════════════════════════════════════════
 
-require('dotenv').config();
-process.env.LANG = 'en_US.UTF-8';
 const express   = require('express');
 const twilio    = require('twilio');
 const Anthropic = require('@anthropic-ai/sdk');
@@ -15,7 +13,7 @@ const XLSX      = require('xlsx');
 const fs        = require('fs');
 const pathMod   = require('path');
 
-// â”€â”€ MÃ³dulos del sistema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Módulos del sistema ──────────────────────────
 const { initSchema, upsertCliente, getCliente, logMensaje } = require('./db');
 const { registrarContacto, actualizarZona, guardarCotizacion,
         guardarPedido, actualizarEstadoPedido,
@@ -29,7 +27,7 @@ const { processOrderFlow, processVendorReply,
 const { generateAndSendQuote, isPDFRequest }                 = require('./cotizacion');
 const dashboardApi                                           = require('./dashboard/api');
 
-// â”€â”€ Singletons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Singletons ───────────────────────────────────
 const app      = express();
 const aiClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const twClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -37,27 +35,27 @@ const twClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// â”€â”€ Dashboard estÃ¡tico â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Dashboard estático ───────────────────────────
 app.use('/dashboard', express.static(pathMod.join(__dirname, 'dashboard')));
 app.get('/dashboard', (_, res) => res.sendFile(pathMod.join(__dirname, 'dashboard/index.html')));
 app.use('/api', dashboardApi);
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-//  CATÃLOGO DINÃMICO
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
+//  CATÁLOGO DINÁMICO
+// ─────────────────────────────────────────────────
 function loadCatalog() {
   return JSON.parse(fs.readFileSync(pathMod.join(__dirname, 'catalogo.json'), 'utf8'));
 }
 
 function buildCatalogText(cat) {
   const prods = cat.productos.filter(p => p.activo)
-    .map(p => p.nombre + ' $' + p.precio + '/' + p.presentacion + ' Â· ' + p.rendimiento_nota)
+    .map(p => p.nombre + ' $' + p.precio + '/' + p.presentacion + ' · ' + p.rendimiento_nota)
     .join('\n- ');
   const e = cat.envios;
   return '- ' + prods
-    + '\nENVÃOS: GDL/Zapopan $' + e.gdl_zapopan.precio + ' (' + e.gdl_zapopan.tiempo + ')'
+    + '\nENVÍOS: GDL/Zapopan $' + e.gdl_zapopan.precio + ' (' + e.gdl_zapopan.tiempo + ')'
     + ' | ZMG $' + e.zmg.precio + ' (' + e.zmg.tiempo + ')'
-    + ' | Gratis +$' + e.gratis_desde + ' | AlmacÃ©n gratis mismo dÃ­a | ' + cat.negocio.horario;
+    + ' | Gratis +$' + e.gratis_desde + ' | Almacén gratis mismo día | ' + cat.negocio.horario;
 }
 
 let CATALOG     = loadCatalog();
@@ -69,67 +67,67 @@ setInterval(() => {
   try {
     CATALOG     = loadCatalog();
     CATALOG_TXT = buildCatalogText(CATALOG);
-    console.log('[CATÃLOGO] Recargado');
-  } catch (e) { console.error('[CATÃLOGO]', e.message); }
+    console.log('[CATÁLOGO] Recargado');
+  } catch (e) { console.error('[CATÁLOGO]', e.message); }
 }, 60 * 60 * 1000);
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 //  CONTACTOS (nombres personalizados WhatsApp)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 const CONTACTS = {
   // 'whatsapp:+52XXXXXXXXXX': 'Nombre',
 };
 
 function getContactName(from) { return CONTACTS[from] || null; }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 //  SYSTEM PROMPT
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 function buildSystemPrompt(clientName, channel) {
   channel = channel || 'WhatsApp';
-  const saludo  = clientName ? 'El cliente se llama ' + clientName + '. Ãšsalo solo al saludar.' : '';
+  const saludo  = clientName ? 'El cliente se llama ' + clientName + '. Úsalo solo al saludar.' : '';
   const formato = channel === 'comment'
-    ? 'Comentario pÃºblico FB. MÃ¡ximo 2 lÃ­neas. Invita a escribir por Messenger o WhatsApp.'
-    : 'MÃ¡ximo 4 lÃ­neas por respuesta.';
+    ? 'Comentario público FB. Máximo 2 líneas. Invita a escribir por Messenger o WhatsApp.'
+    : 'Máximo 4 líneas por respuesta.';
   const d = CATALOG.descuentos_volumen;
   return 'Eres asesor de ' + CATALOG.negocio.nombre + ' (' + CATALOG.negocio.ciudad + '). Canal: ' + channel + '.\n'
     + (saludo ? saludo + '\n' : '')
-    + '\nCATÃLOGO:\n' + CATALOG_TXT
+    + '\nCATÁLOGO:\n' + CATALOG_TXT
     + '\n\nREGLAS:\n'
     + '- ' + formato + '\n'
-    + '- Si dan mÂ²: calcula unidades +10% desperdicio, total y envÃ­o\n'
+    + '- Si dan m²: calcula unidades +10% desperdicio, total y envío\n'
     + '- Proyecto >$' + d.umbral_pesos + ': ' + d.mensaje + '\n'
     + '- Asesor humano: "Te contactamos al ' + CATALOG.negocio.telefono + '"\n'
-    + '- Al cotizar termina con: Â¿Hacemos el pedido?';
+    + '- Al cotizar termina con: ¿Hacemos el pedido?';
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-//  CACHÃ‰ DE RESPUESTAS FRECUENTES
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
+//  CACHÉ DE RESPUESTAS FRECUENTES
+// ─────────────────────────────────────────────────
 function getCache(msg, clientName) {
   const key = msg.toLowerCase()
-    .replace(/[Ã¡Ã Ã¤]/g,'a').replace(/[Ã©Ã¨Ã«]/g,'e').replace(/[Ã­Ã¬Ã¯]/g,'i')
-    .replace(/[Ã³Ã²Ã¶]/g,'o').replace(/[ÃºÃ¹Ã¼]/g,'u').replace(/[Â¿Â¡!?.,]/g,'').trim();
+    .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i')
+    .replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[¿¡!?.,]/g,'').trim();
   const n = clientName ? ', ' + clientName : '';
   const e = CATALOG.envios;
   const map = {
-    'hola':          'Â¡Hola' + n + '! Soy el asesor de ' + CATALOG.negocio.nombre + ' ðŸ‘‹ Â¿QuÃ© material necesitas cotizar?',
-    'buenos dias':   'Â¡Buenos dÃ­as' + n + '! Â¿QuÃ© material necesitas?',
-    'buenas tardes': 'Â¡Buenas tardes' + n + '! Â¿En quÃ© te ayudo?',
-    'buenas noches': 'Â¡Buenas noches' + n + '! Â¿QuÃ© cotizas?',
-    'gracias':       'Â¡Con gusto! Â¿Algo mÃ¡s en lo que te pueda ayudar?',
+    'hola':          '¡Hola' + n + '! Soy el asesor de ' + CATALOG.negocio.nombre + ' 👋 ¿Qué material necesitas cotizar?',
+    'buenos dias':   '¡Buenos días' + n + '! ¿Qué material necesitas?',
+    'buenas tardes': '¡Buenas tardes' + n + '! ¿En qué te ayudo?',
+    'buenas noches': '¡Buenas noches' + n + '! ¿Qué cotizas?',
+    'gracias':       '¡Con gusto! ¿Algo más en lo que te pueda ayudar?',
     'horario':       'Atendemos ' + CATALOG.negocio.horario + '. El bot responde 24/7.',
     'envio':         'GDL/Zapopan $' + e.gdl_zapopan.precio + ' (' + e.gdl_zapopan.tiempo + '). ZMG $' + e.zmg.precio + '. Gratis +$' + e.gratis_desde + '.',
-    'envÃ­o':         'GDL/Zapopan $' + e.gdl_zapopan.precio + ' (' + e.gdl_zapopan.tiempo + '). ZMG $' + e.zmg.precio + '. Gratis +$' + e.gratis_desde + '.',
-    'direccion':     'Estamos en ' + CATALOG.negocio.ciudad + '. Te mando ubicaciÃ³n al confirmar tu pedido.',
-    'direcciÃ³n':     'Estamos en ' + CATALOG.negocio.ciudad + '. Te mando ubicaciÃ³n al confirmar tu pedido.',
+    'envío':         'GDL/Zapopan $' + e.gdl_zapopan.precio + ' (' + e.gdl_zapopan.tiempo + '). ZMG $' + e.zmg.precio + '. Gratis +$' + e.gratis_desde + '.',
+    'direccion':     'Estamos en ' + CATALOG.negocio.ciudad + '. Te mando ubicación al confirmar tu pedido.',
+    'dirección':     'Estamos en ' + CATALOG.negocio.ciudad + '. Te mando ubicación al confirmar tu pedido.',
   };
   return map[key] || null;
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 //  SESIONES EN MEMORIA (historial conversacional)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 const sessions = new Map();
 const TTL      = 4 * 60 * 60 * 1000;
 
@@ -148,9 +146,9 @@ setInterval(() => {
   for (const [k, v] of sessions) if (now - v.ts > TTL) sessions.delete(k);
 }, 60 * 60 * 1000);
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 //  PROCESADORES MULTIMEDIA
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 async function downloadMedia(url) {
   const res = await axios.get(url, {
     responseType: 'arraybuffer',
@@ -182,7 +180,7 @@ async function analyzeImage(url, caption) {
     system: buildSystemPrompt(null, 'WhatsApp'),
     messages: [{ role: 'user', content: [
       { type: 'image', source: { type: 'base64', media_type: mime, data: buffer.toString('base64') } },
-      { type: 'text',  text: caption ? 'Cliente enviÃ³ imagen: "' + caption + '"' : 'Analiza esta imagen de material.' }
+      { type: 'text',  text: caption ? 'Cliente envió imagen: "' + caption + '"' : 'Analiza esta imagen de material.' }
     ]}]
   });
   return res.content[0].text;
@@ -200,7 +198,7 @@ async function processPDF(url) {
       ]}]
     });
     return res.content[0].text;
-  } catch (_) { return 'No pude leer el PDF. Escribe la lista aquÃ­ y la proceso.'; }
+  } catch (_) { return 'No pude leer el PDF. Escribe la lista aquí y la proceso.'; }
 }
 
 async function processExcel(url) {
@@ -209,7 +207,7 @@ async function processExcel(url) {
     const wb   = XLSX.read(buffer, { type: 'buffer' });
     const data = XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]);
     return '[Lista Excel]:\n' + data.substring(0, 2000);
-  } catch (_) { return 'No pude leer el Excel. Manda la lista en PDF o escrÃ­bela aquÃ­.'; }
+  } catch (_) { return 'No pude leer el Excel. Manda la lista en PDF o escríbela aquí.'; }
 }
 
 async function processMedia(req) {
@@ -224,9 +222,9 @@ async function processMedia(req) {
   return null;
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 //  CLAUDE IA
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 async function getAIResponse(userMessage, history, clientName, channel) {
   const res = await aiClient.messages.create({
     model:      'claude-haiku-4-5-20251001',
@@ -237,9 +235,9 @@ async function getAIResponse(userMessage, history, clientName, channel) {
   return res.content[0].text;
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-//  ENVÃO DE MENSAJES
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
+//  ENVÍO DE MENSAJES
+// ─────────────────────────────────────────────────
 async function sendWA(to, body) {
   await twClient.messages.create({ from: process.env.TWILIO_WHATSAPP_FROM, to, body });
 }
@@ -252,12 +250,12 @@ function isQuoteResponse(text) {
   if (!text) return false;
   const lower = text.toLowerCase();
   return (lower.includes('$') && (lower.includes('bolsa') || lower.includes('cubeta') || lower.includes('total')))
-      || lower.includes('subtotal') || lower.includes('cotizaciÃ³n');
+      || lower.includes('subtotal') || lower.includes('cotización');
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-//  WEBHOOK â€” WHATSAPP
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
+//  WEBHOOK — WHATSAPP
+// ─────────────────────────────────────────────────
 app.post('/webhook/whatsapp', async (req, res) => {
   const from     = req.body.From || '';
   const textBody = (req.body.Body || '').trim();
@@ -269,13 +267,13 @@ app.post('/webhook/whatsapp', async (req, res) => {
   const name = getContactName(from);
 
   try {
-    // â”€â”€ CRM: registrar contacto y logear mensaje â”€â”€
+    // ── CRM: registrar contacto y logear mensaje ──
     const cliente = await registrarContacto(from, { nombre: name, canal: 'whatsapp' }).catch(() => null);
     if (cliente && textBody) {
       logMensaje(cliente.id, 'whatsapp', 'in', textBody, hasMedia ? 'media' : 'texto').catch(() => {});
     }
 
-    // â”€â”€ 1. Respuesta del VENDEDOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1. Respuesta del VENDEDOR ─────────────────
     if (isVendorNumber(from) && textBody) {
       const handled = await processVendorReply(textBody, sendToClient);
       if (handled) return;
@@ -284,16 +282,16 @@ app.post('/webhook/whatsapp', async (req, res) => {
     let message = textBody;
     let reply   = null;
 
-    // â”€â”€ 2. Multimedia â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 2. Multimedia ─────────────────────────────
     if (hasMedia) {
       const media = await processMedia(req);
       if (media) message = media;
     }
 
-    // â”€â”€ 3. CachÃ© instantÃ¡neo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 3. Caché instantáneo ──────────────────────
     if (!hasMedia && textBody) reply = getCache(textBody, name);
 
-    // â”€â”€ 4. Flujo de pedido â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 4. Flujo de pedido ────────────────────────
     if (!reply && !hasMedia && textBody) {
       reply = await processOrderFlow(
         from, textBody, name, getLastQuote(from), sendToClient,
@@ -301,17 +299,17 @@ app.post('/webhook/whatsapp', async (req, res) => {
       );
     }
 
-    // â”€â”€ 5. Solicitud de PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 5. Solicitud de PDF ───────────────────────
     if (!reply && !hasMedia && textBody && isPDFRequest(textBody)) {
       const lastQ = getLastQuote(from);
       if (lastQ) {
-        await sendWA(from, 'Generando tu cotizaciÃ³n en PDF... ðŸ“„ La recibirÃ¡s en unos segundos.');
+        await sendWA(from, 'Generando tu cotización en PDF... 📄 La recibirás en unos segundos.');
         generateAndSendQuote({
           clientFrom: from, clientName: name, clientPhone: from,
           quoteText: lastQ, catalog: CATALOG,
           entrega: { tipo: 'pickup' }, metodoPago: null,
         }).then(async result => {
-          // Guardar cotizaciÃ³n en CRM
+          // Guardar cotización en CRM
           if (result && cliente) {
             const cotId = await guardarCotizacion(from, result.quoteNumber, [], result.total, result.pdfUrl, 'whatsapp').catch(() => null);
             if (cotId) await programarSeguimiento(from, cotId).catch(() => {});
@@ -319,23 +317,23 @@ app.post('/webhook/whatsapp', async (req, res) => {
         }).catch(e => console.error('[PDF]', e.message));
         return;
       } else {
-        reply = 'Primero dime quÃ© productos necesitas, te hago la cotizaciÃ³n y luego te la mando en PDF. ðŸ“„';
+        reply = 'Primero dime qué productos necesitas, te hago la cotización y luego te la mando en PDF. 📄';
       }
     }
 
-    // â”€â”€ 6. Pregunta tÃ©cnica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 6. Pregunta técnica ───────────────────────
     if (!reply && !hasMedia && textBody && isTechnicalQuestion(textBody)) {
       const techReply = await getTechnicalInfo(textBody, CATALOG.productos, aiClient).catch(e => {
-        console.error('[TÃ‰CNICO]', e.message); return null;
+        console.error('[TÉCNICO]', e.message); return null;
       });
       if (techReply) reply = techReply;
     }
 
-    // â”€â”€ 7. Claude IA general â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 7. Claude IA general ──────────────────────
     if (!reply) {
       const history = getHistory('wa:' + from);
       reply = await getAIResponse(message, history, name, 'WhatsApp');
-      // Guardar cotizaciÃ³n si aplica
+      // Guardar cotización si aplica
       if (isQuoteResponse(reply)) saveLastQuote(from, reply.substring(0, 400));
       saveHistory('wa:' + from, [...history,
         { role: 'user',      content: message },
@@ -352,13 +350,13 @@ app.post('/webhook/whatsapp', async (req, res) => {
 
   } catch (err) {
     console.error('[WA ERR]', err.message);
-    sendWA(from, 'Disculpa, hubo un error tÃ©cnico. Intenta de nuevo en un momento.').catch(() => {});
+    sendWA(from, 'Disculpa, hubo un error técnico. Intenta de nuevo en un momento.').catch(() => {});
   }
 });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-//  WEBHOOK â€” FACEBOOK + INSTAGRAM
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
+//  WEBHOOK — FACEBOOK + INSTAGRAM
+// ─────────────────────────────────────────────────
 app.get('/webhook/meta', (req, res) => {
   if (req.query['hub.mode'] === 'subscribe' &&
       req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
@@ -373,53 +371,53 @@ app.post('/webhook/meta', async (req, res) => {
   } catch (err) { console.error('[META]', err.message); }
 });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 //  HEALTH CHECK
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 app.get('/', (req, res) => res.json({
   status:    'online',
   version:   'v10-enterprise',
   bot:       CATALOG.negocio.nombre,
   canales:   ['WhatsApp', 'Facebook Messenger', 'Instagram Direct', 'Facebook Comments'],
-  modulos:   ['CRM-PostgreSQL', 'Inventario', 'Dashboard', 'Scheduler', 'CampaÃ±as', 'PDF', 'TÃ©cnico', 'Pedidos'],
+  modulos:   ['CRM-PostgreSQL', 'Inventario', 'Dashboard', 'Scheduler', 'Campañas', 'PDF', 'Técnico', 'Pedidos'],
   productos: CATALOG.productos.filter(p => p.activo).length,
   sessions:  sessions.size,
   uptime:    Math.floor(process.uptime()) + 's',
   memory:    Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
 }));
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 //  ARRANQUE
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
-  console.log('ðŸš€ ' + CATALOG.negocio.nombre + ' Enterprise v10 â†’ puerto ' + PORT);
-  console.log('ðŸ“¦ Productos:', CATALOG.productos.filter(p => p.activo).length);
-  console.log('ðŸ—„ï¸  Dashboard: /dashboard');
+  console.log('🚀 ' + CATALOG.negocio.nombre + ' Enterprise v10 → puerto ' + PORT);
+  console.log('📦 Productos:', CATALOG.productos.filter(p => p.activo).length);
+  console.log('🗄️  Dashboard: /dashboard');
 
   // Inicializar base de datos
   try {
     await initSchema();
     await syncFromCatalog(CATALOG.productos);
-    console.log('âœ… Base de datos lista');
+    console.log('✅ Base de datos lista');
   } catch (e) {
-    console.warn('âš ï¸  DB no disponible (modo sin DB):', e.message);
+    console.warn('⚠️  DB no disponible (modo sin DB):', e.message);
   }
 
   // Iniciar tareas programadas
   try {
     initScheduler();
   } catch (e) {
-    console.warn('âš ï¸  Scheduler:', e.message);
+    console.warn('⚠️  Scheduler:', e.message);
   }
 
   // Warmup Claude API
   aiClient.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 5,
     messages: [{ role: 'user', content: 'ok' }]
-  }).then(() => console.log('âœ… Claude API pre-calentada'))
-    .catch(e => console.warn('âš ï¸  Warmup:', e.message));
+  }).then(() => console.log('✅ Claude API pre-calentada'))
+    .catch(e => console.warn('⚠️  Warmup:', e.message));
 });
 
 module.exports = { getCatalog, getAIResponse, buildSystemPrompt };
