@@ -44,7 +44,19 @@ app.use('/api', dashboardApi);
 //  CATÁLOGO DINÁMICO
 // ─────────────────────────────────────────────────
 function loadCatalog() {
-  return JSON.parse(fs.readFileSync(pathMod.join(__dirname, 'catalogo.json'), 'utf8'));
+  const _cat = JSON.parse(fs.readFileSync(pathMod.join(__dirname, 'catalogo.json'), 'utf8'));
+  if (!_cat.negocio && _cat.meta) {
+    _cat.negocio = {
+      nombre:   'MaterialesPro GDL',
+      ciudad:   'Zapopan / Guadalajara, Jalisco',
+      telefono: '+52 33 XXXX XXXX',
+      horario:  'Lun-Sab 8am-6pm',
+      whatsapp: '+52 33 XXXX XXXX',
+    };
+  }
+  if (!_cat.envios) _cat.envios = {};
+  if (!_cat.descuentos_volumen) _cat.descuentos_volumen = { umbral_pesos: 5000, mensaje: 'Descuento especial en proyectos grandes' };
+  return _cat;
 }
 
 function buildCatalogText(cat) {
