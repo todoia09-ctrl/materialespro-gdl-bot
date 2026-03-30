@@ -1,4 +1,4 @@
-// ══════════════════════════════════════════════════════════════
+﻿// ══════════════════════════════════════════════════════════════
 //  MaterialesPro GDL — Bot ENTERPRISE v10
 //  WhatsApp · Facebook · Instagram · FB Comments
 //  CRM PostgreSQL · Inventario · Dashboard · Scheduler · Campañas
@@ -391,6 +391,9 @@ app.get('/', (req, res) => res.json({
 // ─────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 
+// ── Keep-Alive ping ──────────────────────────────
+app.get('/ping', (_, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+
 app.listen(PORT, async () => {
   console.log('🚀 ' + CATALOG.negocio.nombre + ' Enterprise v10 → puerto ' + PORT);
   console.log('📦 Productos:', CATALOG.productos.filter(p => p.activo).length);
@@ -421,3 +424,4 @@ app.listen(PORT, async () => {
 });
 
 module.exports = { getCatalog, getAIResponse, buildSystemPrompt };
+
