@@ -1,4 +1,4 @@
-// ══════════════════════════════════════════════════════════════
+﻿// ══════════════════════════════════════════════════════════════
 //  db.js — Base de Datos PostgreSQL
 //  Auto-crea tablas al arrancar. Sin migraciones manuales.
 // ══════════════════════════════════════════════════════════════
@@ -10,8 +10,7 @@ function getPool() {
   if (!_pool) {
     _pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: (process.env.DATABASE_URL || '').includes('railway')
-        ? { rejectUnauthorized: false } : false,
+      ssl: (process.env.DATABASE_URL || '').includes('railway') || (process.env.DATABASE_URL || '').includes('supabase') ? { rejectUnauthorized: false } : false,
       max: 10, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000,
     });
     _pool.on('error', e => console.error('[DB POOL]', e.message));
@@ -189,3 +188,4 @@ async function logMensaje(clienteId, canal, direccion, contenido, tipo='texto') 
 }
 
 module.exports = { query, initSchema, upsertCliente, getCliente, logMensaje, getPool };
+
