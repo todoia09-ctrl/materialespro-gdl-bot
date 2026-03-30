@@ -426,3 +426,5 @@ app.listen(PORT, async () => {
 });
 
 module.exports = { getCatalog, getAIResponse, buildSystemPrompt };
+
+
