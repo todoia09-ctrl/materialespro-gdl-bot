@@ -304,31 +304,65 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
 
     if (!rows.length) return res.status(400).json({ error: 'El archivo está vacío' });
 
-    // Validar columnas requeridas
-    const required = ['id', 'nombre', 'precio', 'presentacion'];
-    const headers  = Object.keys(rows[0]);
-    const missing  = required.filter(c => !headers.includes(c));
-    if (missing.length) {
-      return res.status(400).json({
-        error: `Columnas faltantes: ${missing.join(', ')}`,
-        consejo: 'Descarga la plantilla desde el dashboard para ver el formato correcto'
-      });
+    // Mapeo flexible — soporta tu formato CRM y formato estándar
+    const headers = Object.keys(rows[0]);
+    const esTuFormato = headers.includes('Código CRM') || headers.includes('Artículo');
+
+    function getVal(r, ...keys) {
+      for (const k of keys) { if (r[k] !== undefined && r[k] !== '') return r[k]; }
+      return '';
     }
 
-    // Construir productos limpios
-    const productos = rows.map((r, i) => ({
-      id:                       String(r.id || '').trim() || `PROD-${String(i+1).padStart(3,'0')}`,
-      categoria:                String(r.categoria || 'General').trim(),
-      nombre:                   String(r.nombre || '').trim(),
-      descripcion:              String(r.descripcion || '').trim(),
-      usos:                     String(r.usos || '').trim(),
-      presentacion:             String(r.presentacion || '').trim(),
-      precio:                   parseFloat(String(r.precio).replace(/[^0-9.]/g,'')) || 0,
-      rendimiento_m2_por_unidad: parseFloat(r.rendimiento_m2_por_unidad) || 0,
-      rendimiento_nota:         String(r.rendimiento_nota || '').trim(),
-      colores:                  r.colores ? String(r.colores).trim() : undefined,
-      activo:                   String(r.activo).toLowerCase() !== 'false' && r.activo !== 0,
-    })).filter(p => p.nombre);
+    function parsePrecio(v) {
+      if (!v && v !== 0) return 0;
+      return parseFloat(String(v).replace(/[^0-9.]/g, '')) || 0;
+    }
+
+    // Construir productos limpios — soporta ambos formatos
+    const productos = rows.map((r, i) => {
+      const nombre = String(getVal(r, 'Artículo', 'nombre') || '').trim();
+      if (!nombre) return null;
+
+      const precio1 = parsePrecio(getVal(r, 'Precio 1 NETO', 'precio'));
+      const precio2 = parsePrecio(getVal(r, 'Precio 2 NETO', 'precio_2'));
+      const precio3 = parsePrecio(getVal(r, 'Precio 3 NETO', 'precio_3'));
+      const precio4 = parsePrecio(getVal(r, 'Precio 4 NETO', 'precio_4'));
+      const costo   = parsePrecio(getVal(r, 'Costo NETO', 'costo'));
+
+      const activoRaw = getVal(r, 'Activo', 'activo');
+      const activo = activoRaw === 'Verdadero' || activoRaw === true ||
+                     String(activoRaw).toLowerCase() === 'true' || activoRaw === 1;
+
+      // Disponibilidad
+      const entrega1dia   = getVal(r, 'ENTREGA 1 DIA') === 'X';
+      const sobrePedido   = getVal(r, 'SOBRE PEDIDO') === 'X';
+      const disponibilidad = entrega1dia ? 'entrega_1dia' : sobrePedido ? 'sobre_pedido' : 'stock';
+
+      return {
+        id:          String(getVal(r, 'Código CRM', 'id') || '').trim() || `PROD-${String(i+1).padStart(3,'0')}`,
+        categoria:   String(getVal(r, 'Categoría', 'categoria') || 'General').trim(),
+        nombre,
+        descripcion: String(getVal(r, 'descripcion') || '').trim(),
+        usos:        String(getVal(r, 'usos') || '').trim(),
+        presentacion: String(getVal(r, 'Se vende por', 'presentacion') || 'Pieza').trim(),
+        marca:       String(getVal(r, 'Marca', 'marca') || '').trim(),
+        proveedor:   String(getVal(r, 'Proveedor', 'proveedor') || '').trim(),
+        peso_kg:     parseFloat(getVal(r, 'peso_kg') || 0) || 0,
+        precio:      precio1,
+        precio_2:    precio2,
+        precio_3:    precio3,
+        precio_4:    precio4,
+        costo:       costo,
+        rendimiento_m2_por_unidad: parseFloat(getVal(r, 'rendimiento_m2_por_unidad') || 0) || 0,
+        rendimiento_nota: String(getVal(r, 'rendimiento_nota') || '').trim(),
+        colores:     getVal(r, 'colores') ? String(getVal(r, 'colores')).trim() : undefined,
+        codigo_sat:  String(getVal(r, 'CODIGO SAT', 'codigo_sat') || '').trim(),
+        impuestos:   String(getVal(r, 'impuestos') || 'IVA 16%').trim(),
+        disponibilidad,
+        stock:       parseInt(getVal(r, 'INVENTARIO', 'stock') || 0) || 0,
+        activo,
+      };
+    }).filter(Boolean);
 
     if (!productos.length) return res.status(400).json({ error: 'No se encontraron productos válidos' });
 
