@@ -17,7 +17,7 @@ async function syncFromCatalog(catalogProducts) {
       INSERT INTO inventario(producto_id, nombre, unidad)
       VALUES($1,$2,$3)
       ON CONFLICT(producto_id) DO UPDATE SET nombre=EXCLUDED.nombre`,
-      [p.id, p.nombre, p.presentacion?.includes('kg') ? 'bolsas' : p.presentacion?.includes('L') ? 'cubetas' : 'unidades']
+      [p.codigo || p.id, p.nombre, p.unidad || (p.presentacion?.includes('kg') ? 'bolsas' : p.presentacion?.includes('L') ? 'cubetas' : 'unidades')]
     );
   }
 }
