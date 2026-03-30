@@ -49,19 +49,16 @@ function loadCatalog() {
 
 function buildCatalogText(cat) {
   const prods = (cat.productos || []).filter(p => p.activo !== false)
-    .map(p => p.nombre + ' 
-
-let CATALOG     = loadCatalog();
-let CATALOG_TXT = buildCatalogText(CATALOG);
-
-function getCatalog() { return CATALOG; }
-
-setInterval(() => {
-  try {
-    CATALOG     = loadCatalog();
-    CATALOG_TXT = buildCatalogText(CATALOG);
-    console.log('[CATÁLOGO] Recargado');
-  } catch (e) { console.error('[CATÁLOGO]', e.message); }
+    .map(p => p.nombre + " $" + (p.precio_venta || p.precio || 0) + "/" + (p.unidad || p.presentacion || "pza"))
+    .join("\n- ");
+  const e = cat.envios || {};
+  const gdl = e.gdl_zapopan || { precio: "consultar", tiempo: "1-2 dias" };
+  const zmg = e.zmg || { precio: "consultar", tiempo: "1-3 dias" };
+  const horario = (cat.negocio || cat.meta || {}).horario || "Lun-Sab 8am-6pm";
+  return "- " + prods
+    + "\nENVIOS: GDL/Zapopan $" + gdl.precio + " (" + gdl.tiempo + ")"
+    + " | ZMG $" + zmg.precio + " (" + zmg.tiempo + ")"
+    + (e.gratis_desde ? " | Gratis +$" + e.gratis_desde : "") + " | " + horario;
 }, 60 * 60 * 1000);
 
 // ─────────────────────────────────────────────────
