@@ -193,6 +193,7 @@ select:focus{border-color:var(--rust)}
     <div class="nav-section">Operaciones</div>
     <div class="nav-item" onclick="showPage('inventario')"><span class="icon">🏗️</span> Inventario</div>
     <div class="nav-item" onclick="showPage('campanas')"><span class="icon">📣</span> Campañas</div>
+    <div class="nav-item" onclick="showPage('catalogo')"><span class="icon">📋</span> Catálogo</div>
     <div class="nav-section">Reportes</div>
     <div class="nav-item" onclick="showPage('reportes')"><span class="icon">📈</span> Reportes</div>
   </nav>
@@ -345,6 +346,54 @@ select:focus{border-color:var(--rust)}
       </div>
     </div>
 
+    <!-- CATÁLOGO -->
+    <div class="page" id="page-catalogo">
+      <div class="camp-form">
+        <div class="section-title">📋 Importar Lista de Precios</div>
+        <p style="color:var(--light);font-size:.88rem;margin-bottom:1.5rem">Sube tu lista de precios en Excel y el bot actualizará su catálogo al instante.</p>
+
+        <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="descargarPlantilla()">⬇️ Descargar Plantilla Excel</button>
+        </div>
+
+        <div id="dropZone" onclick="document.getElementById('excelInput').click()"
+          style="border:2px dashed rgba(255,255,255,.2);border-radius:12px;padding:3rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1.5rem">
+          <div style="font-size:2.5rem;margin-bottom:.75rem">📂</div>
+          <div style="color:var(--light);font-size:.95rem">Haz clic aquí o arrastra tu archivo Excel</div>
+          <div style="color:var(--gray);font-size:.78rem;margin-top:.4rem">.xlsx · máximo 10MB</div>
+          <input type="file" id="excelInput" accept=".xlsx,.xls" style="display:none" onchange="previsualizarExcel(this)">
+        </div>
+
+        <div id="catPreview" style="display:none">
+          <div class="section-title" style="font-size:1rem">Vista previa</div>
+          <div id="catPreviewInfo" style="color:var(--light);font-size:.88rem;margin-bottom:1rem"></div>
+          <div class="table-wrap" style="margin-bottom:1.5rem">
+            <table>
+              <thead><tr><th>ID</th><th>Categoría</th><th>Nombre</th><th>Presentación</th><th>Precio</th><th>Activo</th></tr></thead>
+              <tbody id="catPreviewTable"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:.75rem">
+            <button class="btn btn-secondary" onclick="cancelarImport()">✕ Cancelar</button>
+            <button class="btn btn-primary" onclick="confirmarImport()">✅ Confirmar e importar</button>
+          </div>
+        </div>
+
+        <div id="catResult" style="display:none;padding:1rem;border-radius:8px;margin-top:1rem;font-size:.9rem"></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <span class="section-title">Productos actuales</span>
+          <button class="btn btn-secondary btn-sm" onclick="loadCatalogo()">🔄 Actualizar</button>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Categoría</th><th>Nombre</th><th>Presentación</th><th>Precio</th><th>Estado</th></tr></thead>
+          <tbody id="catTable"><tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- REPORTES -->
     <div class="page" id="page-reportes">
       <div style="display:flex;gap:.75rem;margin-bottom:1.5rem">
@@ -454,7 +503,7 @@ function showPage(name) {
     if (n.getAttribute('onclick')?.includes("'" + name + "'")) n.classList.add('active');
   });
   const titles = { dashboard:'Dashboard', pedidos:'Pedidos', clientes:'Clientes (CRM)',
-                   inventario:'Inventario', campanas:'Campañas WhatsApp', reportes:'Reportes' };
+                   inventario:'Inventario', campanas:'Campañas WhatsApp', catalogo:'Catálogo / Precios', reportes:'Reportes' };
   document.getElementById('pageTitle').textContent = titles[name] || name;
   CURRENT = name;
   loadPage(name);
@@ -789,6 +838,116 @@ else { document.getElementById('loginScreen').style.display = 'flex'; }
 
 // Auto-refresh dashboard cada 60 segundos
 setInterval(() => { if (CURRENT === 'dashboard') loadDashboard(); }, 60000);
+
+// ── CATÁLOGO ──────────────────────────────────────
+let excelFileBase64 = null;
+
+async function loadCatalogo() {
+  const tk = localStorage.getItem('mp_token');
+  try {
+    const r = await fetch('/api/catalogo', { headers: { Authorization: 'Bearer ' + tk } });
+    const d = await r.json();
+    const tbody = document.getElementById('catTable');
+    if (!d.productos || !d.productos.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Sin productos</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.productos.map(p => `
+      <tr>
+        <td><code style="font-size:.75rem">${p.id}</code></td>
+        <td>${p.categoria}</td>
+        <td>${p.nombre}</td>
+        <td>${p.presentacion}</td>
+        <td style="color:var(--sand);font-weight:600">$${p.precio.toLocaleString('es-MX')}</td>
+        <td>${p.activo ? '<span style="color:#4caf50">✅ Activo</span>' : '<span style="color:var(--gray)">⏸ Inactivo</span>'}</td>
+      </tr>`).join('');
+  } catch(e) { console.error('loadCatalogo', e); }
+}
+
+function descargarPlantilla() {
+  const tk = localStorage.getItem('mp_token');
+  const a  = document.createElement('a');
+  a.href   = '/api/catalogo/plantilla';
+  a.setAttribute('download', 'plantilla_catalogo.xlsx');
+  // Fetch con auth para descargar
+  fetch('/api/catalogo/plantilla', { headers: { Authorization: 'Bearer ' + tk } })
+    .then(r => r.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      a.href    = url;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }).catch(e => alert('Error al descargar plantilla: ' + e.message));
+}
+
+function previsualizarExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    excelFileBase64 = e.target.result.split(',')[1];
+    // Preview simple — mostrar nombre y tamaño
+    const kb = (file.size / 1024).toFixed(1);
+    document.getElementById('catPreviewInfo').textContent =
+      `Archivo: ${file.name} (${kb} KB) — Los datos se validarán al confirmar`;
+    // Limpiar tabla preview
+    document.getElementById('catPreviewTable').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--light);padding:1rem">✅ Archivo listo — haz clic en Confirmar para importar</td></tr>';
+    document.getElementById('catPreview').style.display = 'block';
+    document.getElementById('catResult').style.display  = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function cancelarImport() {
+  excelFileBase64 = null;
+  document.getElementById('excelInput').value = '';
+  document.getElementById('catPreview').style.display = 'none';
+  document.getElementById('catResult').style.display  = 'none';
+}
+
+async function confirmarImport() {
+  if (!excelFileBase64) return;
+  const tk  = localStorage.getItem('mp_token');
+  const btn = document.querySelector('#catPreview .btn-primary');
+  btn.textContent = '⏳ Importando...';
+  btn.disabled    = true;
+  try {
+    const r = await fetch('/api/catalogo/importar', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + tk, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileBase64: excelFileBase64 })
+    });
+    const d = await r.json();
+    const el = document.getElementById('catResult');
+    el.style.display = 'block';
+    if (d.ok) {
+      el.style.background = 'rgba(76,175,80,.15)';
+      el.style.border      = '1px solid rgba(76,175,80,.3)';
+      el.style.color       = '#81c784';
+      el.textContent       = `✅ ${d.mensaje} (antes: ${d.anterior} productos)`;
+      cancelarImport();
+      loadCatalogo();
+    } else {
+      el.style.background = 'rgba(229,57,53,.15)';
+      el.style.border      = '1px solid rgba(229,57,53,.3)';
+      el.style.color       = '#ef9a9a';
+      el.textContent       = '❌ ' + (d.error || 'Error al importar');
+    }
+  } catch(e) {
+    const el = document.getElementById('catResult');
+    el.style.display    = 'block';
+    el.style.background = 'rgba(229,57,53,.15)';
+    el.style.color      = '#ef9a9a';
+    el.textContent      = '❌ Error de conexión: ' + e.message;
+  } finally {
+    btn.textContent = '✅ Confirmar e importar';
+    btn.disabled    = false;
+  }
+}
+
 </script>
 </body>
 </html>
