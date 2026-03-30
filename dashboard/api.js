@@ -286,7 +286,20 @@ router.get('/reportes/productos', authMiddleware(['admin']), async (req, res) =>
 router.get('/catalogo', authMiddleware(['admin']), (req, res) => {
   try {
     const cat = JSON.parse(fs.readFileSync(CATALOG_PATH, 'utf8'));
-    res.json({ negocio: cat.negocio, productos: cat.productos, total: cat.productos.length });
+    const raw = cat.productos || [];
+    const productos = raw.map(p => ({
+      id:           p.codigo || p.id || '',
+      nombre:       p.nombre || '',
+      descripcion:  p.descripcion || '',
+      categoria:    p.categoria || '',
+      marca:        p.marca || '',
+      presentacion: p.unidad || p.presentacion || '',
+      precio:       p.precio_venta || p.precio || 0,
+      precio_lista: p.precio_lista || 0,
+      costo:        p.costo_neto || p.costo || 0,
+      activo:       p.activo !== false,
+    }));
+    res.json({ negocio: cat.negocio || cat.meta || {}, productos, total: productos.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
