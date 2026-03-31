@@ -151,6 +151,20 @@ router.get('/clientes', authMiddleware(), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /clientes/:id — perfil completo del cliente
+router.get('/clientes/:id', authMiddleware(), async (req, res) => {
+  try {
+    const wa = decodeURIComponent(req.params.id);
+    const [cli, peds, cots] = await Promise.all([
+      query('SELECT * FROM clientes WHERE whatsapp=$1', [wa]),
+      query('SELECT * FROM pedidos WHERE cliente_id=(SELECT id FROM clientes WHERE whatsapp=$1) ORDER BY creado_en DESC LIMIT 5', [wa]),
+      query('SELECT * FROM cotizaciones WHERE cliente_id=(SELECT id FROM clientes WHERE whatsapp=$1) ORDER BY creado_en DESC LIMIT 5', [wa]),
+    ]);
+    if (!cli.rows.length) return res.status(404).json({ error: 'Cliente no encontrado' });
+    res.json({ cliente: cli.rows[0], pedidos: peds.rows, cotizaciones: cots.rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/clientes/:id/historial', authMiddleware(), async (req, res) => {
   try {
     const id = req.params.id;
