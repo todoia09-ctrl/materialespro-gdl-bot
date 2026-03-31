@@ -4,8 +4,9 @@
 //  quiereFact false-positive corregido, negocio dinámico
 // ══════════════════════════════════════════════════════════════
 
-const twilio     = require('twilio');
-const nodemailer = require('nodemailer');
+const twilio        = require('twilio');
+const nodemailer    = require('nodemailer');
+const { guardarPedido, actualizarEstadoPedido } = require('./crm');
 
 // ─────────────────────────────────────────────────
 //  SINGLETON TWILIO (FIX #1)
@@ -297,6 +298,14 @@ async function processVendorReply(msg, sendToClient) {
   if (parsed.confirmed) {
     data.state = S.CONFIRMED;
     activeOrders.set(sessionKey, data);
+
+    // ── Actualizar estado en DB ──────────────────────────────
+    if (order.pedidoId) {
+      await actualizarEstadoPedido(order.pedidoId, 'confirmado').catch(e =>
+        console.error('[PEDIDO DB] actualizarEstado:', e.message)
+      );
+    }
+    // ────────────────────────────────────────────────────────
 
     const payInstructions = {
       efectivo:      isPickup ? 'Pago en efectivo al llegar.' : 'El repartidor cobra en efectivo.',
