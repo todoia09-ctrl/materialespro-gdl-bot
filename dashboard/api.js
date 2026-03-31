@@ -164,6 +164,17 @@ router.get('/clientes/:id/historial', authMiddleware(), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+router.patch('/clientes/:id/nivel', authMiddleware(), async (req, res) => {
+  const { nivel_precio } = req.body;
+  if (![1,2,3,4].includes(parseInt(nivel_precio)))
+    return res.status(400).json({ error: 'Nivel invalido' });
+  try {
+    await query('UPDATE clientes SET nivel_precio=$1 WHERE whatsapp=$2',
+      [parseInt(nivel_precio), decodeURIComponent(req.params.id)]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.patch('/clientes/:id', authMiddleware(), async (req, res) => {
   const { notas, credito_limite, zona } = req.body;
   try {
