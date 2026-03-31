@@ -17,7 +17,8 @@ const pathMod   = require('path');
 const { initSchema, upsertCliente, getCliente, logMensaje } = require('./db');
 const { registrarContacto, actualizarZona, guardarCotizacion,
         guardarPedido, actualizarEstadoPedido,
-        programarSeguimiento, logConversacion }              = require('./crm');
+        programarSeguimiento, logConversacion,
+        getNivelPrecio, calcularPrecio, etiquetaNivel }       = require('./crm');
 const { syncFromCatalog, verificarStock }                    = require('./inventario');
 const { initScheduler }                                      = require('./scheduler');
 const { processMetaWebhook }                                 = require('./meta');

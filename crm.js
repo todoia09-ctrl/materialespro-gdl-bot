@@ -203,6 +203,107 @@ async function logConversacion(whatsapp, canal, direccion, contenido, tipo) {
   } catch (_) {}
 }
 
+// ─────────────────────────────────────────────────
+//  PRICING 4 NIVELES
+// ─────────────────────────────────────────────────
+
+// Umbrales de compra acumulada para subir de nivel
+const NIVEL_UMBRALES = {
+  2: 10000,  // > $10,000 → Precio 2
+  3: 30000,  // > $30,000 → Precio 3
+  // Nivel 4 siempre manual
+};
+
+// Descuentos default por nivel (sobre precio_venta)
+const DESCUENTOS_DEFAULT = {
+  1: 0,
+  2: 5,    // 5% descuento
+  3: 10,   // 10% descuento
+  4: 20,   // descuento_maximo del producto
+};
+
+// Calcular nivel automático por total_compras
+function calcularNivelAuto(totalCompras) {
+  if (totalCompras >= NIVEL_UMBRALES[3]) return 3;
+  if (totalCompras >= NIVEL_UMBRALES[2]) return 2;
+  return 1;
+}
+
+// Obtener nivel y descuentos del cliente
+async function getNivelPrecio(whatsapp) {
+  try {
+    const cliente = await getCliente(whatsapp);
+    if (!cliente) return { nivel: 1, descuento_p2: 5, descuento_p3: 10 };
+
+    // Auto-upgrade por volumen (solo sube, nunca baja automáticamente)
+    const nivelAuto = calcularNivelAuto(parseFloat(cliente.total_compras || 0));
+    const nivelActual = parseInt(cliente.nivel_precio || 1);
+    
+    // Si nivel manual (4) o nivel auto subió → actualizar
+    let nivelFinal = nivelActual;
+    if (nivelAuto > nivelActual && nivelActual !== 4) {
+      nivelFinal = nivelAuto;
+      await query(
+        'UPDATE clientes SET nivel_precio=$1 WHERE whatsapp=$2',
+        [nivelFinal, whatsapp]
+      );
+      console.log('[PRICING] Auto-upgrade cliente', whatsapp, 'nivel', nivelActual, '->', nivelFinal);
+    }
+
+    return {
+      nivel:        nivelFinal,
+      descuento_p2: parseFloat(cliente.descuento_p2 || 5),
+      descuento_p3: parseFloat(cliente.descuento_p3 || 10),
+      nombre:       cliente.nombre,
+      total_compras: parseFloat(cliente.total_compras || 0),
+    };
+  } catch (e) {
+    console.error('[PRICING] getNivelPrecio:', e.message);
+    return { nivel: 1, descuento_p2: 5, descuento_p3: 10 };
+  }
+}
+
+// Calcular precio final según nivel del cliente
+function calcularPrecio(producto, nivelInfo) {
+  const base = producto.precio_venta || producto.precio || 0;
+  const { nivel, descuento_p2, descuento_p3 } = nivelInfo;
+
+  switch (nivel) {
+    case 2: return Math.round(base * (1 - descuento_p2 / 100));
+    case 3: return Math.round(base * (1 - descuento_p3 / 100));
+    case 4: {
+      const descMax = producto.descuento_maximo || 0.20;
+      return Math.round(base * (1 - descMax));
+    }
+    default: return base; // Nivel 1 — precio normal
+  }
+}
+
+// Etiqueta para el mensaje al cliente
+function etiquetaNivel(nivel) {
+  const labels = {
+    1: null,
+    2: 'cliente frecuente',
+    3: 'distribuidor',
+    4: 'cliente preferente',
+  };
+  return labels[nivel] || null;
+}
+
+// Actualizar nivel manualmente desde dashboard
+async function setNivelPrecio(whatsapp, nivel, descuento_p2, descuento_p3) {
+  try {
+    await query(
+      'UPDATE clientes SET nivel_precio=$1, descuento_p2=COALESCE($2,descuento_p2), descuento_p3=COALESCE($3,descuento_p3) WHERE whatsapp=$4',
+      [nivel, descuento_p2 || null, descuento_p3 || null, whatsapp]
+    );
+    return true;
+  } catch (e) {
+    console.error('[PRICING] setNivelPrecio:', e.message);
+    return false;
+  }
+}
+
 module.exports = {
   registrarContacto,
   actualizarZona,
@@ -213,4 +314,9 @@ module.exports = {
   getHistorialCliente,
   logConversacion,
   detectarZona,
+  getNivelPrecio,
+  calcularPrecio,
+  etiquetaNivel,
+  setNivelPrecio,
+  DESCUENTOS_DEFAULT,
 };
