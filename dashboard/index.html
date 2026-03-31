@@ -778,7 +778,18 @@ async function crearCampana() {
 }
 
 // ── REPORTES ──────────────────────────────────────
-async function loadReportes() {
+async function guardarNivel(wa) {
+    const sel = document.getElementById('nivelSelect');
+    if (!sel) { toast('Error: selector no encontrado', 'error'); return; }
+    const nivel = parseInt(sel.value);
+    const r = await api('/clientes/' + encodeURIComponent(wa) + '/nivel', {
+      method: 'PATCH', body: { nivel_precio: nivel }
+    });
+    if (r?.ok) { toast('Nivel actualizado ✅', 'success'); closeModal('modalCliente'); }
+    else toast('Error al guardar nivel', 'error');
+  }
+
+  async function loadReportes() {
   const period = document.getElementById('reportPeriod').value;
   const data   = await api('/reportes?periodo=' + period);
   if (!data) return;
