@@ -63,9 +63,19 @@ function loadCatalog() {
   return _cat;
 }
 
-function buildCatalogText(cat) {
+function buildCatalogText(cat, nivelInfo) {
+    const _nivel = nivelInfo ? nivelInfo.nivel : 1;
+    const _dp2   = nivelInfo ? nivelInfo.descuento_p2 : 5;
+    const _dp3   = nivelInfo ? nivelInfo.descuento_p3 : 10;
+    function precioNivel(p) {
+      const base = p.precio_venta || p.precio || 0;
+      if (_nivel === 2) return Math.round(base * (1 - _dp2 / 100));
+      if (_nivel === 3) return Math.round(base * (1 - _dp3 / 100));
+      if (_nivel === 4) return Math.round(base * (1 - (p.descuento_maximo || 0.20)));
+      return base;
+    }
   const prods = (cat.productos || []).filter(p => p.activo !== false)
-    .map(p => p.nombre + " $" + (p.precio_venta || p.precio || 0) + "/" + (p.unidad || p.presentacion || "pza"))
+    .map(p => p.nombre + " $" + precioNivel(p) + "/" + (p.unidad || p.presentacion || "pza"))
     .join("\n- ");
   const e = cat.envios || {};
   const gdl = e.gdl_zapopan || { precio: "consultar", tiempo: "1-2 dias" };
