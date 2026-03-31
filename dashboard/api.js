@@ -109,6 +109,19 @@ router.get('/pedidos', authMiddleware(), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /pedidos/:id — detalle completo
+router.get('/pedidos/:id', authMiddleware(), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const sql = 'SELECT p.*, c.nombre as cliente_nombre, c.whatsapp FROM pedidos p LEFT JOIN clientes c ON c.id=p.cliente_id WHERE p.id=$1';
+    const ped = await query(sql, [id]);
+    if (!ped.rows.length) return res.status(404).json({ error: 'Pedido no encontrado' });
+    const clienteId = ped.rows[0].cliente_id;
+    const cli = clienteId ? await query('SELECT * FROM clientes WHERE id=$1', [clienteId]) : { rows: [{}] };
+    res.json({ pedido: ped.rows[0], cliente: cli.rows[0] || {} });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.patch('/pedidos/:id/estado', authMiddleware(), async (req, res) => {
   const { estado } = req.body;
   const estados    = ['pendiente','confirmado','en_camino','entregado','cancelado'];

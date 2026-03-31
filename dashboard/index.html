@@ -520,11 +520,11 @@ function loadPage(name) {
 
 // ── DASHBOARD ─────────────────────────────────────
 async function loadDashboard() {
-  const data = await api('/dashboard/stats');
+  const data = await api('/resumen');
   if (!data) return;
   document.getElementById('s-pedidos').textContent  = data.pedidos_hoy    || '0';
   document.getElementById('s-ingresos').textContent = '$' + Number(data.ingresos_hoy||0).toLocaleString('es-MX');
-  document.getElementById('s-cots').textContent     = data.cots_hoy       || '0';
+  document.getElementById('s-cots').textContent     = data.cotizaciones_hoy || '0';
   document.getElementById('s-clientes').textContent = data.clientes_nuevos || '0';
 
   // Recent orders
@@ -571,8 +571,8 @@ async function loadPedidos() {
   if (!data) return;
 
   const tbody = document.getElementById('pedidosTable');
-  if (data.pedidos?.length) {
-    tbody.innerHTML = data.pedidos.map(p => `
+  if (data?.length) {
+    tbody.innerHTML = data.map(p => `
       <tr>
         <td><code style="font-size:.72rem;color:var(--sand)">${p.folio}</code></td>
         <td>${p.cliente_nombre || p.whatsapp || '—'}</td>
@@ -622,7 +622,7 @@ async function verPedido(id) {
 }
 
 async function updatePedido(id, estado) {
-  const r = await api('/pedidos/' + id + '/estado', { method:'PUT', body:{ estado } });
+  const r = await api('/pedidos/' + id + '/estado', { method:'PATCH', body:{ estado } });
   if (r?.ok) { toast('Pedido ' + estado, 'success'); closeModal('modalPedido'); loadPage(CURRENT); }
   else toast('Error al actualizar', 'error');
 }
@@ -634,7 +634,7 @@ async function loadClientes() {
   if (zona) params.set('zona', zona);
   const data = await api('/clientes?' + params);
   if (!data) return;
-  renderClientes(data.clientes || []);
+  renderClientes(data || []);
 }
 
 function searchClientes() {
@@ -642,7 +642,7 @@ function searchClientes() {
   clearTimeout(searchClientes._t);
   searchClientes._t = setTimeout(async () => {
     const data = await api('/clientes?buscar=' + encodeURIComponent(q) + '&limit=50');
-    if (data) renderClientes(data.clientes || []);
+    if (data) renderClientes(data || []);
   }, 300);
 }
 
