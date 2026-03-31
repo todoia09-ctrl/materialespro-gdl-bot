@@ -594,7 +594,8 @@ async function verPedido(id) {
   const data = await api('/pedidos/' + id);
   if (!data) return;
   const p = data.pedido;
-  const c = data.cliente;
+  const c = data.cliente || data;
+    if (!c || !c.whatsapp) { toast('No se pudo cargar el cliente', 'error'); return; }
   document.getElementById('modalPedidoContent').innerHTML = `
     <div class="detail-row"><span class="detail-label">Folio</span><code style="color:var(--sand)">${p.folio}</code></div>
     <div class="detail-row"><span class="detail-label">Estado</span>${badgeEstado(p.estado)}</div>
