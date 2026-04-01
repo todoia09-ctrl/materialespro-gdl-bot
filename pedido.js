@@ -385,7 +385,9 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
     const _wantsEscape = _escA.includes('cancel') || _escA.includes('no quiero')
       || _escA.includes('asesor') || _escA.includes('cotizar') || _escA.includes('otro')
       || _escA.includes('olvidalo') || _escA.includes('olvida') || _escA.includes('dejalo')
-      || _escA.includes('espera') || _escA.includes('stop') || _escA.includes('salir');
+      || _escA.includes('espera') || _escA.includes('stop') || _escA.includes('salir')
+      || _escA.includes('cuanto') || _escA.includes('cuesta') || _escA.includes('precio')
+      || _escA.includes('tienes') || _escA.includes('tienen') || _escA.includes('hola');
     if (_wantsEscape) { activeOrders.delete(key); return null; }
     const type = detectOrderType(msg);
     if (!type) return 'Por favor elige:\n1️⃣ Recoger en almacén\n2️⃣ Entrega a domicilio';
