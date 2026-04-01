@@ -76,7 +76,15 @@ function buildCatalogText(cat, nivelInfo) {
       return base;
     }
   const prods = (cat.productos || []).filter(p => p.activo !== false)
-    .map(p => p.nombre + " $" + precioNivel(p) + "/" + (p.unidad || p.presentacion || "pza"))
+    .map(p => {
+      var _u = 'pza';
+      var _n = p.nombre || '';
+      // Si el nombre NO contiene presentación, usar unidad del catálogo
+      if (!/ \(\d/.test(_n) && !/ \d+[,.]\d+ /.test(_n)) {
+        _u = p.unidad || p.presentacion || 'pza';
+      }
+      return _n + " $" + precioNivel(p) + "/" + _u;
+    })
     .join("\n- ");
   const e = cat.envios || {};
   const gdl = e.gdl_zapopan || { precio: "consultar", tiempo: "1-2 dias" };
