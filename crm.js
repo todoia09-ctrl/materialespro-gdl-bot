@@ -84,6 +84,26 @@ async function guardarCotizacion(whatsapp, folio, items, total, pdfUrl, canal) {
 // ─────────────────────────────────────────────────
 //  GUARDAR PEDIDO EN DB
 // ─────────────────────────────────────────────────
+// ─────────────────────────────────────────────────
+//  PARSER DE ITEMS DESDE rawQuote (FIX BUG L)
+// ─────────────────────────────────────────────────
+function _parseItems(order) {
+  if (order.items && order.items.length) return order.items;
+  if (!order.rawQuote) return [];
+  const items = [];
+  // Patrones: '10x Nombre: 10 × $375 = $3,750' o '10 Nombre $375'
+  const lines = order.rawQuote.split('\n');
+  for (const line of lines) {
+    const m1 = line.match(/(\d+)[x×]\s*([^:$\n]+?)\s*[:\-]?\s*(\d+)\s*[x×]\s*\$([\d,]+)/i);
+    if (m1) { items.push({ qty: parseInt(m1[1]), nombre: m1[2].trim(), precio: parseFloat(m1[4].replace(/,/g,'')) }); continue; }
+    const m2 = line.match(/\*(\d+)[x×]([^*]+)\*/i);
+    if (m2) { items.push({ qty: parseInt(m2[1]), nombre: m2[2].trim(), precio: 0 }); continue; }
+    const m3 = line.match(/(\d+)\s+(.{5,40})\s+\$([\d,]+)/i);
+    if (m3) items.push({ qty: parseInt(m3[1]), nombre: m3[2].trim(), precio: parseFloat(m3[3].replace(/,/g,'')) });
+  }
+  return items;
+}
+
 async function guardarPedido(whatsapp, order, canal) {
   try {
     const cliente = await getCliente(whatsapp);
@@ -101,14 +121,14 @@ async function guardarPedido(whatsapp, order, canal) {
       [
         folio, cliente.id, canal||'whatsapp',
         order.type||'pickup', 'pendiente',
-        JSON.stringify(order.items||[]),
+        JSON.stringify(_parseItems(order)),
         order.subtotal||0, order.costoEnvio||0, order.total||0,
         order.payment||null,
         order.invoice||false, order.cfdi||null, order.invEmail||null,
         order.street||null, order.colony||null, order.reference||null,
         order.contact||null, order.altPhone||null, order.mapsLink||null,
         order.datetime||null, order.pickupDate||null,
-        detectarZona(order.colony||''),
+        order.type==='pickup' ? 'sucursal_principal' : detectarZona(order.colony||''),
       ]
     );
 

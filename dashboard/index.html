@@ -601,7 +601,7 @@ async function verPedido(id) {
     <div class="detail-row"><span class="detail-label">Estado</span>${badgeEstado(p.estado)}</div>
     <div class="detail-row"><span class="detail-label">Cliente</span>${c?.nombre || '—'}</div>
     <div class="detail-row"><span class="detail-label">WhatsApp</span>${c?.whatsapp || '—'}</div>
-    <div class="detail-row"><span class="detail-label">Tipo</span>${p.tipo === 'pickup' ? '📍 Recoger en almacén' : '🚚 Entrega a domicilio'}</div>
+    <div class="detail-row"><span class="detail-label">Tipo</span>${p.tipo === 'pickup' ? '📍 Recoger en almacén — <a href="https://maps.app.goo.gl/TU_LINK_AQUI" target="_blank" style="color:var(--sand)">Av. López Mateos Sur 6506, Zapopan</a>' : '🚚 Entrega a domicilio'}</div>
     ${p.tipo === 'delivery' ? `
     <div class="detail-row"><span class="detail-label">Dirección</span>${p.calle || '—'}</div>
     <div class="detail-row"><span class="detail-label">Colonia</span>${p.colonia || '—'}</div>
@@ -611,7 +611,8 @@ async function verPedido(id) {
     <div class="detail-row"><span class="detail-label">Fecha entrega</span>${p.fecha_entrega || '—'}</div>
     ${p.maps_link ? `<div class="detail-row"><span class="detail-label">Mapa</span><a href="${p.maps_link}" target="_blank" style="color:var(--sand)">Ver en Maps →</a></div>` : ''}
     ` : `<div class="detail-row"><span class="detail-label">Fecha recogida</span>${p.fecha_recoger || '—'}</div>`}
-    <div class="detail-row"><span class="detail-label">Total</span><b>$${Number(p.total||0).toLocaleString('es-MX')} MXN</b></div>
+    <div class="detail-row"><span class="detail-label">Total</span><b>${Number(p.total||0).toLocaleString('es-MX')} MXN</b></div>
+    ${(()=>{ try { const _it=JSON.parse(p.items_json||'[]'); if(!_it.length) return ''; return "<div class='detail-row' style='flex-direction:column;align-items:flex-start'>" + "<span class='detail-label' style='margin-bottom:.4rem'>📦 Productos</span>" + _it.map(i => "<div style='font-size:.84rem;padding:.15rem 0'>• "+i.qty+"x "+i.nombre+(i.precio?" — $"+Number(i.precio).toLocaleString('es-MX')+"/u":"")+"</div>").join('') + "</div>"; } catch(e){ return ''; } })()}
     <div class="detail-row"><span class="detail-label">Pago</span>${p.metodo_pago || '—'}</div>
     <div class="detail-row"><span class="detail-label">Factura</span>${p.factura ? '🧾 Sí — ' + p.cfdi_email : 'No'}</div>
     ${p.factura && p.cfdi_uso ? `<div class="detail-row"><span class="detail-label">CFDI</span>${p.cfdi_uso}</div>` : ''}
@@ -842,7 +843,13 @@ function badgeCamp(e) {
   return `<span class="badge ${map[e]||'badge-pend'}">${e}</span>`;
 }
 function zonaLabel(z) {
-  return { norte:'🔵 Norte/Zapopan', sur:'🟠 Sur/Tlaquepaque', este:'🟢 Este/Tonalá' }[z] || (z || '—');
+  const labels = {
+    'norte': '🔵 Norte/Zapopan',
+    'sur':   '🟠 Sur/Tlaquepaque',
+    'este':  '🟢 Este/Tonalá',
+    'sucursal_principal': '📍 MaterialesPro · Av. López Mateos Sur 6506'
+  };
+  return labels[z] || (z ? z : '—');
 }
 function fmtDate(d) {
   if (!d) return '—';
