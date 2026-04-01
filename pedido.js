@@ -93,6 +93,12 @@ const BUY_TRIGGERS = [
   'me lo llevas','lo necesito','lo compro','vamos','ok',
   'anotame','me lo mandan','enviame','me interesa',
   'quiero comprarlo','como lo pido','quiero el pedido',
+  // slang mexicano — fixes para pedidos no capturados
+  'me late','me lates','va que va','orale','andale','sale',
+  'de una','le entro','chido','trato','trato hecho','hecho',
+  'firmado','ya mero','ya la hicimos','eso','eso mero',
+  'a donde pago','como pago','cuando llega','cuando me lo traen',
+  'me lo quedo','me los quedo','me la quedo','cuanto es','pago',
 ];
 
 function isBuyIntent(msg) {
