@@ -558,6 +558,25 @@ function showPage(name) {
 
 function refreshPage() { loadPage(CURRENT); }
 
+  // Auto-refresh cada 30s en páginas activas
+  const _REFRESH_PAGES = ['dashboard','pedidos','clientes'];
+  let _refreshTimer = null;
+  function startAutoRefresh() {
+    if (_refreshTimer) clearInterval(_refreshTimer);
+    _refreshTimer = setInterval(() => {
+      if (_REFRESH_PAGES.includes(CURRENT)) {
+        loadPage(CURRENT);
+        console.log('[AUTO-REFRESH]', CURRENT, new Date().toLocaleTimeString('es-MX'));
+      }
+    }, 30000); // 30 segundos
+  }
+  startAutoRefresh();
+  // Mostrar indicador visual de último refresh
+  setInterval(() => {
+    const el = document.querySelector('.badge-live');
+    if (el) el.title = 'Último refresh: ' + new Date().toLocaleTimeString('es-MX');
+  }, 1000);
+
 function loadPage(name) {
   const loaders = { dashboard: loadDashboard, pedidos: loadPedidos,
                     clientes: loadClientes, inventario: loadInventario,
