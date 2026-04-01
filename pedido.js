@@ -196,7 +196,10 @@ function formatOrderSummary(order, forVendor, negocioNombre) {
 
   if (order.type === 'pickup') {
     lines.push('📍 *Tipo:* Recoger en almacén');
-    if (order.pickupDate) lines.push('📅 *Fecha/hora:* ' + order.pickupDate);
+    const _pdVal = order.pickupDate || '';
+  const _pdOk = _pdVal.length > 2 && !/^\d$/.test(_pdVal.trim());
+  if (_pdOk) lines.push('📅 *Fecha/hora:* ' + _pdVal);
+  else if (order.type === 'pickup') lines.push('📅 *Fecha/hora:* Coordinamos contigo');
   } else {
     lines.push('🚚 *Tipo:* Entrega a domicilio');
     if (order.street)    lines.push('📍 *Dirección:* ' + order.street);
@@ -295,7 +298,7 @@ function startVendorTimer(sessionKey, sendToClient) {
     const isPickup = order.type === 'pickup';
     let msg = '✅ *¡Pedido confirmado!*\n\n';
     if (isPickup) {
-      msg += '📍 Te esperamos en el almacén.\n📅 ' + (order.pickupDate || 'Coordinamos fecha') + '\n\n';
+      msg += '📍 Te esperamos en el almacén.\n📅 ' + ((order.pickupDate && order.pickupDate.length > 2) ? order.pickupDate : 'Coordinamos fecha contigo') + '\n\n';
     } else {
       msg += '🚚 Entrega coordinada.\n📅 ' + (order.datetime || 'Coordinamos fecha') + '\n📍 ' + (order.street || '') + ', Col. ' + (order.colony || '') + '\n\n';
     }
