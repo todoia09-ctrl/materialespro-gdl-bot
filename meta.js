@@ -1,21 +1,40 @@
 // ══════════════════════════════════════════════════════════════
 //  meta.js — Facebook + Instagram + WhatsApp Cloud API Handler
-//  v11 — WhatsApp Cloud API integrado (Meta Graph API v22.0)
+//  v13 — Pipeline completa + normalización número Meta→CRM
 // ══════════════════════════════════════════════════════════════
 
-const axios = require('axios');
+const axios     = require('axios');
+const Anthropic = require('@anthropic-ai/sdk');
+
+const { registrarContacto, logMensaje }                        = require('./db');
+const { guardarCotizacion, programarSeguimiento }              = require('./crm');
+const { processOrderFlow, getLastQuote, saveLastQuote,
+        isPDFRequest }                                         = require('./pedido');
+const { isTechnicalQuestion, getTechnicalInfo }                = require('./tecnico');
+const { generateAndSendQuote }                                 = require('./cotizacion');
 
 const META_API    = 'https://graph.facebook.com/v22.0';
 const WA_PHONE_ID = process.env.META_PHONE_NUMBER_ID;
 const WA_TOKEN    = process.env.META_WHATSAPP_TOKEN;
+
+const _aiClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// ─────────────────────────────────────────────────
+//  NORMALIZAR NÚMERO Meta → formato CRM
+//  Meta envía: 5213313469831
+//  CRM espera: whatsapp:+5213313469831
+// ─────────────────────────────────────────────────
+function normalizarNumero(from) {
+  const digits = String(from).replace(/\D/g, '');
+  return 'whatsapp:+' + digits;
+}
 
 // ─────────────────────────────────────────────────
 //  ENVIAR MENSAJE VIA WHATSAPP CLOUD API
 // ─────────────────────────────────────────────────
 async function sendMetaWAMessage(to, text) {
   try {
-    // Meta requiere número en formato internacional sin + (ej: 5213313469831)
-    const toClean = to.replace(/\D/g, '');
+    const toClean = String(to).replace(/\D/g, '');
     const res = await axios.post(
       META_API + '/' + WA_PHONE_ID + '/messages',
       {
@@ -35,10 +54,18 @@ async function sendMetaWAMessage(to, text) {
     console.log('[META WA OUT]', toClean, '>', text.substring(0, 60));
     return res.data;
   } catch (err) {
-    const errData = err.response?.data?.error;
-    console.error('[META WA SEND ERR]', errData?.message || err.message, '| code:', errData?.code);
+    const errData = err.response && err.response.data && err.response.data.error;
+    console.error('[META WA SEND ERR]', errData ? errData.message : err.message);
     throw err;
   }
+}
+
+// sendToClient compatible con processOrderFlow
+function makeSendToClient(fromDigits) {
+  return async function sendToClient(sessionKey, text) {
+    const num = String(sessionKey).replace('order:', '').replace(/\D/g, '') || fromDigits;
+    await sendMetaWAMessage(num, text);
+  };
 }
 
 // ─────────────────────────────────────────────────
@@ -52,12 +79,12 @@ async function sendDM(recipientId, text, token) {
       { params: { access_token: token } }
     );
   } catch (err) {
-    console.error('[META DM ERR]', err.response?.data?.error?.message || err.message);
+    console.error('[META DM ERR]', err.response && err.response.data && err.response.data.error ? err.response.data.error.message : err.message);
   }
 }
 
 // ─────────────────────────────────────────────────
-//  RESPONDER COMENTARIO FB (público, bajo el comment)
+//  RESPONDER COMENTARIO FB
 // ─────────────────────────────────────────────────
 async function replyComment(commentId, text, token) {
   try {
@@ -67,7 +94,7 @@ async function replyComment(commentId, text, token) {
       { params: { access_token: token } }
     );
   } catch (err) {
-    console.error('[META COMMENT ERR]', err.response?.data?.error?.message || err.message);
+    console.error('[META COMMENT ERR]', err.message);
   }
 }
 
@@ -84,34 +111,33 @@ async function getMetaName(userId, token) {
 }
 
 // ─────────────────────────────────────────────────
-//  PROCESADOR MENSAJES WHATSAPP CLOUD API
+//  PIPELINE COMPLETA — WHATSAPP CLOUD API
 // ─────────────────────────────────────────────────
-async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHistory, getCatalog) {
+async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse) {
   const messages = value.messages || [];
   const contacts = value.contacts || [];
 
   for (const msg of messages) {
-    // Ignorar mensajes que no sean de texto (por ahora)
-    if (msg.type !== 'text' && msg.type !== 'audio' && msg.type !== 'image') continue;
+    if (!['text', 'audio', 'image', 'document'].includes(msg.type)) continue;
 
-    const from     = msg.from;                                     // ej: 5213313469831
-    const key      = 'meta-wa:' + from;
-    const contact  = contacts.find(c => c.wa_id === from);
-    const userName = contact?.profile?.name || null;
-    const firstName = userName ? userName.split(' ')[0] : null;
+    const from        = msg.from;                    // ej: 5213313469831
+    const fromNorm    = normalizarNumero(from);      // whatsapp:+5213313469831
+    const contact     = contacts.find(function(c) { return c.wa_id === from; });
+    const userName    = contact && contact.profile ? contact.profile.name : null;
+    const firstName   = userName ? userName.split(' ')[0] : null;
+    const catalog     = getCatalog();
+    const sendToClient = makeSendToClient(from);
 
     let textContent = '';
-
     if (msg.type === 'text') {
-      textContent = msg.text?.body || '';
+      textContent = msg.text && msg.text.body ? msg.text.body : '';
     } else if (msg.type === 'audio') {
-      // Audio recibido via Meta — marcar para futura transcripción
       textContent = '[Nota de voz recibida. Por favor escribe tu mensaje para atenderte mejor.]';
     } else if (msg.type === 'image') {
-      const caption = msg.image?.caption || '';
-      textContent = caption
-        ? '[Imagen recibida con texto: "' + caption + '"]'
-        : '[Imagen recibida. ¿Qué material necesitas cotizar?]';
+      const caption = msg.image && msg.image.caption ? msg.image.caption : '';
+      textContent = caption ? '[Imagen recibida: "' + caption + '"]' : '[Imagen recibida. Que material necesitas?]';
+    } else if (msg.type === 'document') {
+      textContent = '[Documento recibido. Escribe la lista de materiales y la cotizo.]';
     }
 
     if (!textContent) continue;
@@ -119,25 +145,73 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
     console.log('[META WA IN]', from, userName ? '(' + userName + ')' : '', ':', textContent.substring(0, 60));
 
     try {
-      const history = getHistory(key);
-      const reply   = await getAIResponse(textContent, history, firstName, 'WhatsApp');
+      // 1. CRM — usar número normalizado
+      const cliente = await registrarContacto(fromNorm, { nombre: userName, canal: 'whatsapp_meta' }).catch(function() { return null; });
+      if (cliente && textContent) logMensaje(cliente.id, 'whatsapp_meta', 'in', textContent, 'texto').catch(function() {});
 
-      saveHistory(key, [...history,
-        { role: 'user',      content: textContent },
-        { role: 'assistant', content: reply        }
-      ]);
+      let reply = null;
 
+      // 2. Cache
+      if (getCache) reply = getCache(textContent, firstName);
+
+      // 3. Flujo de pedido — usar número normalizado
+      if (!reply) {
+        reply = await processOrderFlow(
+          fromNorm, textContent, firstName, getLastQuote(fromNorm), sendToClient,
+          (catalog.negocio && catalog.negocio.nombre) || 'MaterialesPro GDL'
+        );
+      }
+
+      // 4. PDF
+      if (!reply && isPDFRequest(textContent)) {
+        const lastQ = getLastQuote(fromNorm);
+        if (lastQ) {
+          await sendMetaWAMessage(from, 'Generando tu cotizacion en PDF... 📄');
+          generateAndSendQuote({
+            clientFrom: fromNorm, clientName: userName, clientPhone: from,
+            quoteText: lastQ, catalog, entrega: { tipo: 'pickup' }, metodoPago: null,
+          }).then(async function(result) {
+            if (result && result.pdfUrl) {
+              await sendMetaWAMessage(from, '📄 Tu cotizacion: ' + result.pdfUrl);
+              if (cliente) {
+                const cotId = await guardarCotizacion(fromNorm, result.quoteNumber, [], result.total, result.pdfUrl, 'whatsapp_meta').catch(function() { return null; });
+                if (cotId) programarSeguimiento(fromNorm, cotId).catch(function() {});
+              }
+            }
+          }).catch(function(e) { console.error('[META PDF]', e.message); });
+          continue;
+        }
+        reply = 'Primero dime que productos necesitas y te hago la cotizacion. 📄';
+      }
+
+      // 5. Tecnico
+      if (!reply && isTechnicalQuestion(textContent)) {
+        const techReply = await getTechnicalInfo(textContent, catalog.productos || [], _aiClient).catch(function() { return null; });
+        if (techReply) reply = techReply;
+      }
+
+      // 6. Claude IA
+      if (!reply) {
+        const history = getHistory('meta-wa:' + from);
+        reply = await getAIResponse(textContent, history, firstName, 'WhatsApp');
+        if (isQuoteResponse && isQuoteResponse(reply)) saveLastQuote(fromNorm, reply.substring(0, 400));
+        saveHistory('meta-wa:' + from, [...history,
+          { role: 'user',      content: textContent },
+          { role: 'assistant', content: reply        }
+        ]);
+      }
+
+      if (!reply) continue;
+
+      // 7. Enviar
       await sendMetaWAMessage(from, reply);
+      if (cliente) logMensaje(cliente.id, 'whatsapp_meta', 'out', reply, 'texto').catch(function() {});
 
     } catch (err) {
       console.error('[META WA ERR]', err.message);
       try {
-        const telefono = getCatalog?.()?.negocio?.telefono || '';
-        await sendMetaWAMessage(
-          from,
-          'Disculpa, hubo un error técnico. Intenta de nuevo en un momento.' +
-          (telefono ? ' También puedes llamarnos al ' + telefono : '')
-        );
+        const tel = getCatalog && getCatalog() && getCatalog().negocio ? getCatalog().negocio.telefono : '';
+        await sendMetaWAMessage(from, 'Disculpa, hubo un error tecnico. Intenta de nuevo.' + (tel ? ' Tel: ' + tel : ''));
       } catch (_) {}
     }
   }
@@ -146,92 +220,60 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
 // ─────────────────────────────────────────────────
 //  PROCESADOR PRINCIPAL DE EVENTOS META
 // ─────────────────────────────────────────────────
-async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, getCatalog) {
+async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse) {
   const pageToken = process.env.META_PAGE_ACCESS_TOKEN;
   const entries   = body.entry || [];
   const object    = body.object || '';
 
   for (const entry of entries) {
 
-    // ── WHATSAPP CLOUD API ─────────────────────────────────
-    // object === 'whatsapp_business_account'
-    // entry.changes[].field === 'messages'
     if (object === 'whatsapp_business_account') {
       for (const change of (entry.changes || [])) {
         if (change.field !== 'messages') continue;
         const value = change.value || {};
-
-        // Ignorar status updates (delivered, read, sent)
         if (value.statuses && !value.messages) continue;
-
-        await processWhatsAppMessage(
-          value, getAIResponse, getHistory, saveHistory, getCatalog
-        );
+        await processWhatsAppMessage(value, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse);
       }
-      continue; // No procesar entry.messaging para WABA
+      continue;
     }
 
-    // ── MESSENGER y INSTAGRAM DIRECT ──────────────────────
     for (const event of (entry.messaging || [])) {
       if (!event.message || event.message.is_echo) continue;
-
       const senderId = event.sender.id;
       const text     = event.message.text || '';
       const channel  = object === 'instagram' ? 'Instagram' : 'Messenger';
       const key      = 'meta:' + senderId;
-
       console.log('[' + channel + ']', senderId, ':', text.substring(0, 60));
-
       const userName = await getMetaName(senderId, pageToken);
-
       try {
         const history = getHistory(key);
         const reply   = await getAIResponse(text || '[sin texto]', history, userName, channel);
-        saveHistory(key, [...history,
-          { role: 'user',      content: text  },
-          { role: 'assistant', content: reply }
-        ]);
+        saveHistory(key, [...history, { role: 'user', content: text }, { role: 'assistant', content: reply }]);
         await sendDM(senderId, reply, pageToken);
       } catch (err) {
         console.error('[' + channel + ' ERR]', err.message);
-        const tel = getCatalog?.()?.negocio?.telefono || '';
-        await sendDM(
-          senderId,
-          'Disculpa, hubo un error. Escríbenos por WhatsApp al ' + tel,
-          pageToken
-        );
+        await sendDM(senderId, 'Disculpa, hubo un error. Escribenos por WhatsApp.', pageToken);
       }
     }
 
-    // ── COMENTARIOS EN FACEBOOK ────────────────────────────
     for (const change of (entry.changes || [])) {
       if (change.field !== 'feed') continue;
       const val = change.value;
       if (val.item !== 'comment' || val.verb === 'remove' || val.verb === 'hide') continue;
-      if (val.from?.id === entry.id) continue; // Comentario de la propia página
-
+      if (val.from && val.from.id === entry.id) continue;
       const commentText = val.message || '';
       if (commentText.length < 4) continue;
-
-      const authorId   = val.from?.id;
-      const authorName = val.from?.name || null;
+      const authorName = val.from ? val.from.name : null;
       const firstName  = authorName ? authorName.split(' ')[0] : null;
-      const key        = 'fb-comment:' + authorId;
-
+      const key        = 'fb-comment:' + (val.from ? val.from.id : 'unknown');
       console.log('[FB Comment]', authorName, ':', commentText.substring(0, 60));
-
       try {
         const history = getHistory(key);
-        const ctx     = '[Comentario público FB de ' + (authorName || 'usuario') + ']: "' + commentText + '"';
+        const ctx     = '[Comentario publico FB de ' + (authorName || 'usuario') + ']: "' + commentText + '"';
         const reply   = await getAIResponse(ctx, history, firstName, 'comment');
-        saveHistory(key, [...history,
-          { role: 'user',      content: commentText },
-          { role: 'assistant', content: reply        }
-        ]);
+        saveHistory(key, [...history, { role: 'user', content: commentText }, { role: 'assistant', content: reply }]);
         await replyComment(val.comment_id, reply, pageToken);
-      } catch (err) {
-        console.error('[FB Comment ERR]', err.message);
-      }
+      } catch (err) { console.error('[FB Comment ERR]', err.message); }
     }
   }
 }
