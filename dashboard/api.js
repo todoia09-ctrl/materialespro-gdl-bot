@@ -260,19 +260,19 @@ router.post('/campanas/:id/enviar', authMiddleware(['admin']), async (req, res) 
 // ─────────────────────────────────────────────────
 router.get('/usuarios', authMiddleware(['admin']), async (req, res) => {
   try {
-    const r = await query('SELECT id,nombre,email,rol,zona,activo,ultimo_login FROM usuarios ORDER BY nombre');
+    const r = await query('SELECT id,nombre,email,rol,zona,whatsapp,empresa,telefono,activo,ultimo_login FROM usuarios ORDER BY nombre');
     res.json(r.rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/usuarios', authMiddleware(['admin']), async (req, res) => {
-  const { nombre, email, password, rol, zona, whatsapp } = req.body;
+  const { nombre, email, password, rol, zona, whatsapp, empresa, telefono } = req.body;
   if (!nombre || !email || !password) return res.status(400).json({ error: 'Faltan campos' });
   try {
     const hash = await bcrypt.hash(password, 10);
     const r    = await query(
-      'INSERT INTO usuarios(nombre,email,password_hash,rol,zona,whatsapp) VALUES($1,$2,$3,$4,$5,$6) RETURNING id',
-      [nombre, email, hash, rol||'vendedor', zona||null, whatsapp||null]
+      'INSERT INTO usuarios(nombre,email,password_hash,rol,zona,whatsapp,empresa,telefono) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
+      [nombre, email, hash, rol||'vendedor', zona||null, whatsapp||null, empresa||null, telefono||null]
     );
     res.json({ id: r.rows[0].id, ok: true });
   } catch (e) {
@@ -322,6 +322,18 @@ router.get('/reportes/productos', authMiddleware(['admin']), async (req, res) =>
 // ═════════════════════════════════════════════════
 //  CATÁLOGO — Ver y actualizar desde Excel
 // ═════════════════════════════════════════════════
+
+// PATCH /api/usuarios/:id
+router.patch('/usuarios/:id', authMiddleware(['admin']), async (req, res) => {
+  const { nombre, rol, zona, whatsapp, empresa, telefono, activo } = req.body;
+  try {
+    await query(
+      'UPDATE usuarios SET nombre=COALESCE($1,nombre), rol=COALESCE($2,rol), zona=COALESCE($3,zona), whatsapp=COALESCE($4,whatsapp), empresa=COALESCE($5,empresa), telefono=COALESCE($6,telefono), activo=COALESCE($7,activo) WHERE id=$8',
+      [nombre||null, rol||null, zona||null, whatsapp||null, empresa||null, telefono||null, activo!=null?activo:null, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 // GET /api/catalogo — productos actuales
 router.get('/catalogo', authMiddleware(['admin']), (req, res) => {

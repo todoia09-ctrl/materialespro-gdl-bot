@@ -194,6 +194,7 @@ select:focus{border-color:var(--rust)}
     <div class="nav-item" onclick="showPage('inventario')"><span class="icon">🏗️</span> Inventario</div>
     <div class="nav-item" onclick="showPage('campanas')"><span class="icon">📣</span> Campañas</div>
     <div class="nav-item" onclick="showPage('catalogo')"><span class="icon">📋</span> Catálogo</div>
+    <div class="nav-item" onclick="showPage('vendedores')"><span class="icon">👤</span> Vendedores</div>
     <div class="nav-section">Reportes</div>
     <div class="nav-item" onclick="showPage('reportes')"><span class="icon">📈</span> Reportes</div>
   </nav>
@@ -394,6 +395,37 @@ select:focus{border-color:var(--rust)}
       </div>
     </div>
 
+    <!-- VENDEDORES -->
+    <div class="page" id="page-vendedores">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 style="color:var(--sand);font-size:1.1rem;letter-spacing:.1em">VENDEDORES</h2>
+        <button class="btn btn-green" onclick="showVendedorForm()">+ Nuevo vendedor</button>
+      </div>
+      <div id="vendedoresTable"></div>
+      <div id="vendedorForm" style="display:none;background:var(--cement);border-radius:8px;padding:1.5rem;margin-top:1rem;max-width:500px">
+        <h3 style="color:var(--sand);margin-bottom:1rem;font-size:.9rem">NUEVO VENDEDOR</h3>
+        <div style="display:grid;gap:.75rem">
+          <input id="vNombre" placeholder="Nombre completo" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <input id="vEmpresa" placeholder="Empresa / Negocio" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <input id="vEmail" placeholder="Email" type="email" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <input id="vWhatsapp" placeholder="WhatsApp (+52...)" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <input id="vTelefono" placeholder="Teléfono alterno" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <input id="vPassword" placeholder="Contraseña" type="password" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <select id="vRol" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+            <option value="vendedor">Vendedor</option><option value="admin">Admin</option><option value="bodega">Bodega</option>
+          </select>
+          <select id="vZona" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+            <option value="">Todas las zonas</option>
+            <option value="norte">Norte / Zapopan</option><option value="sur">Sur / Tlaquepaque</option><option value="este">Este / Tonalá</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-top:1rem">
+          <button class="btn btn-green" onclick="crearVendedor()">Guardar</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('vendedorForm').style.display='none'">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- REPORTES -->
     <div class="page" id="page-reportes">
       <div style="display:flex;gap:.75rem;margin-bottom:1.5rem">
@@ -503,7 +535,7 @@ function showPage(name) {
     if (n.getAttribute('onclick')?.includes("'" + name + "'")) n.classList.add('active');
   });
   const titles = { dashboard:'Dashboard', pedidos:'Pedidos', clientes:'Clientes (CRM)',
-                   inventario:'Inventario', campanas:'Campañas WhatsApp', catalogo:'Catálogo / Precios', reportes:'Reportes' };
+                   inventario:'Inventario', campanas:'Campañas WhatsApp', catalogo:'Catálogo / Precios', reportes:'Reportes', vendedores:'Vendedores' };
   document.getElementById('pageTitle').textContent = titles[name] || name;
   CURRENT = name;
   loadPage(name);
@@ -514,7 +546,7 @@ function refreshPage() { loadPage(CURRENT); }
 function loadPage(name) {
   const loaders = { dashboard: loadDashboard, pedidos: loadPedidos,
                     clientes: loadClientes, inventario: loadInventario,
-                    campanas: loadCampanas, reportes: loadReportes };
+                    campanas: loadCampanas, reportes: loadReportes, vendedores: loadVendedores };
   if (loaders[name]) loaders[name]();
 }
 
@@ -778,6 +810,36 @@ async function crearCampana() {
     loadCampanas();
   } else toast('Error al crear campaña', 'error');
 }
+
+// ── VENDEDORES ───────────────────────────────────
+  async function loadVendedores() {
+    const data = await api('/usuarios');
+    if (!data || !Array.isArray(data)) return;
+    const rows = data.map(v => `
+      <div style="background:var(--cement);border-radius:8px;padding:1rem 1.25rem;margin-bottom:.6rem;display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:.5rem;align-items:center">
+        <div><div style="font-weight:600;color:var(--white);font-size:.88rem">${v.nombre||'—'}</div><div style="font-size:.76rem;color:var(--gray)">${v.empresa||''}</div></div>
+        <div><div style="font-size:.82rem">${v.email}</div><div style="font-size:.76rem;color:var(--gray)">${v.whatsapp||''} ${v.telefono?'· '+v.telefono:''}</div></div>
+        <div><span style="font-size:.74rem;padding:.2rem .4rem;border-radius:4px;background:rgba(200,92,42,.2);color:var(--sand)">${v.rol}</span>${v.zona?` <span style="font-size:.72rem;color:var(--gray)">${zonaLabel(v.zona)}</span>`:''}</div>
+        <div style="display:flex;gap:.25rem;align-items:center">
+          <span style="font-size:.74rem;padding:.15rem .4rem;border-radius:4px;background:${v.activo?'rgba(74,193,131,.15)':'rgba(255,80,80,.15)'};color:${v.activo?'var(--green)':'#ff6060'}">${v.activo?'Activo':'Inactivo'}</span>
+          <button class="btn btn-sm" style="font-size:.7rem;padding:.15rem .35rem" onclick="toggleVendedor(${v.id},${!v.activo})">${v.activo?'Desactivar':'Activar'}</button>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('vendedoresTable').innerHTML = rows || '<div style="color:var(--gray);text-align:center;padding:2rem">Sin vendedores</div>';
+  }
+  function showVendedorForm() { document.getElementById('vendedorForm').style.display='block'; }
+  async function crearVendedor() {
+    const body = { nombre:document.getElementById('vNombre').value, empresa:document.getElementById('vEmpresa').value, email:document.getElementById('vEmail').value, whatsapp:document.getElementById('vWhatsapp').value, telefono:document.getElementById('vTelefono').value, password:document.getElementById('vPassword').value, rol:document.getElementById('vRol').value, zona:document.getElementById('vZona').value };
+    if (!body.nombre||!body.email||!body.password){toast('Nombre, email y contraseña requeridos','error');return;}
+    const r = await api('/usuarios',{method:'POST',body});
+    if (r?.id){toast('Vendedor creado ✅','success');document.getElementById('vendedorForm').style.display='none';loadVendedores();}
+    else toast('Error al crear','error');
+  }
+  async function toggleVendedor(id,activo){
+    await api('/usuarios/'+id,{method:'PATCH',body:{activo}});
+    loadVendedores();
+  }
 
 // ── REPORTES ──────────────────────────────────────
 async function guardarNivel(wa) {

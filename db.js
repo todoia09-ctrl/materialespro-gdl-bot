@@ -144,6 +144,10 @@ async function initSchema() {
       tipo       VARCHAR(20) DEFAULT 'texto',
       creado_en  TIMESTAMPTZ DEFAULT NOW()
     )`,
+    `ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa VARCHAR(100)`,
+    `ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS telefono VARCHAR(30)`,
+    `ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa VARCHAR(100)`,
+    `ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS telefono VARCHAR(30)`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_estado  ON pedidos(estado)`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_creado  ON pedidos(creado_en DESC)`,
     `CREATE INDEX IF NOT EXISTS idx_cots_estado     ON cotizaciones(estado)`,
