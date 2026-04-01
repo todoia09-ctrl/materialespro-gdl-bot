@@ -141,8 +141,10 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
     + '- NO incluyas costo de envio en cotizaciones — el envio se agrega solo si el cliente elige entrega a domicilio\n'
     + '- Proyecto >$' + d.umbral_pesos + ': ' + d.mensaje + '\n'
     + '- Asesor humano: "Te contactamos al ' + CATALOG.negocio.telefono + '"\n'
-    + '- Al cotizar termina con: ¿Hacemos el pedido?'
+    + '- Al cotizar termina SIEMPRE con: ¿Hacemos el pedido?\n'
     + '- SOLO cotiza productos que existen EXACTAMENTE en el catálogo. Si no existe, di que no está disponible y ofrece alternativas del catálogo real.\n'
+    + '- NUNCA cierres ni confirmes un pedido tú mismo. Cuando el cliente dice sí/confirma/seria todo → responde SOLO: ¿Hacemos el pedido? El sistema se encarga del resto.\n'
+    + '- NUNCA menciones costo de envío en cotizaciones. El envío se determina después de elegir tipo de entrega.\n'
     + '- NUNCA uses tablas markdown (|col|) — WhatsApp no las renderiza. Usa listas con guión o asterisco.\n'
     + '- Formato cotización: *NxNombre*: N × $precio = *$total*\n';
 }

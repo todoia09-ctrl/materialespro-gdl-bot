@@ -100,6 +100,10 @@ const BUY_TRIGGERS = [
   'firmado','ya mero','ya la hicimos','eso','eso mero',
   'a donde pago','como pago','cuando llega','cuando me lo traen',
   'me lo quedo','me los quedo','me la quedo','cuanto es','pago',
+  // cierre de conversación → iniciar pedido
+  'seria todo','sería todo','es todo','eso seria todo','eso sería todo',
+  'nada mas','nada más','con eso','con eso es todo','perfecto hagamos',
+  'listo hagamos','si hagamos','confirmar','quiero confirmar',
 ];
 
 // ─────────────────────────────────────────────────
