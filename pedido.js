@@ -475,6 +475,26 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
       notifyVendorEmail(order, token, negocioNombre)
     ]);
 
+    // ── Guardar pedido en DB ──────────────────────────────
+    try {
+      const _items = order.rawQuote ? [{ descripcion: order.rawQuote.substring(0, 200), cantidad: 1 }] : [];
+      const _total = order.total || 0;
+      const _pedidoId = await guardarPedido(
+        from,
+        _items,
+        _total,
+        order.type || 'pickup',
+        order.payment || 'efectivo',
+        order.type === 'delivery' ? { calle: order.street, colonia: order.colony, referencia: order.reference } : null
+      );
+      if (_pedidoId) {
+        order.pedidoId = _pedidoId;
+        console.log('[PEDIDO DB] Guardado ID:', _pedidoId, 'cliente:', from);
+      }
+    } catch (_dbErr) {
+      console.error('[PEDIDO DB] Error al guardar:', _dbErr.message);
+    }
+    // ─────────────────────────────────────────────────────
     const timer = startVendorTimer(key, sendToClient);
     activeOrders.set(key, { state: S.WAITING_VENDOR, order, token, timer });
 
