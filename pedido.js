@@ -251,15 +251,25 @@ async function notifyVendorEmail(order, token, negocioNombre) {
 //  TIMER 15 MINUTOS
 // ─────────────────────────────────────────────────
 function startVendorTimer(sessionKey, sendToClient) {
+  // Auto-confirmar en 2 minutos si no hay respuesta del vendedor
   return setTimeout(async () => {
     const data = activeOrders.get(sessionKey);
     if (!data || data.state !== S.WAITING_VENDOR) return;
-    await sendToClient(sessionKey,
-      'Estamos verificando tu pedido con el almacén. 🔍\n'
-      + 'Te confirmamos en los próximos minutos.\n'
-      + 'Si necesitas atención inmediata: ' + (process.env.VENDOR_WHATSAPP || '')
-    );
-  }, 15 * 60 * 1000);
+    data.state = S.CONFIRMED;
+    activeOrders.set(sessionKey, data);
+    const order = data.order;
+    const isPickup = order.type === 'pickup';
+    let msg = '✅ *¡Pedido confirmado!*\n\n';
+    if (isPickup) {
+      msg += '📍 Te esperamos en el almacén.\n📅 ' + (order.pickupDate || 'Coordinamos fecha') + '\n\n';
+    } else {
+      msg += '🚚 Entrega coordinada.\n📅 ' + (order.datetime || 'Coordinamos fecha') + '\n📍 ' + (order.street || '') + ', Col. ' + (order.colony || '') + '\n\n';
+    }
+    msg += 'Nuestro equipo se comunicará contigo para confirmar pago y entrega. 📞\n';
+    msg += '\n¿Algo más en lo que te podamos ayudar?';
+    await sendToClient(sessionKey, msg);
+    console.log('[VENDOR TIMER] Auto-confirmado:', sessionKey);
+  }, 2 * 60 * 1000);
 }
 
 // ─────────────────────────────────────────────────
