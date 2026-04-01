@@ -6,8 +6,8 @@
 const axios     = require('axios');
 const Anthropic = require('@anthropic-ai/sdk');
 
-const { registrarContacto, logMensaje }                        = require('./db');
-const { guardarCotizacion, programarSeguimiento }              = require('./crm');
+const { logMensaje }                                           = require('./db');
+const { registrarContacto, guardarCotizacion, programarSeguimiento } = require('./crm');
 const { processOrderFlow, getLastQuote, saveLastQuote,
         isPDFRequest }                                         = require('./pedido');
 const { isTechnicalQuestion, getTechnicalInfo }                = require('./tecnico');
