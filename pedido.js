@@ -101,6 +101,26 @@ const BUY_TRIGGERS = [
   'me lo quedo','me los quedo','me la quedo','cuanto es','pago',
 ];
 
+// ─────────────────────────────────────────────────
+//  SLANG COLORES (FIX BUG I)
+// ─────────────────────────────────────────────────
+const COLOR_SLANG = {
+  'bco':'blanco','bca':'blanco','blco':'blanco','wht':'blanco','white':'blanco',
+  'gro':'gris','grs':'gris','gry':'gris','grey':'gris','gray':'gris','gc':'gris concreto',
+  'ngr':'negro','neg':'negro','blk':'negro','black':'negro',
+  'rjo':'rojo','rdo':'rojo','red':'rojo',
+  'azl':'azul','blu':'azul','blue':'azul',
+  'mfg':'madera','cafe':'cafe','crm':'crema','bej':'beige',
+};
+function normalizeColor(msg) {
+  const c = normalize(msg);
+  for (const [k,v] of Object.entries(COLOR_SLANG)) {
+    if (c === k || c.includes(' '+k) || c.includes(k+' ') || c.startsWith(k)) return v;
+  }
+  return null;
+}
+module.exports && (module.exports.normalizeColor = normalizeColor);
+
 function isBuyIntent(msg) {
   const c = normalize(msg);
   // Exact match OR contained as whole word (FIX #7: evita "si" dentro de "sino")
@@ -419,12 +439,17 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
       const _nombreReal = _nombresDia[_dow];
       const _diaEscrito = _dias.find(d => _msgLow.includes(d));
       if (_diaEscrito) {
-        const _diaNorm = _diaEscrito.replace('é','e').replace('á','a');
         const _realNorm = _nombreReal.replace('é','e').replace('á','a');
-        if (!_realNorm.startsWith(_diaEscrito.substring(0,4).replace('é','e').replace('á','a'))) {
-          order.pickupDate = msg + ' (' + _nombreReal.toUpperCase() + ')';
-          set(S.ASKING_PAYMENT);
-          return '⚠️ Ojo: el ' + _d + '/' + (_m+1) + ' es *' + _nombreReal.toUpperCase() + '*, no ' + _diaEscrito + '. Te agendé para ese día.\n\n¿Cuál será tu método de pago?\n\n' + getPaymentOptions('pickup', from);
+        const _escNorm = _diaEscrito.replace('é','e').replace('á','a');
+        if (!_realNorm.startsWith(_escNorm.substring(0,4))) {
+          // FIX J: detener flujo y pedir confirmación del día correcto
+          order._fechaConflicto = { d: _d, m: _m+1, y: _y, diaReal: _nombreReal.toUpperCase(), diaEscrito: _diaEscrito.toUpperCase() };
+          set(S.ASKING_DATE);
+          return '⚠️ *Hay un conflicto de fecha:*\n'
+            + 'El ' + _d + '/' + (_m+1) + '/' + _y + ' es *' + _nombreReal.toUpperCase() + '*, no ' + _diaEscrito.toUpperCase() + '.\n\n'
+            + '¿Qué prefieres?\n'
+            + '1️⃣ *' + _nombreReal.toUpperCase() + ' ' + _d + '/' + (_m+1) + '* (la fecha que pusiste)\n'
+            + '2️⃣ *' + _diaEscrito.toUpperCase() + '* — dame la fecha correcta';
         }
       }
     }

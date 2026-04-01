@@ -51,9 +51,9 @@ function loadCatalog() {
     _cat.negocio = {
       nombre:   'MaterialesPro GDL',
       ciudad:   'Zapopan / Guadalajara, Jalisco',
-      telefono: '+52 33 XXXX XXXX',
+      telefono: process.env.VENDOR_WHATSAPP || '+52 33 XXXX XXXX',
       horario:  'Lun-Sab 8am-6pm',
-      whatsapp: '+52 33 XXXX XXXX',
+      whatsapp: process.env.VENDOR_WHATSAPP || '+52 33 XXXX XXXX',
     };
   }
   if (!_cat.envios) _cat.envios = {};
@@ -141,7 +141,10 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
     + '- NO incluyas costo de envio en cotizaciones — el envio se agrega solo si el cliente elige entrega a domicilio\n'
     + '- Proyecto >$' + d.umbral_pesos + ': ' + d.mensaje + '\n'
     + '- Asesor humano: "Te contactamos al ' + CATALOG.negocio.telefono + '"\n'
-    + '- Al cotizar termina con: ¿Hacemos el pedido?';
+    + '- Al cotizar termina con: ¿Hacemos el pedido?'
+    + '- SOLO cotiza productos que existen EXACTAMENTE en el catálogo. Si no existe, di que no está disponible y ofrece alternativas del catálogo real.\n'
+    + '- NUNCA uses tablas markdown (|col|) — WhatsApp no las renderiza. Usa listas con guión o asterisco.\n'
+    + '- Formato cotización: *NxNombre*: N × $precio = *$total*\n';
 }
 
 // ─────────────────────────────────────────────────
