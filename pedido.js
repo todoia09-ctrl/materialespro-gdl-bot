@@ -475,6 +475,21 @@ if (state === S.IDLE) {
   if (state === S.ASKING_CONTACT)   { order.contact   = msg; set(S.ASKING_PHONE);     return '¿Teléfono alterno de contacto?'; }
   if (state === S.ASKING_PHONE)     { order.altPhone  = msg; set(S.ASKING_DATETIME);  return '¿Qué día y horario prefieres para la entrega?\n(ej: Mañana jueves de 9am a 12pm)'; }
   if (state === S.ASKING_DATETIME)  {
+    // FIX conflicto fecha delivery
+    if (order._fechaConflicto) {
+      const _fc = order._fechaConflicto;
+      const _resp = msg.trim();
+      if (_resp === '1' || _resp.toLowerCase().includes(_fc.diaReal.toLowerCase().substring(0,4))) {
+        order.datetime = _fc.diaReal + ' ' + _fc.d + '/' + _fc.m + '/' + _fc.y;
+        delete order._fechaConflicto;
+        set(S.ASKING_MAPS);
+        return '✅ Agendado para *' + order.datetime + '*\n\n¿Tienes link de Google Maps? 🗺️\n(Opcional — responde \'no\' para continuar)';
+      } else if (_resp === '2') {
+        delete order._fechaConflicto;
+        return '📅 Dame la fecha correcta\n(ej: jueves 10/04/2026 de 9am a 12pm)';
+      }
+      delete order._fechaConflicto;
+    }
     // FIX: validar día de semana en fecha de entrega (mismo que ASKING_DATE)
     const _dtLow = msg.toLowerCase();
     const _dtMatch = _dtLow.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
