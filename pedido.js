@@ -400,7 +400,36 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
     return '🚚 *Entrega a domicilio*\n\n¿Cuál es la calle y número de entrega?';
   }
 
-  if (state === S.ASKING_DATE)      { order.pickupDate = msg; set(S.ASKING_PAYMENT); return '¿Cuál será tu método de pago?\n\n' + getPaymentOptions('pickup', from); }
+  if (state === S.ASKING_DATE) {
+    order.pickupDate = msg;
+    // BUG D FIX: validar día de semana
+    const _dias = ['lunes','martes','miercoles','miércoles','jueves','viernes','sabado','sábado'];
+    const _msgLow = msg.toLowerCase();
+    const _fechaMatch = _msgLow.match(/(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?/);
+    if (_fechaMatch) {
+      const _d = parseInt(_fechaMatch[1]), _m = parseInt(_fechaMatch[2]) - 1;
+      const _y = _fechaMatch[3] ? parseInt(_fechaMatch[3]) : new Date().getFullYear();
+      const _fecha = new Date(_y < 100 ? _y + 2000 : _y, _m, _d);
+      const _dow = _fecha.getDay(); // 0=dom, 6=sab
+      const _nombresDia = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+      if (_dow === 0) {
+        set(S.ASKING_DATE);
+        return '⚠️ Esa fecha es *domingo* y estamos cerrados. Atendemos Lunes a Sábado 8am-6pm.\n\n¿Qué otro día planeas pasar?';
+      }
+      const _nombreReal = _nombresDia[_dow];
+      const _diaEscrito = _dias.find(d => _msgLow.includes(d));
+      if (_diaEscrito) {
+        const _diaNorm = _diaEscrito.replace('é','e').replace('á','a');
+        const _realNorm = _nombreReal.replace('é','e').replace('á','a');
+        if (!_realNorm.startsWith(_diaEscrito.substring(0,4).replace('é','e').replace('á','a'))) {
+          order.pickupDate = msg + ' (' + _nombreReal.toUpperCase() + ')';
+          set(S.ASKING_PAYMENT);
+          return '⚠️ Ojo: el ' + _d + '/' + (_m+1) + ' es *' + _nombreReal.toUpperCase() + '*, no ' + _diaEscrito + '. Te agendé para ese día.\n\n¿Cuál será tu método de pago?\n\n' + getPaymentOptions('pickup', from);
+        }
+      }
+    }
+    set(S.ASKING_PAYMENT); return '¿Cuál será tu método de pago?\n\n' + getPaymentOptions('pickup', from);
+  }
   if (state === S.ASKING_STREET)    { order.street    = msg; set(S.ASKING_COLONY);    return '¿Cuál es la colonia?'; }
   if (state === S.ASKING_COLONY)    { order.colony    = msg; set(S.ASKING_REFERENCE); return '¿Alguna referencia para encontrar el lugar?\n(ej: entre Av. López y calle Robles, frente a la farmacia)'; }
   if (state === S.ASKING_REFERENCE) { order.reference = msg; set(S.ASKING_CONTACT);   return '¿Nombre de la persona que recibe el pedido?'; }

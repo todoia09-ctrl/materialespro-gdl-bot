@@ -137,7 +137,8 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
     + '- ' + formato + '\n'
     + nivelMsg
     + '- Cada precio es por pieza/presentacion completa, NO por litro ni kg\n'
-    + '- Si dan m²: calcula unidades +10% desperdicio, total y envío\n'
+    + '- Si dan m²: calcula unidades +10% desperdicio y subtotal SIN envio\n'
+    + '- NO incluyas costo de envio en cotizaciones — el envio se agrega solo si el cliente elige entrega a domicilio\n'
     + '- Proyecto >$' + d.umbral_pesos + ': ' + d.mensaje + '\n'
     + '- Asesor humano: "Te contactamos al ' + CATALOG.negocio.telefono + '"\n'
     + '- Al cotizar termina con: ¿Hacemos el pedido?';
