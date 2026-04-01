@@ -395,17 +395,6 @@ app.get('/webhook/meta', (req, res) => {
 
 app.post('/webhook/meta', async (req, res) => {
   res.sendStatus(200);
-  console.log('[META RAW] object=' + req.body.object + ' | keys=' + JSON.stringify(Object.keys(req.body)));
-  var _ents = req.body.entry || [];
-  for (var _i = 0; _i < _ents.length; _i++) {
-    var _e = _ents[_i];
-    console.log('[META ENTRY] changes=' + (_e.changes||[]).length + ' messaging=' + (_e.messaging||[]).length);
-    var _chs = _e.changes || [];
-    for (var _j = 0; _j < _chs.length; _j++) {
-      var _v = _chs[_j].value || {};
-      console.log('[META CHANGE] field=' + _chs[_j].field + ' msgs=' + (_v.messages ? _v.messages.length : 0) + ' statuses=' + (_v.statuses ? _v.statuses.length : 0));
-    }
-  }
   try {
     await processMetaWebhook(req.body, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse);
   } catch (err) { console.error('[META ERR]', err.message); }
