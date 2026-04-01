@@ -380,6 +380,13 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
   }
 
   if (state === S.ASKING_TYPE) {
+    // FIX BUG A: escape si cliente quiere cancelar o cambiar de tema
+    const _escA = normalize(msg);
+    const _wantsEscape = _escA.includes('cancel') || _escA.includes('no quiero')
+      || _escA.includes('asesor') || _escA.includes('cotizar') || _escA.includes('otro')
+      || _escA.includes('olvidalo') || _escA.includes('olvida') || _escA.includes('dejalo')
+      || _escA.includes('espera') || _escA.includes('stop') || _escA.includes('salir');
+    if (_wantsEscape) { activeOrders.delete(key); return null; }
     const type = detectOrderType(msg);
     if (!type) return 'Por favor elige:\n1️⃣ Recoger en almacén\n2️⃣ Entrega a domicilio';
     order.type = type;
@@ -516,8 +523,15 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
     return '✅ *Pedido recibido*\n\nVerificando stock con el almacén. 🔍\nTe confirmamos en los próximos *15 minutos*.';
   }
 
-  if (state === S.WAITING_VENDOR)
+  if (state === S.WAITING_VENDOR) {
+    // FIX BUG B: permitir cotizar otro producto mientras espera
+    const _wv = normalize(msg);
+    const _wantsNew = _wv.includes('cotizar') || _wv.includes('necesito')
+      || _wv.includes('precio') || _wv.includes('cuanto') || _wv.includes('tienes')
+      || _wv.includes('otro') || _wv.includes('hola');
+    if (_wantsNew) return null;
     return 'Tu pedido está en revisión. ⏳ Te avisamos en máximo 15 minutos.';
+  }
 
   return null;
 }
