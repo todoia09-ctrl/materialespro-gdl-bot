@@ -4,18 +4,12 @@
 //  quiereFact false-positive corregido, negocio dinámico
 // ══════════════════════════════════════════════════════════════
 
-const twilio        = require('twilio');
+// Twilio eliminado — notificación vendedor via Meta WA (sendMetaWAMessage)
 const nodemailer    = require('nodemailer');
 const { guardarPedido, actualizarEstadoPedido } = require('./crm');
+// meta.js se carga lazy en notifyVendorWhatsApp para evitar dependencia circular
 
-// ─────────────────────────────────────────────────
-//  SINGLETON TWILIO (FIX #1)
-// ─────────────────────────────────────────────────
-let _twClient = null;
-function getTwilio() {
-  if (!_twClient) _twClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-  return _twClient;
-}
+// Twilio singleton removido — usando Meta WA
 
 // ─────────────────────────────────────────────────
 //  ESTADOS DEL FLUJO
@@ -247,13 +241,18 @@ function generateToken() {
 async function notifyVendorWhatsApp(order, token, negocioNombre) {
   try {
     const summary = formatOrderSummary(order, true, negocioNombre);
-    await getTwilio().messages.create({
-      from: process.env.TWILIO_WHATSAPP_FROM,
-      to:   'whatsapp:' + process.env.VENDOR_WHATSAPP,
-      body: summary + '\n\n─────────────────\n'
-          + '¿Confirmas existencias?\n✅ *SI-' + token + '*\n❌ *NO-' + token + '*\n'
-          + '─────────────────\n⏰ 15 minutos para responder.'
-    });
+    const vendorNum = process.env.VENDOR_WHATSAPP || '';
+    // Normalizar número — Meta necesita formato sin 'whatsapp:'
+    const toNum = vendorNum.replace('whatsapp:', '').replace('+', '');
+    // Lazy require para evitar dependencia circular con meta.js
+    const { sendMetaWAMessage } = require('./meta');
+    await sendMetaWAMessage(
+      toNum,
+      summary + '\n\n─────────────────\n'
+        + '¿Confirmas existencias?\n✅ *SI-' + token + '*\n❌ *NO-' + token + '*\n'
+        + '─────────────────\n⏰ 15 minutos para responder.'
+    );
+    console.log('[VENDOR META WA] Notificación enviada a', toNum);
   } catch (err) { console.error('[VENDOR WA]', err.message); }
 }
 
