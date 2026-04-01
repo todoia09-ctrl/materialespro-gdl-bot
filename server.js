@@ -24,7 +24,7 @@ const { initScheduler }                                      = require('./schedu
 const { processMetaWebhook }                                 = require('./meta');
 const { isTechnicalQuestion, getTechnicalInfo }              = require('./tecnico');
 const { processOrderFlow, processVendorReply,
-        isVendorNumber, saveLastQuote, getLastQuote, recentlyConfirmed }        = require('./pedido');
+        isVendorNumber, saveLastQuote, getLastQuote, recentlyConfirmed, initActiveOrders }        = require('./pedido');
 const { generateAndSendQuote, isPDFRequest }                 = require('./cotizacion');
 const dashboardApi                                           = require('./dashboard/api');
 
