@@ -464,7 +464,8 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
       activeOrders.delete(key);
       return 'Sin problema. Dime qué necesitas corregir y empezamos de nuevo.';
     }
-    if (c !== 'si' && c !== 'dale' && c !== 'ok' && c !== 'confirmo' && c !== 'listo')
+    const _confirmTriggers = ['si','dale','ok','confirmo','listo','va','sale','claro','ai','ahi','ahí','correcto','perfecto','andale','ándale','sip','yep','yes','adelante','procede'];
+    if (!_confirmTriggers.includes(c) && !c.startsWith('si ') && !c.startsWith('dale '))
       return '¿Confirmas? Responde *SÍ* o *NO*.';
 
     const token = generateToken();
