@@ -6,7 +6,7 @@
 
 // Twilio eliminado — notificación vendedor via Meta WA (sendMetaWAMessage)
 const nodemailer    = require('nodemailer');
-const { guardarPedido, actualizarEstadoPedido } = require('./crm');
+const { guardarPedido, actualizarEstadoPedido, calcularEnvio, detectarZona } = require('./crm');
 const { saveActiveOrder, deleteActiveOrder, loadActiveOrders } = require('./db');
 // meta.js se carga lazy en notifyVendorWhatsApp para evitar dependencia circular
 
@@ -435,7 +435,8 @@ if (state === S.IDLE) {
     set(S.ASKING_TYPE);
     return '¡Perfecto! ¿Cómo prefieres recibir tu pedido?\n\n'
          + '1️⃣ *Recoger en almacén* — Zapopan (gratis)\n'
-         + '2️⃣ *Entrega a domicilio* — GDL/Zapopan $180 · ZMG $250';
+         + '2️⃣ *Entrega a domicilio*\n'
+         + '   📍 GDL/Zapopan: $150 · Sur: $180 · Tonalá: $200 · Tlajomulco: $250';
   }
 
   if (state === S.ASKING_TYPE) {
@@ -495,7 +496,12 @@ if (state === S.IDLE) {
     set(S.ASKING_PAYMENT); return '¿Cuál será tu método de pago?\n\n' + getPaymentOptions('pickup', from);
   }
   if (state === S.ASKING_STREET)    { order.street    = msg; set(S.ASKING_COLONY);    return '¿Cuál es la colonia?'; }
-  if (state === S.ASKING_COLONY)    { order.colony    = msg; set(S.ASKING_REFERENCE); return '¿Alguna referencia para encontrar el lugar?\n(ej: entre Av. López y calle Robles, frente a la farmacia)'; }
+  if (state === S.ASKING_COLONY)    { order.colony = msg;
+    // Calcular costo envío por zona
+    const _zonaCol = detectarZona(msg);
+    if (_zonaCol) { const _t = calcularEnvio(_zonaCol); order.costoEnvio = _t.precio; order.zonaEnvio = _t.label; }
+    else { order.costoEnvio = 250; } // default ZMG
+    set(S.ASKING_REFERENCE); return '¿Alguna referencia para encontrar el lugar?\n(ej: entre Av. López y calle Robles, frente a la farmacia)'; }
   if (state === S.ASKING_REFERENCE) { order.reference = msg; set(S.ASKING_CONTACT);   return '¿Nombre de la persona que recibe el pedido?'; }
   if (state === S.ASKING_CONTACT)   { order.contact   = msg; set(S.ASKING_PHONE);     return '¿Teléfono alterno de contacto?'; }
   if (state === S.ASKING_PHONE)     { order.altPhone  = msg; set(S.ASKING_DATETIME);  return '¿Qué día y horario prefieres para la entrega?\n(ej: Mañana jueves de 9am a 12pm)'; }

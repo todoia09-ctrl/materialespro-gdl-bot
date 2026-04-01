@@ -57,8 +57,10 @@ function loadCatalog() {
     };
   }
   if (!_cat.envios) _cat.envios = {};
-  if (!_cat.envios.gdl_zapopan) _cat.envios.gdl_zapopan = { precio: 150, tiempo: "1-2 dias" };
-  if (!_cat.envios.zmg) _cat.envios.zmg = { precio: 250, tiempo: "1-3 dias" };
+  if (!_cat.envios.gdl_zapopan) _cat.envios.gdl_zapopan = { precio: 150, tiempo: '1-2 dias' };
+  if (!_cat.envios.sur)         _cat.envios.sur         = { precio: 180, tiempo: '1-2 dias' };
+  if (!_cat.envios.este)        _cat.envios.este        = { precio: 200, tiempo: '1-3 dias' };
+  if (!_cat.envios.zmg)         _cat.envios.zmg         = { precio: 250, tiempo: '2-3 dias' };
   if (!_cat.envios.gratis_desde) _cat.envios.gratis_desde = 5000;
   if (!_cat.descuentos_volumen) _cat.descuentos_volumen = { umbral_pesos: 5000, mensaje: 'Descuento especial en proyectos grandes' };
   return _cat;

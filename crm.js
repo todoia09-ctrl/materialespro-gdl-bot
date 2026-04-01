@@ -10,13 +10,31 @@ const { query, upsertCliente, getCliente, logMensaje } = require('./db');
 //  DETECCIÓN DE ZONA POR COLONIA/MUNICIPIO
 // ─────────────────────────────────────────────────
 const ZONAS = {
-  norte: ['zapopan','colinas','santa fe','ciudad granja','tesistan','nextipac',
-          'los laureles','la venta','el colli','jardines del sol','jardines de la cruz'],
-  sur:   ['tlaquepaque','santa anita','san pedro','toluquilla','la calerilla',
-          'las pintas','el verde','miravalle','lomas del gallo'],
-  este:  ['tonala','san gaspar','el salto','juanacatlan','el verde','san antonio',
-          'nueva santa maria','jauja','el rosario'],
+  norte:      ['zapopan','colinas','santa fe','ciudad granja','tesistan','nextipac',
+               'los laureles','la venta','el colli','jardines del sol','jardines de la cruz',
+               'chapalita','seattle','providencia','country','patria','aviacion'],
+  gdl:        ['guadalajara','centro','analco','mexicaltzingo','oblatos','tetlan',
+               'atlas','alcalde','reforma','americana','vallarta','chapultepec'],
+  sur:        ['tlaquepaque','santa anita','san pedro','toluquilla','la calerilla',
+               'las pintas','el verde','miravalle','lomas del gallo','san martin'],
+  este:       ['tonala','san gaspar','el salto','juanacatlan','san antonio',
+               'nueva santa maria','jauja','el rosario','coyula','san jose'],
+  sur_lejano: ['tlajomulco','santa fe tlajos','hacienda del bosque','buenavista',
+               'cajititlan','aeropuerto'],
 };
+
+const TARIFAS_ENVIO = {
+  norte:      { precio: 150, tiempo: '1-2 días', label: 'GDL Norte/Zapopan' },
+  gdl:        { precio: 150, tiempo: '1-2 días', label: 'Guadalajara' },
+  sur:        { precio: 180, tiempo: '1-2 días', label: 'Sur/Tlaquepaque' },
+  este:       { precio: 200, tiempo: '1-3 días', label: 'Este/Tonalá/El Salto' },
+  sur_lejano: { precio: 250, tiempo: '2-3 días', label: 'Tlajomulco/ZMG Sur' },
+  default:    { precio: 250, tiempo: '2-3 días', label: 'ZMG' },
+};
+
+function calcularEnvio(zona) {
+  return TARIFAS_ENVIO[zona] || TARIFAS_ENVIO.default;
+}
 
 function detectarZona(texto) {
   if (!texto) return null;
@@ -342,6 +360,7 @@ module.exports = {
   getHistorialCliente,
   logConversacion,
   detectarZona,
+  calcularEnvio,
   getNivelPrecio,
   calcularPrecio,
   etiquetaNivel,
