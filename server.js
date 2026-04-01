@@ -384,7 +384,7 @@ app.post('/webhook/whatsapp', async (req, res) => {
       const _nivelWA = cliente ? await getNivelPrecio(from).catch(() => null) : null;
       reply = await getAIResponse(message, history, name, 'WhatsApp', _nivelWA);
       // Guardar cotización si aplica
-      if (isQuoteResponse(reply)) saveLastQuote(from, reply.substring(0, 400));
+      if (isQuoteResponse(reply)) saveLastQuote(from, reply.substring(0, 1200)); // FIX: 400→1200 para capturar productos completos
       saveHistory('wa:' + from, [...history,
         { role: 'user',      content: message },
         { role: 'assistant', content: reply   }

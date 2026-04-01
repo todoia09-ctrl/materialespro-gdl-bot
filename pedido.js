@@ -470,7 +470,35 @@ if (state === S.IDLE) {
   if (state === S.ASKING_REFERENCE) { order.reference = msg; set(S.ASKING_CONTACT);   return '¿Nombre de la persona que recibe el pedido?'; }
   if (state === S.ASKING_CONTACT)   { order.contact   = msg; set(S.ASKING_PHONE);     return '¿Teléfono alterno de contacto?'; }
   if (state === S.ASKING_PHONE)     { order.altPhone  = msg; set(S.ASKING_DATETIME);  return '¿Qué día y horario prefieres para la entrega?\n(ej: Mañana jueves de 9am a 12pm)'; }
-  if (state === S.ASKING_DATETIME)  { order.datetime  = msg; set(S.ASKING_MAPS);      return '¿Tienes link de Google Maps de la dirección? 🗺️\n(Opcional — responde "no" para continuar)'; }
+  if (state === S.ASKING_DATETIME)  {
+    // FIX: validar día de semana en fecha de entrega (mismo que ASKING_DATE)
+    const _dtLow = msg.toLowerCase();
+    const _dtMatch = _dtLow.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+    if (_dtMatch) {
+      const _dd = parseInt(_dtMatch[1]), _mm = parseInt(_dtMatch[2]) - 1;
+      const _yy = _dtMatch[3] ? parseInt(_dtMatch[3]) : new Date().getFullYear();
+      const _dtFecha = new Date(_yy < 100 ? _yy + 2000 : _yy, _mm, _dd);
+      const _dtDow = _dtFecha.getDay();
+      const _dtNombres = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+      const _dtReal = _dtNombres[_dtDow];
+      if (_dtDow === 0) {
+        return '⚠️ Esa fecha es *domingo* y no hacemos entregas. Atendemos Lunes a Sábado.\n\n¿Qué otro día prefieres?';
+      }
+      const _dtDias = ['lunes','martes','miercoles','miércoles','jueves','viernes','sabado','sábado'];
+      const _dtEscrito = _dtDias.find(d => _dtLow.includes(d));
+      if (_dtEscrito) {
+        const _dtRealNorm = _dtReal.replace('é','e').replace('á','a');
+        const _dtEscNorm  = _dtEscrito.replace('é','e').replace('á','a');
+        if (!_dtRealNorm.startsWith(_dtEscNorm.substring(0,4))) {
+          return '⚠️ *Conflicto de fecha:*\n'
+            + 'El ' + _dd + '/' + (_mm+1) + '/' + _yy + ' es *' + _dtReal.toUpperCase() + '*, no ' + _dtEscrito.toUpperCase() + '.\n\n'
+            + '¿Qué prefieres?\n'
+            + '1️⃣ *' + _dtReal.toUpperCase() + ' ' + _dd + '/' + (_mm+1) + '* (la fecha que pusiste)\n'
+            + '2️⃣ Escríbeme la fecha correcta';
+        }
+      }
+    }
+    order.datetime = msg; set(S.ASKING_MAPS);      return '¿Tienes link de Google Maps de la dirección? 🗺️\n(Opcional — responde "no" para continuar)'; }
 
   if (state === S.ASKING_MAPS) {
     order.mapsLink = normalize(msg) === 'no' || msg.length < 8 ? null : msg;
