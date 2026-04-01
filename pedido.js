@@ -60,6 +60,7 @@ const CFDI_LIST = Object.values(CFDI_USOS).join('\n');
 //  ESTADO DE PEDIDOS
 // ─────────────────────────────────────────────────
 const activeOrders = new Map();
+const recentlyConfirmed = new Set(); // BUG P: evitar doble mensaje
 const vendorTokens = new Map();
 const lastQuotes   = new Map();
 
@@ -283,6 +284,9 @@ function startVendorTimer(sessionKey, sendToClient) {
     if (!data || data.state !== S.WAITING_VENDOR) return;
     data.state = S.CONFIRMED;
     activeOrders.set(sessionKey, data);
+    // BUG P FIX: marcar para evitar doble mensaje de Claude IA
+    recentlyConfirmed.add(sessionKey);
+    setTimeout(() => recentlyConfirmed.delete(sessionKey), 8000); // limpiar en 8s
     const order = data.order;
     const isPickup = order.type === 'pickup';
     let msg = '✅ *¡Pedido confirmado!*\n\n';
@@ -604,4 +608,4 @@ if (state === S.IDLE) {
 function saveLastQuote(from, text) { lastQuotes.set(from, text); }
 function getLastQuote(from)        { return lastQuotes.get(from) || null; }
 
-module.exports = { processOrderFlow, processVendorReply, isVendorNumber, saveLastQuote, getLastQuote };
+module.exports = { processOrderFlow, processVendorReply, isVendorNumber, saveLastQuote, getLastQuote, recentlyConfirmed };

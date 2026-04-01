@@ -24,7 +24,7 @@ const { initScheduler }                                      = require('./schedu
 const { processMetaWebhook }                                 = require('./meta');
 const { isTechnicalQuestion, getTechnicalInfo }              = require('./tecnico');
 const { processOrderFlow, processVendorReply,
-        isVendorNumber, saveLastQuote, getLastQuote }        = require('./pedido');
+        isVendorNumber, saveLastQuote, getLastQuote, recentlyConfirmed }        = require('./pedido');
 const { generateAndSendQuote, isPDFRequest }                 = require('./cotizacion');
 const dashboardApi                                           = require('./dashboard/api');
 
@@ -130,7 +130,7 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
   const catalogTxt = nivelInfo ? buildCatalogText(CATALOG, nivelInfo) : CATALOG_TXT;
   const nivelLabel = nivelInfo && nivelInfo.nivel > 1 ? etiquetaNivel(nivelInfo.nivel) : null;
   const nivelMsg   = nivelLabel ? '- Este cliente tiene nivel ' + nivelLabel + '. Precios ya incluyen descuento.\n' : '';
-  return 'Eres asesor de ' + CATALOG.negocio.nombre + ' (' + CATALOG.negocio.ciudad + '). Canal: ' + channel + '.\n'
+  return 'Eres asesor de ' + CATALOG.negocio.nombre + ' (' + CATALOG.negocio.ciudad + '). Canal: ' + channel + '. Fecha actual: ' + new Date().toLocaleDateString('es-MX', {weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'America/Mexico_City'}) + '.\n'
     + (saludo ? saludo + '\n' : '')
     + '\nCATÁLOGO (precios para este cliente):\n' + catalogTxt
     + '\n\nREGLAS:\n'
@@ -376,6 +376,9 @@ app.post('/webhook/whatsapp', async (req, res) => {
     }
 
     // ── 7. Claude IA general ──────────────────────
+    // BUG P FIX: no responder si timer acaba de confirmar el pedido
+    const _orderKey = 'order:' + from;
+    if (recentlyConfirmed.has(_orderKey)) { reply = null; }
     if (!reply) {
       const history = getHistory('wa:' + from);
       const _nivelWA = cliente ? await getNivelPrecio(from).catch(() => null) : null;
