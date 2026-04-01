@@ -387,7 +387,13 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
   function set(newState) { activeOrders.set(key, { ...existing, state: newState, order }); }
 
   // IDLE
-  if (state === S.IDLE) {
+  // FIX BUG M: limpiar estado CONFIRMED/CANCELLED — no reiniciar pedido automáticamente
+  if (state === S.CONFIRMED || state === S.CANCELLED) {
+    activeOrders.delete(key); // limpiar para próxima compra
+    return null; // Claude IA atiende el mensaje
+  }
+
+if (state === S.IDLE) {
     if (!isBuyIntent(msg)) return null;
     order.clientPhone = from;
     order.clientName  = clientName;
