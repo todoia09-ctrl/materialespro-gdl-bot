@@ -187,5 +187,35 @@ async function logMensaje(clienteId, canal, direccion, contenido, tipo='texto') 
   );
 }
 
-module.exports = { query, initSchema, upsertCliente, getCliente, logMensaje, getPool };
+
+// ─────────────────────────────────────────────────
+//  ACTIVE ORDERS — Persistencia en Supabase
+// ─────────────────────────────────────────────────
+async function saveActiveOrder(sessionKey, state, order, token) {
+  try {
+    await query(
+      `INSERT INTO active_orders(session_key,state,order_json,token,actualizado)
+       VALUES($1,$2,$3,$4,NOW())
+       ON CONFLICT(session_key) DO UPDATE SET
+         state=EXCLUDED.state,order_json=EXCLUDED.order_json,
+         token=EXCLUDED.token,actualizado=NOW()`,
+      [sessionKey, state, JSON.stringify(order||{}), token||null]
+    );
+  } catch(e) { console.error('[DB AO save]', e.message); }
+}
+
+async function deleteActiveOrder(sessionKey) {
+  try {
+    await query('DELETE FROM active_orders WHERE session_key=$1', [sessionKey]);
+  } catch(e) { console.error('[DB AO delete]', e.message); }
+}
+
+async function loadActiveOrders() {
+  try {
+    const r = await query('SELECT * FROM active_orders ORDER BY actualizado DESC');
+    return r.rows;
+  } catch(e) { console.error('[DB AO load]', e.message); return []; }
+}
+
+module.exports = { query, initSchema, upsertCliente, getCliente, logMensaje, getPool, saveActiveOrder, deleteActiveOrder, loadActiveOrders };
 

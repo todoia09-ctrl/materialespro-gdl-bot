@@ -454,6 +454,7 @@ app.listen(PORT, async () => {
   // Inicializar base de datos
   try {
     await initSchema();
+    await initActiveOrders().catch(e => console.error('[INIT AO]', e.message));
     await syncFromCatalog(CATALOG.productos);
     console.log('✅ Base de datos lista');
   } catch (e) {

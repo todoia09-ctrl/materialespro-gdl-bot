@@ -7,6 +7,7 @@
 // Twilio eliminado — notificación vendedor via Meta WA (sendMetaWAMessage)
 const nodemailer    = require('nodemailer');
 const { guardarPedido, actualizarEstadoPedido } = require('./crm');
+const { saveActiveOrder, deleteActiveOrder, loadActiveOrders } = require('./db');
 // meta.js se carga lazy en notifyVendorWhatsApp para evitar dependencia circular
 
 // Twilio singleton removido — usando Meta WA
@@ -54,7 +55,21 @@ const CFDI_LIST = Object.values(CFDI_USOS).join('\n');
 //  ESTADO DE PEDIDOS
 // ─────────────────────────────────────────────────
 const activeOrders = new Map();
-const recentlyConfirmed = new Set(); // BUG P: evitar doble mensaje
+const recentlyConfirmed = new Set();
+
+async function initActiveOrders() {
+  try {
+    const rows = await loadActiveOrders();
+    let count = 0;
+    for (const row of rows) {
+      if (['confirmed','cancelled'].includes(row.state)) continue;
+      const order = typeof row.order_json==='string' ? JSON.parse(row.order_json) : row.order_json;
+      activeOrders.set(row.session_key, { state: row.state, order, token: row.token, timer: null });
+      count++;
+    }
+    if (count>0) console.log('[PEDIDOS] Restaurados desde DB:', count);
+  } catch(e) { console.error('[PEDIDOS] initActiveOrders:', e.message); }
+} // BUG P: evitar doble mensaje
 const vendorTokens = new Map();
 const lastQuotes   = new Map();
 
@@ -394,13 +409,17 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
   const existing = activeOrders.get(key) || { state: S.IDLE, order: {} };
   const { state, order } = existing;
 
-  function set(newState) { activeOrders.set(key, { ...existing, state: newState, order }); }
+  function set(newState) {
+    activeOrders.set(key, { ...existing, state: newState, order });
+    saveActiveOrder(key, newState, order, existing.token).catch(()=>{});
+  }
 
   // IDLE
   // FIX BUG M: limpiar estado CONFIRMED/CANCELLED — no reiniciar pedido automáticamente
   if (state === S.CONFIRMED || state === S.CANCELLED) {
-    activeOrders.delete(key); // limpiar para próxima compra
-    return null; // Claude IA atiende el mensaje
+    activeOrders.delete(key);
+    deleteActiveOrder(key).catch(()=>{});
+    return null;
   }
 
 if (state === S.IDLE) {
@@ -634,6 +653,7 @@ if (state === S.IDLE) {
     // ─────────────────────────────────────────────────────
     const timer = startVendorTimer(key, sendToClient);
     activeOrders.set(key, { state: S.WAITING_VENDOR, order, token, timer });
+    saveActiveOrder(key, S.WAITING_VENDOR, order, token).catch(()=>{});
 
     return '✅ *Pedido recibido*\n\nVerificando stock con el almacén. 🔍\nTe confirmamos en los próximos *15 minutos*.';
   }
@@ -657,4 +677,4 @@ if (state === S.IDLE) {
 function saveLastQuote(from, text) { lastQuotes.set(from, text); }
 function getLastQuote(from)        { return lastQuotes.get(from) || null; }
 
-module.exports = { processOrderFlow, processVendorReply, isVendorNumber, saveLastQuote, getLastQuote, recentlyConfirmed };
+module.exports = { processOrderFlow, processVendorReply, isVendorNumber, saveLastQuote, getLastQuote, recentlyConfirmed, initActiveOrders };
