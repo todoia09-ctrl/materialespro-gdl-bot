@@ -486,6 +486,15 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
       notifyVendorEmail(order, token, negocioNombre)
     ]);
 
+    // ── Extraer total del rawQuote si no está seteado ────
+    if (!order.total && order.rawQuote) {
+      const _totalMatch = order.rawQuote.match(/TOTAL[:s*]*$?([d,]+)/i)
+        || order.rawQuote.match(/$s*([d,]+)s*MXN/i)
+        || order.rawQuote.match(/total[:s]+$?([d,]+)/i);
+      if (_totalMatch) {
+        order.total = parseFloat(_totalMatch[1].replace(/,/g, ''));
+      }
+    }
     // ── Guardar pedido en DB ──────────────────────────────
     try {
       const _result = await guardarPedido(from, order, 'whatsapp');
