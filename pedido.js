@@ -478,19 +478,10 @@ async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, 
 
     // ── Guardar pedido en DB ──────────────────────────────
     try {
-      const _items = order.rawQuote ? [{ descripcion: order.rawQuote.substring(0, 200), cantidad: 1 }] : [];
-      const _total = order.total || 0;
-      const _pedidoId = await guardarPedido(
-        from,
-        _items,
-        _total,
-        order.type || 'pickup',
-        order.payment || 'efectivo',
-        order.type === 'delivery' ? { calle: order.street, colonia: order.colony, referencia: order.reference } : null
-      );
-      if (_pedidoId) {
-        order.pedidoId = _pedidoId;
-        console.log('[PEDIDO DB] Guardado ID:', _pedidoId, 'cliente:', from);
+      const _result = await guardarPedido(from, order, 'whatsapp');
+      if (_result && _result.folio) {
+        order.pedidoId = _result.pedidoId;
+        console.log('[PEDIDO DB] Guardado folio:', _result.folio, 'cliente:', from);
       }
     } catch (_dbErr) {
       console.error('[PEDIDO DB] Error al guardar:', _dbErr.message);
