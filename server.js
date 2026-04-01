@@ -407,7 +407,7 @@ app.post('/webhook/meta', async (req, res) => {
     }
   }
   try {
-    await processMetaWebhook(req.body, getAIResponse, getHistory, saveHistory, getCatalog);
+    await processMetaWebhook(req.body, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse);
   } catch (err) { console.error('[META ERR]', err.message); }
 });
 
