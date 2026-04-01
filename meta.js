@@ -8,10 +8,9 @@ const Anthropic = require('@anthropic-ai/sdk');
 
 const { logMensaje }                                           = require('./db');
 const { registrarContacto, guardarCotizacion, programarSeguimiento } = require('./crm');
-const { processOrderFlow, getLastQuote, saveLastQuote,
-        isPDFRequest }                                         = require('./pedido');
+const { processOrderFlow, getLastQuote, saveLastQuote } = require('./pedido');
 const { isTechnicalQuestion, getTechnicalInfo }                = require('./tecnico');
-const { generateAndSendQuote }                                 = require('./cotizacion');
+const { generateAndSendQuote, isPDFRequest }                   = require('./cotizacion');
 
 const META_API    = 'https://graph.facebook.com/v22.0';
 const WA_PHONE_ID = process.env.META_PHONE_NUMBER_ID;
