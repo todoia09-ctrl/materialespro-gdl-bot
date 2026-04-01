@@ -39,6 +39,7 @@ app.use(express.json({ limit: '10mb' }));
 // ── Dashboard estático ───────────────────────────
 app.use('/dashboard', express.static(pathMod.join(__dirname, 'dashboard')));
 app.get('/dashboard', (_, res) => res.sendFile(pathMod.join(__dirname, 'dashboard/index.html')));
+app.get('/privacy', (_, res) => res.sendFile(pathMod.join(__dirname, 'privacy.html')));
 app.use('/api', dashboardApi);
 
 // ─────────────────────────────────────────────────
