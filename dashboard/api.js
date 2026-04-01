@@ -6,6 +6,11 @@
 
 const express  = require('express');
 const bcrypt   = require('bcryptjs');
+let _sendMetaWA = null;
+function getSendMeta() {
+  if (!_sendMetaWA) try { _sendMetaWA = require('../meta').sendMetaWAMessage; } catch(e){}
+  return _sendMetaWA;
+}
 const jwt      = require('jsonwebtoken');
 const fs       = require('fs');
 const path     = require('path');
@@ -133,6 +138,38 @@ router.patch('/pedidos/:id/estado', authMiddleware(), async (req, res) => {
     const extra = estado === 'confirmado' ? ', confirmado_en=NOW()' : '';
     await query('UPDATE pedidos SET estado=$1, actualizado_en=NOW()' + extra + ' WHERE id=$2',
       [estado, req.params.id]);
+    // BUG3 FIX: enviar WA al cliente al confirmar/cancelar desde dashboard
+    if (estado === 'confirmado' || estado === 'cancelado') {
+      try {
+        const ped = await query('SELECT p.*, c.whatsapp FROM pedidos p LEFT JOIN clientes c ON c.id=p.cliente_id WHERE p.id=$1', [req.params.id]);
+        const p = ped.rows[0];
+        if (p && p.whatsapp) {
+          const toNum = p.whatsapp.replace('whatsapp:+','').replace('whatsapp:','');
+          const sendWA = getSendMeta();
+          if (sendWA) {
+            if (estado === 'confirmado') {
+              const isPickup = p.tipo === 'pickup';
+              let msg = '✅ *¡Pedido confirmado!*\n\n';
+              if (isPickup) {
+                msg += '📍 *Te esperamos en:*\n'
+                     + '*MaterialesPro GDL* — Av. López Mateos Sur 6506, Zapopan\n'
+                     + '🗺️ https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA\n'
+                     + '🕐 Lunes a Sábado 8am–6pm\n';
+                if (p.fecha_recoger) msg += '📅 ' + p.fecha_recoger + '\n';
+              } else {
+                msg += '🚚 Entrega coordinada.\n';
+                if (p.fecha_entrega) msg += '📅 ' + p.fecha_entrega + '\n';
+                if (p.calle) msg += '📍 ' + p.calle + (p.colonia ? ', Col. ' + p.colonia : '') + '\n';
+              }
+              msg += '\nNuestro equipo confirmará pago y entrega. 📞\n¿Algo más en lo que te podamos ayudar?';
+              await sendWA(toNum, msg);
+            } else {
+              await sendWA(toNum, '❌ Tu pedido ' + p.folio + ' fue cancelado.\nEscríbenos para cualquier duda. 🙌');
+            }
+          }
+        }
+      } catch(we) { console.error('[WA notify dashboard]', we.message); }
+    }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

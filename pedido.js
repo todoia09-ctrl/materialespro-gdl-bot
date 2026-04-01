@@ -68,6 +68,13 @@ async function initActiveOrders() {
       count++;
     }
     if (count>0) console.log('[PEDIDOS] Restaurados desde DB:', count);
+    // BUG2 FIX: restaurar vendorTokens para tokens pendientes
+    for (const row of rows) {
+      if (row.state === 'waiting_vendor' && row.token) {
+        vendorTokens.set(row.token, row.session_key);
+        console.log('[PEDIDOS] Token restaurado:', row.token);
+      }
+    }
   } catch(e) { console.error('[PEDIDOS] initActiveOrders:', e.message); }
 } // BUG P: evitar doble mensaje
 const vendorTokens = new Map();
