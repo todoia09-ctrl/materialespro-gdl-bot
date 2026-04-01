@@ -312,7 +312,11 @@ function startVendorTimer(sessionKey, sendToClient) {
     const isPickup = order.type === 'pickup';
     let msg = '✅ *¡Pedido confirmado!*\n\n';
     if (isPickup) {
-      msg += '📍 Te esperamos en el almacén.\n📅 ' + ((order.pickupDate && order.pickupDate.length > 2) ? order.pickupDate : 'Coordinamos fecha contigo') + '\n\n';
+      msg += '📍 *Te esperamos en:*\n'
+        + '*MaterialesPro GDL* — Av. López Mateos Sur 6506, Zapopan\n'
+        + '🗺️ https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA\n'
+        + '🕐 Horario: Lunes a Sábado 8am–6pm\n'
+        + '📅 ' + ((order.pickupDate && order.pickupDate.length > 2) ? order.pickupDate : 'Coordinamos fecha contigo') + '\n\n';
     } else {
       msg += '🚚 Entrega coordinada.\n📅 ' + (order.datetime || 'Coordinamos fecha') + '\n📍 ' + (order.street || '') + ', Col. ' + (order.colony || '') + '\n\n';
     }
