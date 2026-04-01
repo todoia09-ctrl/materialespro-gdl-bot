@@ -637,11 +637,25 @@ if (state === S.IDLE) {
       notifyVendorEmail(order, token, negocioNombre)
     ]);
 
-        // ── Extraer total del rawQuote ────────────────────
+        // ── Extraer/calcular total ────────────────────────
+    // FIX: calcular desde items_json primero (más confiable)
+    if (!order.total || order.total === 0) {
+      if (order.items && order.items.length > 0) {
+        const _itemsTotal = order.items.reduce((s,i) => s + ((i.qty||1) * (i.precio||0)), 0);
+        if (_itemsTotal > 0) order.total = _itemsTotal;
+      }
+    }
+    // Fallback: parsear rawQuote buscando TOTAL o último precio grande
     if (!order.total && order.rawQuote) {
       var _rq = order.rawQuote;
-      var _tm = _rq.match(new RegExp('TOTAL[^\\d]*(\\d[\\d,]+)', 'i'))
-             || _rq.match(new RegExp('\\$(\\d[\\d,]+)', 'i'));
+      // Buscar 'Total: $X,XXX' primero
+      var _tm = _rq.match(new RegExp('[Tt]otal[^\\d]*(\\d[\\d,]+)', 'i'))
+             || _rq.match(new RegExp('[Ss]ubtotal[^\\d]*(\\d[\\d,]+)', 'i'));
+      // Si no, tomar el último precio mencionado
+      if (!_tm) {
+        var _allPrices = [..._rq.matchAll(new RegExp('\\$(\\d[\\d,]+)', 'g'))];
+        if (_allPrices.length > 0) _tm = _allPrices[_allPrices.length - 1];
+      }
       if (_tm) order.total = parseFloat(_tm[1].replace(/,/g, ''));
     }
     // ── Guardar pedido en DB ────────────────────────

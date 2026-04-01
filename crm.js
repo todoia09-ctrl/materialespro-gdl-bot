@@ -109,6 +109,14 @@ async function guardarPedido(whatsapp, order, canal) {
     const cliente = await getCliente(whatsapp);
     if (!cliente) return null;
 
+    // FIX total $0: calcular desde items si no viene
+    if (!order.total || order.total === 0) {
+      const _its = order.items || [];
+      if (_its.length > 0) {
+        const _calc = _its.reduce((s,i) => s + ((i.qty||1) * (i.precio||0)), 0);
+        if (_calc > 0) { order.total = _calc; order.subtotal = order.subtotal || _calc; }
+      }
+    }
     const folio = 'PED-' + Date.now();
     const r     = await query(`
       INSERT INTO pedidos(
