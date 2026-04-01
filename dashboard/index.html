@@ -195,6 +195,7 @@ select:focus{border-color:var(--rust)}
     <div class="nav-item" onclick="showPage('campanas')"><span class="icon">📣</span> Campañas</div>
     <div class="nav-item" onclick="showPage('catalogo')"><span class="icon">📋</span> Catálogo</div>
     <div class="nav-item" onclick="showPage('vendedores')"><span class="icon">👤</span> Vendedores</div>
+    <div class="nav-item" onclick="showPage('config')"><span class="icon">⚙️</span> Configuración</div>
     <div class="nav-section">Reportes</div>
     <div class="nav-item" onclick="showPage('reportes')"><span class="icon">📈</span> Reportes</div>
   </nav>
@@ -426,6 +427,20 @@ select:focus{border-color:var(--rust)}
       </div>
     </div>
 
+    <!-- CONFIG -->
+    <div class="page" id="page-config">
+      <h2 style="color:var(--sand);font-size:1.1rem;letter-spacing:.1em;margin-bottom:1.5rem">CONFIGURACIÓN</h2>
+      <!-- Tarifas de envío -->
+      <div style="background:var(--cement);border-radius:8px;padding:1.5rem;max-width:600px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 style="color:var(--sand);font-size:.9rem">🚚 TARIFAS DE ENVÍO</h3>
+          <button class="btn btn-green btn-sm" onclick="saveTarifas()">💾 Guardar</button>
+        </div>
+        <div id="tarifasForm" style="display:grid;gap:.6rem"></div>
+        <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem">Los cambios aplican inmediatamente a nuevos pedidos.</p>
+      </div>
+    </div>
+
     <!-- REPORTES -->
     <div class="page" id="page-reportes">
       <div style="display:flex;gap:.75rem;margin-bottom:1.5rem">
@@ -535,7 +550,7 @@ function showPage(name) {
     if (n.getAttribute('onclick')?.includes("'" + name + "'")) n.classList.add('active');
   });
   const titles = { dashboard:'Dashboard', pedidos:'Pedidos', clientes:'Clientes (CRM)',
-                   inventario:'Inventario', campanas:'Campañas WhatsApp', catalogo:'Catálogo / Precios', reportes:'Reportes', vendedores:'Vendedores' };
+                   inventario:'Inventario', campanas:'Campañas WhatsApp', catalogo:'Catálogo / Precios', reportes:'Reportes', vendedores:'Vendedores', config:'Configuración' };
   document.getElementById('pageTitle').textContent = titles[name] || name;
   CURRENT = name;
   loadPage(name);
@@ -546,7 +561,7 @@ function refreshPage() { loadPage(CURRENT); }
 function loadPage(name) {
   const loaders = { dashboard: loadDashboard, pedidos: loadPedidos,
                     clientes: loadClientes, inventario: loadInventario,
-                    campanas: loadCampanas, reportes: loadReportes, vendedores: loadVendedores };
+                    campanas: loadCampanas, reportes: loadReportes, vendedores: loadVendedores, config: loadConfig };
   if (loaders[name]) loaders[name]();
 }
 
@@ -839,6 +854,37 @@ async function crearCampana() {
   async function toggleVendedor(id,activo){
     await api('/usuarios/'+id,{method:'PATCH',body:{activo}});
     loadVendedores();
+  }
+
+// ── CONFIG ────────────────────────────────────────
+  let _tarifasData = {};
+  async function loadConfig() {
+    const data = await api('/tarifas');
+    if (!data) return;
+    _tarifasData = data;
+    const ZONA_LABELS = { norte:'GDL Norte / Zapopan', gdl:'Guadalajara', sur:'Sur / Tlaquepaque', este:'Este / Tonalá / El Salto', sur_lejano:'Tlajomulco / ZMG Sur', default:'ZMG / Otros' };
+    const rows = Object.entries(data).map(([k,v]) => `
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:.5rem;align-items:center;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <div style="font-size:.84rem">${ZONA_LABELS[k]||k}</div>
+        <div style="display:flex;align-items:center;gap:.3rem">
+          <span style="color:var(--gray);font-size:.8rem">$</span>
+          <input type="number" id="tarifa_${k}" value="${v.precio}" style="width:70px;background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:.3rem .4rem;font-size:.84rem">
+        </div>
+        <input type="text" id="tiempo_${k}" value="${v.tiempo}" placeholder="1-2 días" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:.3rem .4rem;font-size:.8rem">
+      </div>
+    `).join('');
+    document.getElementById('tarifasForm').innerHTML = rows;
+  }
+  async function saveTarifas() {
+    const updated = {};
+    for (const k of Object.keys(_tarifasData)) {
+      const precio = parseFloat(document.getElementById('tarifa_'+k)?.value||0);
+      const tiempo = document.getElementById('tiempo_'+k)?.value||'1-2 días';
+      updated[k] = { ..._tarifasData[k], precio, tiempo };
+    }
+    const r = await api('/tarifas',{method:'PUT',body:updated});
+    if (r?.ok) toast('Tarifas guardadas ✅','success');
+    else toast('Error al guardar','error');
   }
 
 // ── REPORTES ──────────────────────────────────────

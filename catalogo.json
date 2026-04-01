@@ -16464,5 +16464,53 @@
       "version": "V2",
       "activo": true
     }
+  },
+  "negocio": {
+    "nombre": "MaterialesPro GDL",
+    "ciudad": "Zapopan / Guadalajara, Jalisco",
+    "telefono": "+52 33 XXXX XXXX",
+    "horario": "Lun-Sab 8am-6pm",
+    "whatsapp": "+52 33 XXXX XXXX",
+    "direccion": "Av. López Mateos Sur 6506, Zapopan, Jalisco",
+    "maps_link": "https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA"
+  },
+  "envios": {
+    "gratis_desde": 5000
+  },
+  "tarifas_envio": {
+    "norte": {
+      "precio": 150,
+      "tiempo": "1-2 días",
+      "label": "GDL Norte / Zapopan"
+    },
+    "gdl": {
+      "precio": 150,
+      "tiempo": "1-2 días",
+      "label": "Guadalajara"
+    },
+    "sur": {
+      "precio": 180,
+      "tiempo": "1-2 días",
+      "label": "Sur / Tlaquepaque"
+    },
+    "este": {
+      "precio": 200,
+      "tiempo": "1-3 días",
+      "label": "Este / Tonalá / El Salto"
+    },
+    "sur_lejano": {
+      "precio": 250,
+      "tiempo": "2-3 días",
+      "label": "Tlajomulco / ZMG Sur"
+    },
+    "default": {
+      "precio": 250,
+      "tiempo": "2-3 días",
+      "label": "ZMG / Otros"
+    }
+  },
+  "descuentos_volumen": {
+    "umbral_pesos": 5000,
+    "mensaje": "Descuento especial en proyectos grandes"
   }
 }

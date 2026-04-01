@@ -33,7 +33,12 @@ const TARIFAS_ENVIO = {
 };
 
 function calcularEnvio(zona) {
-  return TARIFAS_ENVIO[zona] || TARIFAS_ENVIO.default;
+  // Leer tarifas actualizadas desde catalogo.json
+  try {
+    const _cat = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'catalogo.json'), 'utf8'));
+    const _tf = _cat.tarifas_envio || TARIFAS_ENVIO;
+    return _tf[zona] || _tf.default || TARIFAS_ENVIO.default;
+  } catch(e) { return TARIFAS_ENVIO[zona] || TARIFAS_ENVIO.default; }
 }
 
 function detectarZona(texto) {

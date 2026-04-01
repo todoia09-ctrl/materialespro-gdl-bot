@@ -335,6 +335,25 @@ router.patch('/usuarios/:id', authMiddleware(['admin']), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /api/tarifas — tarifas de envío
+router.get('/tarifas', authMiddleware(), async (req, res) => {
+  try {
+    const cat = JSON.parse(fs.readFileSync(path.join(__dirname, '../catalogo.json'), 'utf8'));
+    res.json(cat.tarifas_envio || {});
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// PUT /api/tarifas — actualizar tarifas
+router.put('/tarifas', authMiddleware(['admin']), async (req, res) => {
+  try {
+    const catPath = path.join(__dirname, '../catalogo.json');
+    const cat = JSON.parse(fs.readFileSync(catPath, 'utf8'));
+    cat.tarifas_envio = { ...cat.tarifas_envio, ...req.body };
+    fs.writeFileSync(catPath, JSON.stringify(cat, null, 2), 'utf8');
+    res.json({ ok: true, tarifas: cat.tarifas_envio });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET /api/catalogo — productos actuales
 router.get('/catalogo', authMiddleware(['admin']), (req, res) => {
   try {
