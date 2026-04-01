@@ -348,7 +348,9 @@ function parseVendorResponse(msg) {
 
 function isVendorNumber(from) {
   const vendor = process.env.VENDOR_WHATSAPP || '';
-  return from === 'whatsapp:' + vendor || from === vendor;
+  // Normalizar: quitar prefijo whatsapp: y el '1' de celular México (+521 vs +52)
+  function norm(n) { return n.replace('whatsapp:','').replace('+521','+52').replace(/\s/g,''); }
+  return norm(from) === norm(vendor);
 }
 
 async function processVendorReply(msg, sendToClient) {
