@@ -67,12 +67,15 @@ router.post('/auth/login', async (req, res) => {
 // ─────────────────────────────────────────────────
 router.get('/resumen', authMiddleware(), async (req, res) => {
   try {
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    // FIX timezone: usar America/Mexico_City (UTC-6)
+    const _ahoraMX = new Date(new Date().toLocaleString('en-US', {timeZone:'America/Mexico_City'}));
+    _ahoraMX.setHours(0,0,0,0);
+    const hoy = _ahoraMX;
     const [peds, cots, cls, ing, pend, alertas] = await Promise.all([
-      query('SELECT COUNT(*) FROM pedidos      WHERE creado_en>=$1', [hoy]),
-      query('SELECT COUNT(*) FROM cotizaciones WHERE creado_en>=$1', [hoy]),
-      query('SELECT COUNT(*) FROM clientes     WHERE primer_contacto>=$1', [hoy]),
-      query("SELECT COALESCE(SUM(total),0) as t FROM pedidos WHERE estado='confirmado' AND creado_en>=$1", [hoy]),
+      query('SELECT COUNT(*) FROM pedidos      WHERE (creado_en AT TIME ZONE \'America/Mexico_City\')::date = ($1::timestamptz AT TIME ZONE \'America/Mexico_City\')::date', [hoy]),
+      query('SELECT COUNT(*) FROM cotizaciones WHERE (creado_en AT TIME ZONE \'America/Mexico_City\')::date = ($1::timestamptz AT TIME ZONE \'America/Mexico_City\')::date', [hoy]),
+      query('SELECT COUNT(*) FROM clientes     WHERE (primer_contacto AT TIME ZONE \'America/Mexico_City\')::date = ($1::timestamptz AT TIME ZONE \'America/Mexico_City\')::date', [hoy]),
+      query("SELECT COALESCE(SUM(total),0) as t FROM pedidos WHERE estado='confirmado' AND (creado_en AT TIME ZONE 'America/Mexico_City')::date = ($1::timestamptz AT TIME ZONE 'America/Mexico_City')::date", [hoy]),
       query("SELECT COUNT(*) FROM pedidos WHERE estado='pendiente'", []),
       query('SELECT COUNT(*) FROM inventario WHERE stock<=stock_minimo', []),
     ]);
