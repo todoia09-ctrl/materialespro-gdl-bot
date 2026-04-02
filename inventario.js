@@ -43,7 +43,7 @@ async function verificarStock(items) {
       if (r.rows.length === 0) continue; // producto no rastreado, skip
 
       const { stock, nombre, unidad } = r.rows[0];
-      if (stock < (item.cantidad || 1)) {
+      if (stock > 0 && stock < (item.cantidad || 1)) {  // stock=0 = no cargado, skip
         faltantes.push({
           producto: nombre,
           pedido:   item.cantidad,

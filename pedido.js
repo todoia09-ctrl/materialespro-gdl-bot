@@ -8,6 +8,7 @@
 const nodemailer    = require('nodemailer');
 const { guardarPedido, actualizarEstadoPedido, calcularEnvio, detectarZona } = require('./crm');
 const { saveActiveOrder, deleteActiveOrder, loadActiveOrders } = require('./db');
+const { verificarStock, reducirStock } = require('./inventario'); // stock real
 // meta.js se carga lazy en notifyVendorWhatsApp para evitar dependencia circular
 
 // Twilio singleton removido — usando Meta WA
@@ -373,6 +374,10 @@ async function processVendorReply(msg, sendToClient) {
     data.state = S.CONFIRMED;
     activeOrders.set(sessionKey, data);
 
+    // -- Reducir stock al confirmar --
+    try { await reducirStock(order.items || [], order.folio || order.pedidoId || 'unk'); }
+    catch (_re) { console.error('[INV] reducirStock:', _re.message); }
+
     // ── Actualizar estado en DB ──────────────────────────────
     if (order.pedidoId) {
       await actualizarEstadoPedido(order.pedidoId, 'confirmado').catch(e =>
@@ -645,6 +650,18 @@ if (state === S.IDLE) {
       return '¿Confirmas? Responde *SÍ* o *NO*.';
 
     const token = generateToken();
+        // -- Verificar stock antes de notificar al vendedor --
+    const _stockCheck = await verificarStock(order.items || []);
+    if (!_stockCheck.ok) {
+      activeOrders.delete(key);
+      await deleteActiveOrder(key).catch(()=>{});
+      const _falt = _stockCheck.faltantes.map(f =>
+        '• ' + f.producto + ': pedido ' + f.pedido + ' ' + f.unidad + ', disponible ' + f.disponible
+      ).join('\n');
+      return '⚠️ Sin stock suficiente.\n\n' + _falt +
+        '\n\n¿Qué prefieres?\n1️⃣ Avísame cuando llegue\n2️⃣ Ver alternativa\n3️⃣ Hablar con un asesor';
+    }
+
     vendorTokens.set(token, key);
 
     await Promise.allSettled([
