@@ -766,6 +766,18 @@ async function verCliente(wa) {
   openModal('modalCliente');
 }
 
+async function syncInventario() {
+  try {
+    const btn = document.querySelector('[onclick="syncInventario()"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sincronizando...'; }
+    const r = await api('/inventario/sync', { method: 'POST' });
+    if (r && r.ok) {
+      alert('✅ Sincronizado: ' + r.total + ' productos cargados.\nAhora edita el stock de cada uno.');
+      loadInventario();
+    } else { alert('Error: ' + (r && r.error ? r.error : 'respuesta inesperada')); }
+  } catch(e) { alert('Error al sincronizar: ' + e.message); }
+}
+
 // ── INVENTARIO ────────────────────────────────────
 async function loadInventario() {
   const data = await api('/inventario');
