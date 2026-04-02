@@ -1154,7 +1154,7 @@ async function confirmarImport() {
           '<div class="inv-nums"><span style="color:' + color + '">' + item.stock + ' ' + item.unidad + '</span><span>Mín: ' + item.stock_minimo + '</span></div>' +
           '<div class="inv-controls">' +
           '<input class="inv-input" type="number" id="inv-' + item.producto_id + '" value="' + item.stock + '" min="0">' +
-          '<button class="btn btn-primary btn-sm" onclick="saveStock('' + item.producto_id + '')">Guardar</button>' +
+          '<button class="btn btn-primary btn-sm" onclick="saveStock(\'' + item.producto_id + '\')">Guardar</button>' +
           '</div></div>';
       }).join('');
     }).catch(function(e) { console.error('[INV] loadInventario:', e.message); });
