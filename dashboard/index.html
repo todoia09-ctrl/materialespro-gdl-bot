@@ -1174,8 +1174,7 @@ async function confirmarImport() {
     apiFetch('/inventario/sync', { method: 'POST' })
       .then(function(r) {
         if (r && r.ok) {
-          alert('✅ Sincronizado: ' + r.total + ' productos cargados.
-Ahora edita el stock de cada uno.');
+          alert('Sincronizado: ' + r.total + ' productos cargados. Ahora edita el stock de cada uno.');
           window.loadInventario();
         } else { alert('Error: ' + (r && r.error ? r.error : 'respuesta inesperada')); }
       })
