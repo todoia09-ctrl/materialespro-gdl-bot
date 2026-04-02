@@ -1123,26 +1123,76 @@ async function confirmarImport() {
 
 <!-- sync-inventario-standalone -->
 <script>
-async function syncInventario() {
-  var API = "/api";
-  var token = localStorage.getItem("mp_token");
-  var btn = document.querySelector('[onclick="syncInventario()"]');
-  if (btn) { btn.disabled = true; btn.textContent = "Sincronizando..."; }
-  try {
-    var res = await fetch(API + "/inventario/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }
-    });
-    var r = await res.json();
-    if (r && r.ok) {
-      alert("\u2705 Sincronizado: " + r.total + " productos cargados.\nAhora edita el stock de cada uno.");
-      if (typeof loadInventario === "function") loadInventario();
-    } else { alert("Error: " + (r && r.error ? r.error : "respuesta inesperada")); }
-  } catch(e) { alert("Error al sincronizar: " + e.message); }
-  finally {
-    if (btn) { btn.disabled = false; btn.textContent = "\uD83D\uDD04 Sincronizar desde cat\u00E1logo"; }
+(function() {
+  var API = '/api';
+
+  function getToken() { return localStorage.getItem('mp_token') || ''; }
+
+  function apiFetch(path, opts) {
+    opts = opts || {};
+    return fetch(API + path, {
+      method: opts.method || 'GET',
+      headers: Object.assign({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }, opts.headers || {}),
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    }).then(function(r) { return r.json(); });
   }
-}
+
+  window.loadInventario = function() {
+    apiFetch('/inventario').then(function(data) {
+      var grid = document.getElementById('invGrid');
+      if (!grid) return;
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        grid.innerHTML = '<div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Sin productos en inventario.<br><br><button class="btn" onclick="syncInventario()">🔄 Sincronizar desde catálogo</button></div>';
+        return;
+      }
+      grid.innerHTML = data.map(function(item) {
+        var pct = Math.min(100, item.stock_minimo > 0 ? Math.round((item.stock / (item.stock_minimo * 3)) * 100) : (item.stock > 0 ? 100 : 0));
+        var color = item.stock <= 0 ? 'var(--danger)' : item.stock <= item.stock_minimo ? 'var(--warning)' : 'var(--success)';
+        return '<div class="inv-card">' +
+          '<div class="inv-name">' + item.nombre + '</div>' +
+          '<div class="inv-stock-bar"><div class="inv-stock-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+          '<div class="inv-nums"><span style="color:' + color + '">' + item.stock + ' ' + item.unidad + '</span><span>Mín: ' + item.stock_minimo + '</span></div>' +
+          '<div class="inv-controls">' +
+          '<input class="inv-input" type="number" id="inv-' + item.producto_id + '" value="' + item.stock + '" min="0">' +
+          '<button class="btn btn-primary btn-sm" onclick="saveStock('' + item.producto_id + '')">Guardar</button>' +
+          '</div></div>';
+      }).join('');
+    }).catch(function(e) { console.error('[INV] loadInventario:', e.message); });
+  };
+
+  window.saveStock = function(id) {
+    var val = parseInt(document.getElementById('inv-' + id).value);
+    if (isNaN(val) || val < 0) return alert('Stock inválido');
+    apiFetch('/inventario/' + id, { method: 'PATCH', body: { stock: val } })
+      .then(function(r) { if (r.ok) alert('✅ Stock actualizado'); else alert('Error: ' + (r.error || 'desconocido')); })
+      .catch(function(e) { alert('Error: ' + e.message); });
+  };
+
+  window.syncInventario = function() {
+    var btn = document.querySelector('[onclick="syncInventario()"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sincronizando...'; }
+    apiFetch('/inventario/sync', { method: 'POST' })
+      .then(function(r) {
+        if (r && r.ok) {
+          alert('✅ Sincronizado: ' + r.total + ' productos cargados.
+Ahora edita el stock de cada uno.');
+          window.loadInventario();
+        } else { alert('Error: ' + (r && r.error ? r.error : 'respuesta inesperada')); }
+      })
+      .catch(function(e) { alert('Error al sincronizar: ' + e.message); })
+      .finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '🔄 Sincronizar desde catálogo'; }
+      });
+  };
+
+  // Auto-cargar si la sección inventario está activa
+  document.addEventListener('DOMContentLoaded', function() {
+    var inv = document.getElementById('page-inventario');
+    if (inv && (inv.classList.contains('active') || inv.style.display !== 'none')) {
+      window.loadInventario();
+    }
+  });
+})();
 </script>
 </body>
 </html>
