@@ -403,6 +403,33 @@ select:focus{border-color:var(--rust)}
         <button class="btn btn-green" onclick="showVendedorForm()">+ Nuevo vendedor</button>
       </div>
       <div id="vendedoresTable"></div>
+      <div id="editVendedorForm" style="display:none;background:var(--cement);border-radius:8px;padding:1.5rem;margin-top:1rem;max-width:500px">
+        <h3 style="color:var(--sand);margin-bottom:1rem;font-size:.9rem">EDITAR VENDEDOR</h3>
+        <input type="hidden" id="eVId">
+        <div style="display:grid;gap:.75rem">
+          <input class="input" id="eVNombre" placeholder="Nombre completo">
+          <input class="input" id="eVEmail" placeholder="Email" disabled style="opacity:.5">
+          <input class="input" id="eVEmpresa" placeholder="Empresa">
+          <input class="input" id="eVTelefono" placeholder="Teléfono">
+          <input class="input" id="eVWhatsapp" placeholder="WhatsApp (+52...)">
+          <select class="input" id="eVRol">
+            <option value="vendedor">Vendedor</option>
+            <option value="admin">Admin</option>
+            <option value="bodega">Bodega</option>
+          </select>
+          <select class="input" id="eVZona">
+            <option value="">Todas las zonas</option>
+            <option value="norte">Norte</option>
+            <option value="sur">Sur</option>
+            <option value="este">Este</option>
+            <option value="gdl">GDL Centro</option>
+          </select>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-green" onclick="guardarEdicionVendedor()">Guardar cambios</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('editVendedorForm').style.display='none'">Cancelar</button>
+          </div>
+        </div>
+      </div>
       <div id="vendedorForm" style="display:none;background:var(--cement);border-radius:8px;padding:1.5rem;margin-top:1rem;max-width:500px">
         <h3 style="color:var(--sand);margin-bottom:1rem;font-size:.9rem">NUEVO VENDEDOR</h3>
         <div style="display:grid;gap:.75rem">
@@ -869,6 +896,7 @@ async function crearCampana() {
         <div style="display:flex;gap:.25rem;align-items:center">
           <span style="font-size:.74rem;padding:.15rem .4rem;border-radius:4px;background:${v.activo?'rgba(74,193,131,.15)':'rgba(255,80,80,.15)'};color:${v.activo?'var(--green)':'#ff6060'}">${v.activo?'Activo':'Inactivo'}</span>
           <button class="btn btn-sm" style="font-size:.7rem;padding:.15rem .35rem" onclick="toggleVendedor(${v.id},${!v.activo})">${v.activo?'Desactivar':'Activar'}</button>
+          <button class="btn btn-sm" style="font-size:.7rem;padding:.15rem .35rem;background:var(--info)" onclick="editarVendedor(${v.id},'${v.nombre||''}','${v.email||''}','${v.rol||'vendedor'}','${v.zona||''}','${v.whatsapp||''}','${v.empresa||''}','${v.telefono||''}')">Editar</button>
         </div>
       </div>
     `).join('');
