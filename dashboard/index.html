@@ -1120,5 +1120,29 @@ async function confirmarImport() {
 }
 
 </script>
+
+<!-- sync-inventario-standalone -->
+<script>
+async function syncInventario() {
+  var API = "/api";
+  var token = localStorage.getItem("mp_token");
+  var btn = document.querySelector('[onclick="syncInventario()"]');
+  if (btn) { btn.disabled = true; btn.textContent = "Sincronizando..."; }
+  try {
+    var res = await fetch(API + "/inventario/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }
+    });
+    var r = await res.json();
+    if (r && r.ok) {
+      alert("\u2705 Sincronizado: " + r.total + " productos cargados.\nAhora edita el stock de cada uno.");
+      if (typeof loadInventario === "function") loadInventario();
+    } else { alert("Error: " + (r && r.error ? r.error : "respuesta inesperada")); }
+  } catch(e) { alert("Error al sincronizar: " + e.message); }
+  finally {
+    if (btn) { btn.disabled = false; btn.textContent = "\uD83D\uDD04 Sincronizar desde cat\u00E1logo"; }
+  }
+}
+</script>
 </body>
 </html>
