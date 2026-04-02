@@ -787,7 +787,7 @@ async function loadInventario() {
       </div>`;
     }).join('');
   } else {
-    grid.innerHTML = '<div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Sin productos en inventario. Sincroniza desde el catálogo.</div>';
+    grid.innerHTML = '<div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Sin productos en inventario.<br><br><button class="btn" onclick="syncInventario()">🔄 Sincronizar desde catálogo</button></div>';
   }
 }
 

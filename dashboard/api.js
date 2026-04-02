@@ -16,7 +16,7 @@ const fs       = require('fs');
 const path     = require('path');
 const XLSX     = require('xlsx');
 const { query } = require('../db');
-const { getInventarioCompleto, actualizarStock } = require('../inventario');
+const { getInventarioCompleto, actualizarStock, syncFromCatalog } = require('../inventario');
 const { crearCampana, enviarCampana, previewSegmento, SEGMENTOS } = require('../campanas');
 
 const router = express.Router();
@@ -246,6 +246,17 @@ router.patch('/clientes/:id', authMiddleware(), async (req, res) => {
 router.get('/inventario', authMiddleware(), async (req, res) => {
   try { res.json(await getInventarioCompleto()); }
   catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /inventario/sync — sincronizar todos los productos desde catalogo.json
+router.post('/inventario/sync', authMiddleware(['admin','bodega']), async (req, res) => {
+  try {
+    const CATALOG_PATH = require('path').join(__dirname, '../catalogo.json');
+    const cat = JSON.parse(require('fs').readFileSync(CATALOG_PATH, 'utf8'));
+    const productos = cat.productos || [];
+    await syncFromCatalog(productos);
+    res.json({ ok: true, total: productos.filter(p => p.activo !== false).length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.patch('/inventario/:id', authMiddleware(['admin','bodega']), async (req, res) => {
