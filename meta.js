@@ -13,6 +13,22 @@ const { isTechnicalQuestion, getTechnicalInfo }                = require('./tecn
 const { generateAndSendQuote, isPDFRequest }                   = require('./cotizacion');
 
 const META_API    = 'https://graph.facebook.com/v22.0';
+
+// ── Deduplicación de mensajes Meta ──────────────
+const _processedMsgIds = new Map();
+function isDuplicate(msgId) {
+  if (!msgId) return false;
+  if (_processedMsgIds.has(msgId)) return true;
+  _processedMsgIds.set(msgId, Date.now());
+  return false;
+}
+setInterval(function() {
+  var now = Date.now();
+  var cutoff = now - 60 * 60 * 1000;
+  for (var [id, ts] of _processedMsgIds) {
+    if (ts < cutoff) _processedMsgIds.delete(id);
+  }
+}, 60 * 60 * 1000);
 const WA_PHONE_ID = process.env.META_PHONE_NUMBER_ID;
 const WA_TOKEN    = process.env.META_WHATSAPP_TOKEN;
 
@@ -118,6 +134,7 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
 
   for (const msg of messages) {
     if (!['text', 'audio', 'image', 'document'].includes(msg.type)) continue;
+    if (isDuplicate(msg.id)) { console.log('[META WA] Duplicado ignorado:', msg.id); continue; }
 
     const from        = msg.from;                    // ej: 5213313469831
     const fromNorm    = normalizarNumero(from);      // whatsapp:+5213313469831
@@ -239,6 +256,7 @@ async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, 
 
     for (const event of (entry.messaging || [])) {
       if (!event.message || event.message.is_echo) continue;
+      if (isDuplicate(event.message.mid)) { console.log('[META] Duplicado ignorado:', event.message.mid); continue; }
       const senderId = event.sender.id;
       const text     = event.message.text || '';
       const channel  = object === 'instagram' ? 'Instagram' : 'Messenger';
