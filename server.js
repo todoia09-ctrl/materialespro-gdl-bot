@@ -87,7 +87,8 @@ function buildCatalogText(cat, nivelInfo) {
       if (!/ \(\d/.test(_n) && !/ \d+[,.]\d+ /.test(_n)) {
         _u = p.unidad || p.presentacion || 'pza';
       }
-      return _n + " $" + precioNivel(p) + "/" + _u;
+      var _c = p.categoria ? ' (' + p.categoria + ')' : '';
+      return _n + " $" + precioNivel(p) + "/" + _u + _c;
     })
     .join("\n- ");
   const e = cat.envios || {};
