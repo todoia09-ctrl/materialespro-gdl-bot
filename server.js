@@ -14,7 +14,7 @@ const fs        = require('fs');
 const pathMod   = require('path');
 
 // ── Módulos del sistema ──────────────────────────
-const { initSchema, upsertCliente, getCliente, logMensaje } = require('./db');
+const { initSchema, upsertCliente, getCliente, logMensaje, query } = require('./db');
 const { registrarContacto, actualizarZona, guardarCotizacion,
         guardarPedido, actualizarEstadoPedido,
         programarSeguimiento, logConversacion,
@@ -86,6 +86,32 @@ function loadCatalog() {
   return _cat;
 }
 
+// ── Productos prioritarios (cache desde DB) ─────
+let _priorityProducts = { ofertas: [], destacados: [], masVendidos: [] };
+
+async function loadPriorityProducts() {
+  try {
+    var ofertas = await query(
+      "SELECT codigo, nombre, categoria, unidad, precio_venta, precio_oferta, descuento_maximo FROM catalogo_productos WHERE activo=true AND en_oferta=true AND (oferta_hasta IS NULL OR oferta_hasta >= NOW()) ORDER BY orden_display LIMIT 5"
+    );
+    var destacados = await query(
+      "SELECT codigo, nombre, categoria, unidad, precio_venta, descuento_maximo FROM catalogo_productos WHERE activo=true AND destacado=true AND en_oferta IS NOT TRUE ORDER BY orden_display LIMIT 10"
+    );
+    var masVendidos = await query(
+      "SELECT codigo, nombre, categoria, unidad, precio_venta, descuento_maximo FROM catalogo_productos WHERE activo=true AND mas_vendido=true AND destacado IS NOT TRUE AND en_oferta IS NOT TRUE ORDER BY orden_display LIMIT 10"
+    );
+    _priorityProducts = {
+      ofertas:     (ofertas && ofertas.rows) || [],
+      destacados:  (destacados && destacados.rows) || [],
+      masVendidos: (masVendidos && masVendidos.rows) || []
+    };
+    var total = _priorityProducts.ofertas.length + _priorityProducts.destacados.length + _priorityProducts.masVendidos.length;
+    if (total > 0) console.log('[CAT\u00c1LOGO] Prioritarios:', _priorityProducts.ofertas.length, 'ofertas,', _priorityProducts.destacados.length, 'destacados,', _priorityProducts.masVendidos.length, 'mas vendidos');
+  } catch (e) {
+    console.warn('[CAT\u00c1LOGO] No se pudieron cargar prioritarios:', e.message);
+  }
+}
+
 function buildCatalogText(cat, nivelInfo) {
     const _nivel = nivelInfo ? nivelInfo.nivel : 1;
     const _dp2   = nivelInfo ? nivelInfo.descuento_p2 : 5;
@@ -97,23 +123,62 @@ function buildCatalogText(cat, nivelInfo) {
       if (_nivel === 4) return Math.round(base * (1 - (p.descuento_maximo || 0.20)));
       return base;
     }
-  const prods = (cat.productos || []).filter(p => p.activo !== false)
-    .map(p => {
+    function formatLine(p) {
       var _u = 'pza';
       var _n = p.nombre || '';
-      // Si el nombre NO contiene presentación, usar unidad del catálogo
       if (!/ \(\d/.test(_n) && !/ \d+[,.]\d+ /.test(_n)) {
         _u = p.unidad || p.presentacion || 'pza';
       }
       var _c = p.categoria ? ' (' + p.categoria + ')' : '';
       return _n + " $" + precioNivel(p) + "/" + _u + _c;
-    })
+    }
+
+  // Productos prioritarios (desde DB)
+  var priorityLines = [];
+  var priorityCodigos = new Set();
+  var pp = _priorityProducts;
+
+  if (pp.ofertas.length > 0) {
+    priorityLines.push('\ud83d\udd25 OFERTAS:');
+    for (var i = 0; i < pp.ofertas.length; i++) {
+      var o = pp.ofertas[i];
+      var precioOrig = precioNivel(o);
+      var precioOfe = o.precio_oferta ? Math.round(parseFloat(o.precio_oferta)) : precioOrig;
+      var _u = o.unidad || 'pza';
+      var _c = o.categoria ? ' (' + o.categoria + ')' : '';
+      priorityLines.push('\ud83d\udd25 ' + o.nombre + ' ~$' + precioOrig + '~ $' + precioOfe + '/' + _u + _c);
+      priorityCodigos.add(o.codigo);
+    }
+  }
+  if (pp.destacados.length > 0) {
+    priorityLines.push('\u2b50 DESTACADOS:');
+    for (var i = 0; i < pp.destacados.length; i++) {
+      priorityLines.push('\u2b50 ' + formatLine(pp.destacados[i]));
+      priorityCodigos.add(pp.destacados[i].codigo);
+    }
+  }
+  if (pp.masVendidos.length > 0) {
+    priorityLines.push('TOP VENTAS:');
+    for (var i = 0; i < pp.masVendidos.length; i++) {
+      priorityLines.push(formatLine(pp.masVendidos[i]));
+      priorityCodigos.add(pp.masVendidos[i].codigo);
+    }
+  }
+
+  // Resto de productos (excluir los que ya están en prioritarios)
+  const restProds = (cat.productos || []).filter(p => p.activo !== false && !priorityCodigos.has(p.codigo || p.id))
+    .map(p => formatLine(p))
     .join("\n- ");
+
+  var allProds = priorityLines.length > 0
+    ? priorityLines.join('\n- ') + '\n\nCAT\u00c1LOGO COMPLETO:\n- ' + restProds
+    : '- ' + restProds;
+
   const e = cat.envios || {};
   const gdl = e.gdl_zapopan || { precio: "consultar", tiempo: "1-2 dias" };
   const zmg = e.zmg || { precio: "consultar", tiempo: "1-3 dias" };
   const horario = (cat.negocio || cat.meta || {}).horario || "Lun-Sab 8am-6pm";
-  return "- " + prods
+  return allProds
     + "\nENVIOS: GDL/Zapopan $" + gdl.precio + " (" + gdl.tiempo + ")"
     + " | ZMG $" + zmg.precio + " (" + zmg.tiempo + ")"
     + (e.gratis_desde ? " | Gratis +$" + e.gratis_desde : "") + " | " + horario;
@@ -123,12 +188,13 @@ let CATALOG_TXT = buildCatalogText(CATALOG);
 
 function getCatalog() { return CATALOG; }
 
-setInterval(() => {
+setInterval(async () => {
   try {
     CATALOG     = loadCatalog();
+    await loadPriorityProducts();
     CATALOG_TXT = buildCatalogText(CATALOG);
-    console.log('[CATÁLOGO] Recargado');
-  } catch (e) { console.error('[CATÁLOGO]', e.message); }
+    console.log('[CAT\u00c1LOGO] Recargado');
+  } catch (e) { console.error('[CAT\u00c1LOGO]', e.message); }
 }, 60 * 60 * 1000);
 
 // ─────────────────────────────────────────────────
@@ -539,6 +605,8 @@ app.get('/ping', (_, res) => res.json({ ok: true, ts: new Date().toISOString() }
     await initSchema();
     await initActiveOrders();
     await syncFromCatalog(CATALOG.productos);
+    await loadPriorityProducts();
+    CATALOG_TXT = buildCatalogText(CATALOG);
     console.log('\u2705 Base de datos lista');
   } catch (e) {
     console.warn('\u26a0\ufe0f  DB no disponible (modo sin DB):', e.message);
