@@ -589,14 +589,15 @@ function refreshPage() { loadPage(CURRENT); }
   const _REFRESH_PAGES = ['dashboard','pedidos','clientes'];
   let _refreshTimer = null;
   function startAutoRefresh() {
-    if (_refreshTimer) clearInterval(_refreshTimer);
-    _refreshTimer = setInterval(() => {
+    if (window._refreshTimer) clearInterval(window._refreshTimer);
+    window._refreshTimer = setInterval(() => {
       if (_REFRESH_PAGES.includes(CURRENT)) {
         loadPage(CURRENT);
         console.log('[AUTO-REFRESH]', CURRENT, new Date().toLocaleTimeString('es-MX'));
       }
     }, 30000); // 30 segundos
   }
+  window.startAutoRefresh = startAutoRefresh;
   startAutoRefresh();
   // Mostrar indicador visual de último refresh
   setInterval(() => {
