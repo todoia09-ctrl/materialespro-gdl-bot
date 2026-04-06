@@ -308,12 +308,12 @@ select:focus{border-color:var(--rust)}
           <option value="">Todas las marcas</option>
         </select>
         <select class="input" id="invFilterEstado" style="min-width:100px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
-          <option value="">Todos</option>
+          <option value="" selected>Todos</option>
           <option value="activo">Activo</option>
           <option value="inactivo">Inactivo</option>
         </select>
         <select class="input" id="invFilterStock" style="min-width:120px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
-          <option value="">Todo stock</option>
+          <option value="" selected>Todo stock</option>
           <option value="bajo">Stock bajo</option>
           <option value="sin">Sin stock</option>
           <option value="con">Con stock</option>
@@ -892,7 +892,7 @@ async function loadInventario() {
     var cr = await fetch('/api/catalogo', { headers: { Authorization: 'Bearer ' + tk } });
     var cd = await cr.json();
     _invCatalog = {};
-    (cd.productos || []).forEach(function(p) { _invCatalog[p.id] = p; });
+    (cd.productos || []).forEach(function(p) { _invCatalog[p.id] = p; if (p.codigo) _invCatalog[p.codigo] = p; });
   } catch(e) {}
   // Enriquecer items
   _invData = items.map(function(item) {
