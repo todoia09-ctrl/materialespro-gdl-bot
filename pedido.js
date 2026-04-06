@@ -432,6 +432,26 @@ async function processVendorReply(msg, sendToClient) {
 // ─────────────────────────────────────────────────
 //  PROCESADOR PRINCIPAL DEL FLUJO
 // ─────────────────────────────────────────────────
+// HELPER: extraer hora numerica de un mensaje
+function parseHoraMsg(msg) {
+  const m = msg.toLowerCase();
+  const m12 = m.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/);
+  if (m12) {
+    let h = parseInt(m12[1]);
+    const min = m12[2] ? parseInt(m12[2]) : 0;
+    if (m12[3] === 'pm' && h < 12) h += 12;
+    if (m12[3] === 'am' && h === 12) h = 0;
+    return h + min / 60;
+  }
+  const m24 = m.match(/(\d{1,2})(?::(\d{2}))?\s*(?:hrs?|h\b)/);
+  if (m24) { const h = parseInt(m24[1]); return (h >= 0 && h <= 23) ? h + (m24[2] ? parseInt(m24[2]) / 60 : 0) : null; }
+  const mT = m.match(/(\d{1,2})\s*(?:de la tarde|de la noche)/);
+  if (mT) { let h = parseInt(mT[1]); return h < 12 ? h + 12 : h; }
+  const mM = m.match(/(\d{1,2})\s*de la ma/);
+  if (mM) return parseInt(mM[1]);
+  return null;
+}
+
 async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, negocioNombre) {
   const key      = 'order:' + from;
   const existing = activeOrders.get(key) || { state: S.IDLE, order: {} };
@@ -478,7 +498,7 @@ if (state === S.IDLE) {
     order.type = type;
     if (type === 'pickup') {
       set(S.ASKING_DATE);
-      return '📍 *Recoger en almacén*\nHorario: Lunes a Sábado 8am–6pm\n\n¿Qué día y hora planeas pasar?';
+      return '📍 *Recoger en almacén*\nHorario: Lun–Vie 8am–6pm · Sáb 8am–2pm\n\n¿Qué día y hora planeas pasar?';
     }
     set(S.ASKING_STREET);
     return '🚚 *Entrega a domicilio*\n\n¿Cuál es la calle y número de entrega?';
@@ -486,6 +506,30 @@ if (state === S.IDLE) {
 
   if (state === S.ASKING_DATE) {
     order.pickupDate = msg;
+    // FIX DOMINGO: rechazar "domingo" como palabra antes del check numerico
+    const _msgNorm = normalize(msg);
+    if (_msgNorm.includes('domingo') || _msgNorm === 'domingo') {
+      set(S.ASKING_DATE);
+      return '⚠️ Los *domingos estamos cerrados*. Atendemos *Lunes a Sábado 8am–6pm*.\n¿Qué otro día planeas pasar?';
+    }
+    // FIX HORARIO: Lun-Vie 8am-6pm, Sab 8am-2pm
+    const _esSabado = _msgNorm.includes('sabado') || _msgNorm.includes('sábado');
+    const _horaMsg = parseHoraMsg(msg);
+    if (_horaMsg !== null) {
+      if (_horaMsg < 8) {
+        set(S.ASKING_DATE);
+        return '⚠️ Abrimos a las *8am*. ¿Qué hora te funciona dentro de nuestro horario?\n\n⏰ Lun–Vie: 8am–6pm · Sáb: 8am–2pm';
+      }
+      if (_esSabado && _horaMsg >= 14) {
+        set(S.ASKING_DATE);
+        return '⚠️ Los *sábados cerramos a las 2pm*.\n\n¿Puedes pasar antes de las 2pm, o prefieres otro día?\n\n⏰ Lun–Vie: 8am–6pm · Sáb: 8am–2pm';
+      }
+      if (!_esSabado && _horaMsg >= 18) {
+        set(S.ASKING_DATE);
+        return '⚠️ Cerramos a las *6pm*. ¿Qué hora te funciona?\n\n⏰ Lun–Vie: 8am–6pm · Sáb: 8am–2pm';
+      }
+    }
+
     // BUG D FIX: validar día de semana
     const _dias = ['lunes','martes','miercoles','miércoles','jueves','viernes','sabado','sábado'];
     const _msgLow = msg.toLowerCase();
