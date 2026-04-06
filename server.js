@@ -470,35 +470,37 @@ const PORT = process.env.PORT || 3000;
 // ── Keep-Alive ping ──────────────────────────────
 app.get('/ping', (_, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 
-app.listen(PORT, async () => {
-  console.log('🚀 ' + CATALOG.negocio.nombre + ' Enterprise v10 → puerto ' + PORT);
-  console.log('📦 Productos:', CATALOG.productos.filter(p => p.activo).length);
-  console.log('🗄️  Dashboard: /dashboard');
-
-  // Inicializar base de datos
+(async () => {
+  // Inicializar base de datos ANTES de aceptar conexiones
   try {
     await initSchema();
-    await initActiveOrders().catch(e => console.error('[INIT AO]', e.message));
+    await initActiveOrders();
     await syncFromCatalog(CATALOG.productos);
-    console.log('✅ Base de datos lista');
+    console.log('\u2705 Base de datos lista');
   } catch (e) {
-    console.warn('⚠️  DB no disponible (modo sin DB):', e.message);
+    console.warn('\u26a0\ufe0f  DB no disponible (modo sin DB):', e.message);
   }
 
-  // Iniciar tareas programadas
-  try {
-    initScheduler();
-  } catch (e) {
-    console.warn('⚠️  Scheduler:', e.message);
-  }
+  app.listen(PORT, () => {
+    console.log('\ud83d\ude80 ' + CATALOG.negocio.nombre + ' Enterprise v10 \u2192 puerto ' + PORT);
+    console.log('\ud83d\udce6 Productos:', CATALOG.productos.filter(p => p.activo).length);
+    console.log('\ud83d\uddc4\ufe0f  Dashboard: /dashboard');
 
-  // Warmup Claude API
-  aiClient.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 5,
-    messages: [{ role: 'user', content: 'ok' }]
-  }).then(() => console.log('✅ Claude API pre-calentada'))
-    .catch(e => console.warn('⚠️  Warmup:', e.message));
-});
+    // Iniciar tareas programadas
+    try {
+      initScheduler();
+    } catch (e) {
+      console.warn('\u26a0\ufe0f  Scheduler:', e.message);
+    }
+
+    // Warmup Claude API
+    aiClient.messages.create({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 5,
+      messages: [{ role: 'user', content: 'ok' }]
+    }).then(() => console.log('\u2705 Claude API pre-calentada'))
+      .catch(e => console.warn('\u26a0\ufe0f  Warmup:', e.message));
+  });
+})();
 
 module.exports = { getCatalog, getAIResponse, buildSystemPrompt };
 
