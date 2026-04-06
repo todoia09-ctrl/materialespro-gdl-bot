@@ -297,12 +297,12 @@ select:focus{border-color:var(--rust)}
 
     <!-- INVENTARIO -->
     <div class="page" id="page-inventario">
-      <p style="color:var(--gray);font-size:.85rem;margin-bottom:1rem">Actualiza el stock de cada producto. El bot verificar\u00e1 estas cantidades antes de confirmar pedidos autom\u00e1ticamente.</p>
+      <p style="color:var(--gray);font-size:.85rem;margin-bottom:1rem">Actualiza el stock de cada producto. El bot verificará estas cantidades antes de confirmar pedidos automáticamente.</p>
 
       <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:1rem">
         <input class="input" id="invSearch" type="text" placeholder="Buscar por nombre..." style="flex:1;min-width:180px;padding:.45rem .75rem;font-size:.85rem" oninput="filterInventario()">
         <select class="input" id="invFilterCat" style="min-width:140px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
-          <option value="">Todas las categor\u00edas</option>
+          <option value="">Todas las categorías</option>
         </select>
         <select class="input" id="invFilterMarca" style="min-width:120px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
           <option value="">Todas las marcas</option>
@@ -319,7 +319,7 @@ select:focus{border-color:var(--rust)}
           <option value="con">Con stock</option>
         </select>
         <button class="btn btn-secondary btn-sm" onclick="clearInvFilters()">Limpiar</button>
-        <button class="btn btn-secondary btn-sm" onclick="syncInventario()">🔄 Sync cat\u00e1logo</button>
+        <button class="btn btn-secondary btn-sm" onclick="syncInventario()">🔄 Sync catálogo</button>
       </div>
       <div id="invCount" style="color:var(--gray);font-size:.78rem;margin-bottom:.6rem"></div>
 
@@ -328,13 +328,13 @@ select:focus{border-color:var(--rust)}
           <thead>
             <tr>
               <th style="cursor:pointer" onclick="sortInventario('nombre')">Nombre ⇅</th>
-              <th>Categor\u00eda</th>
+              <th>Categoría</th>
               <th>Marca</th>
               <th style="cursor:pointer" onclick="sortInventario('precio')">Precio ⇅</th>
               <th style="cursor:pointer" onclick="sortInventario('stock')">Stock ⇅</th>
-              <th>M\u00edn</th>
+              <th>Mín</th>
               <th>Unidad</th>
-              <th>Acci\u00f3n</th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody id="invTableBody"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando inventario...</td></tr></tbody>
@@ -450,13 +450,13 @@ select:focus{border-color:var(--rust)}
             <thead>
               <tr>
                 <th>Nombre</th>
-                <th>Categor\u00eda</th>
+                <th>Categoría</th>
                 <th>Precio</th>
                 <th style="text-align:center">⭐ Destacado</th>
                 <th style="text-align:center">🔥 En Oferta</th>
                 <th>Precio Oferta</th>
                 <th>Oferta Hasta</th>
-                <th style="text-align:center">🏆 M\u00e1s Vendido</th>
+                <th style="text-align:center">🏆 Más Vendido</th>
               </tr>
             </thead>
             <tbody id="comercialTable"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
@@ -918,7 +918,7 @@ async function loadInventario() {
   cats.sort(); marcas.sort();
   var selCat = document.getElementById('invFilterCat');
   var prevCat = selCat.value;
-  selCat.innerHTML = '<option value="">Todas las categor\u00edas</option>' + cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+  selCat.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
   selCat.value = prevCat;
   var selMarca = document.getElementById('invFilterMarca');
   var prevMarca = selMarca.value;
@@ -959,7 +959,7 @@ function filterInventario() {
 
   var tbody = document.getElementById('invTableBody');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Sin resultados' + (_invData.length === 0 ? '.<br><br><button class="btn" onclick="syncInventario()">🔄 Sincronizar desde cat\u00e1logo</button>' : '') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Sin resultados' + (_invData.length === 0 ? '.<br><br><button class="btn" onclick="syncInventario()">🔄 Sincronizar desde catálogo</button>' : '') + '</td></tr>';
     return;
   }
   tbody.innerHTML = filtered.map(function(p) {
