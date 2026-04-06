@@ -72,8 +72,18 @@ async function initActiveOrders() {
     // BUG2 FIX: restaurar vendorTokens para tokens pendientes
     for (const row of rows) {
       if (row.state === 'waiting_vendor' && row.token) {
-        vendorTokens.set(row.token, row.session_key);
-        console.log('[PEDIDOS] Token restaurado:', row.token);
+        const _restoredOrder = activeOrders.get(row.session_key);
+        const _orderTs = (_restoredOrder && _restoredOrder.order && _restoredOrder.order.ts) || 0;
+        const _orderAge = Date.now() - _orderTs;
+        // FIX: si lleva mas de 5 min en WAITING_VENDOR, limpiar — evita estado atrapado tras restart
+        if (_orderAge > 5 * 60 * 1000) {
+          activeOrders.delete(row.session_key);
+          deleteActiveOrder(row.session_key).catch(() => {});
+          console.log('[PEDIDOS] Token expirado, limpiado:', row.token);
+        } else {
+          vendorTokens.set(row.token, row.session_key);
+          console.log('[PEDIDOS] Token restaurado:', row.token);
+        }
       }
     }
   } catch(e) { console.error('[PEDIDOS] initActiveOrders:', e.message); }
@@ -713,7 +723,11 @@ if (state === S.IDLE) {
     const _wv = normalize(msg);
     const _wantsNew = _wv.includes('cotizar') || _wv.includes('necesito')
       || _wv.includes('precio') || _wv.includes('cuanto') || _wv.includes('tienes')
-      || _wv.includes('otro') || _wv.includes('hola');
+      || _wv.includes('otro') || _wv.includes('hola')
+      || _wv.includes('quiero') || _wv.includes('busco') || _wv.includes('dame')
+      || _wv.includes('tienen') || _wv.includes('cual') || _wv.includes('impermeabilizante')
+      || _wv.includes('sika') || _wv.includes('producto') || _wv.includes('material')
+      || _wv.includes('cuantos') || _wv.includes('hay') || _wv.includes('vendeme');
     if (_wantsNew) return null;
     return 'Tu pedido está en revisión. ⏳ Te avisamos en máximo 15 minutos.';
   }
