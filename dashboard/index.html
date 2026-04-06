@@ -297,10 +297,51 @@ select:focus{border-color:var(--rust)}
 
     <!-- INVENTARIO -->
     <div class="page" id="page-inventario">
-      <p style="color:var(--gray);font-size:.85rem;margin-bottom:1.5rem">Actualiza el stock de cada producto. El bot verificará estas cantidades antes de confirmar pedidos automáticamente.</p>
-      <div class="inv-grid" id="invGrid">
-        <div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Cargando inventario...</div>
+      <p style="color:var(--gray);font-size:.85rem;margin-bottom:1rem">Actualiza el stock de cada producto. El bot verificar\u00e1 estas cantidades antes de confirmar pedidos autom\u00e1ticamente.</p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:1rem">
+        <input class="input" id="invSearch" type="text" placeholder="Buscar por nombre..." style="flex:1;min-width:180px;padding:.45rem .75rem;font-size:.85rem" oninput="filterInventario()">
+        <select class="input" id="invFilterCat" style="min-width:140px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
+          <option value="">Todas las categor\u00edas</option>
+        </select>
+        <select class="input" id="invFilterMarca" style="min-width:120px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
+          <option value="">Todas las marcas</option>
+        </select>
+        <select class="input" id="invFilterEstado" style="min-width:100px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
+          <option value="">Todos</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+        <select class="input" id="invFilterStock" style="min-width:120px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
+          <option value="">Todo stock</option>
+          <option value="bajo">Stock bajo</option>
+          <option value="sin">Sin stock</option>
+          <option value="con">Con stock</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="clearInvFilters()">Limpiar</button>
+        <button class="btn btn-secondary btn-sm" onclick="syncInventario()">🔄 Sync cat\u00e1logo</button>
       </div>
+      <div id="invCount" style="color:var(--gray);font-size:.78rem;margin-bottom:.6rem"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="cursor:pointer" onclick="sortInventario('nombre')">Nombre ⇅</th>
+              <th>Categor\u00eda</th>
+              <th>Marca</th>
+              <th style="cursor:pointer" onclick="sortInventario('precio')">Precio ⇅</th>
+              <th style="cursor:pointer" onclick="sortInventario('stock')">Stock ⇅</th>
+              <th>M\u00edn</th>
+              <th>Unidad</th>
+              <th>Acci\u00f3n</th>
+            </tr>
+          </thead>
+          <tbody id="invTableBody"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando inventario...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="inv-grid" id="invGrid" style="display:none"></div>
     </div>
 
     <!-- CAMPAÑAS -->
@@ -836,28 +877,120 @@ async function syncInventario() {
 }
 
 // ── INVENTARIO ────────────────────────────────────
+var _invData = [];
+var _invCatalog = {};
+var _invSortField = 'nombre';
+var _invSortAsc = true;
+
 async function loadInventario() {
-  const data = await api('/inventario');
+  var data = await api('/inventario');
   if (!data) return;
-  const grid = document.getElementById('invGrid');
-  if (data.inventario?.length) {
-    grid.innerHTML = data.inventario.map(item => {
-      const pct  = Math.min(100, Math.round((item.stock / Math.max(item.stock_minimo * 3, 1)) * 100));
-      const color = item.stock <= 0 ? 'var(--red)' : item.stock <= item.stock_minimo ? 'var(--yellow)' : 'var(--green)';
-      const alerta = item.stock <= item.stock_minimo ? ' alerta' : '';
-      return `<div class="inv-card${alerta}">
-        <div class="inv-name">${item.nombre}</div>
-        <div class="inv-stock-bar"><div class="inv-stock-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div class="inv-nums"><span style="color:${color}">${item.stock} ${item.unidad}</span><span>Mín: ${item.stock_minimo}</span></div>
-        <div class="inv-controls">
-          <input class="inv-input" type="number" id="inv-${item.producto_id}" value="${item.stock}" min="0">
-          <button class="btn btn-primary btn-sm" onclick="saveStock('${item.producto_id}')">Guardar</button>
-        </div>
-      </div>`;
-    }).join('');
-  } else {
-    grid.innerHTML = '<div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Sin productos en inventario.<br><br><button class="btn" onclick="syncInventario()">🔄 Sincronizar desde catálogo</button></div>';
+  var items = Array.isArray(data) ? data : (data.inventario || []);
+  // Cargar catalogo para enriquecer con categoria, marca, precio
+  try {
+    var tk = localStorage.getItem('mp_token');
+    var cr = await fetch('/api/catalogo', { headers: { Authorization: 'Bearer ' + tk } });
+    var cd = await cr.json();
+    _invCatalog = {};
+    (cd.productos || []).forEach(function(p) { _invCatalog[p.id] = p; });
+  } catch(e) {}
+  // Enriquecer items
+  _invData = items.map(function(item) {
+    var cat = _invCatalog[item.producto_id] || {};
+    return {
+      producto_id: item.producto_id,
+      nombre: item.nombre || cat.nombre || '',
+      categoria: cat.categoria || '',
+      marca: cat.marca || '',
+      precio: cat.precio || 0,
+      stock: item.stock || 0,
+      stock_minimo: item.stock_minimo || 0,
+      unidad: item.unidad || 'pza',
+      activo: cat.activo !== false
+    };
+  });
+  // Poblar filtros
+  var cats = [], marcas = [];
+  _invData.forEach(function(p) {
+    if (p.categoria && cats.indexOf(p.categoria) === -1) cats.push(p.categoria);
+    if (p.marca && marcas.indexOf(p.marca) === -1) marcas.push(p.marca);
+  });
+  cats.sort(); marcas.sort();
+  var selCat = document.getElementById('invFilterCat');
+  var prevCat = selCat.value;
+  selCat.innerHTML = '<option value="">Todas las categor\u00edas</option>' + cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+  selCat.value = prevCat;
+  var selMarca = document.getElementById('invFilterMarca');
+  var prevMarca = selMarca.value;
+  selMarca.innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(function(m) { return '<option value="' + m + '">' + m + '</option>'; }).join('');
+  selMarca.value = prevMarca;
+  filterInventario();
+}
+
+function filterInventario() {
+  var search = (document.getElementById('invSearch').value || '').toLowerCase();
+  var cat = document.getElementById('invFilterCat').value;
+  var marca = document.getElementById('invFilterMarca').value;
+  var estado = document.getElementById('invFilterEstado').value;
+  var stock = document.getElementById('invFilterStock').value;
+
+  var filtered = _invData.filter(function(p) {
+    if (search && p.nombre.toLowerCase().indexOf(search) === -1) return false;
+    if (cat && p.categoria !== cat) return false;
+    if (marca && p.marca !== marca) return false;
+    if (estado === 'activo' && !p.activo) return false;
+    if (estado === 'inactivo' && p.activo) return false;
+    if (stock === 'sin' && p.stock > 0) return false;
+    if (stock === 'bajo' && (p.stock <= 0 || p.stock > p.stock_minimo)) return false;
+    if (stock === 'con' && p.stock <= 0) return false;
+    return true;
+  });
+
+  // Sort
+  filtered.sort(function(a, b) {
+    var va = a[_invSortField], vb = b[_invSortField];
+    if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
+    if (va < vb) return _invSortAsc ? -1 : 1;
+    if (va > vb) return _invSortAsc ? 1 : -1;
+    return 0;
+  });
+
+  document.getElementById('invCount').textContent = filtered.length + ' de ' + _invData.length + ' productos';
+
+  var tbody = document.getElementById('invTableBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Sin resultados' + (_invData.length === 0 ? '.<br><br><button class="btn" onclick="syncInventario()">🔄 Sincronizar desde cat\u00e1logo</button>' : '') + '</td></tr>';
+    return;
   }
+  tbody.innerHTML = filtered.map(function(p) {
+    var color = p.stock <= 0 ? 'var(--red)' : p.stock <= p.stock_minimo ? '#ff9800' : 'var(--green,#4caf50)';
+    return '<tr>'
+      + '<td style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + p.nombre + '">' + p.nombre + '</td>'
+      + '<td style="font-size:.78rem;color:var(--light)">' + p.categoria + '</td>'
+      + '<td style="font-size:.78rem;color:var(--gray)">' + p.marca + '</td>'
+      + '<td style="color:var(--sand);font-weight:600">' + (p.precio ? '$' + Number(p.precio).toLocaleString('es-MX') : '-') + '</td>'
+      + '<td style="color:' + color + ';font-weight:600">' + p.stock + '</td>'
+      + '<td style="color:var(--gray)">' + p.stock_minimo + '</td>'
+      + '<td style="font-size:.78rem">' + p.unidad + '</td>'
+      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function sortInventario(field) {
+  if (_invSortField === field) { _invSortAsc = !_invSortAsc; }
+  else { _invSortField = field; _invSortAsc = true; }
+  filterInventario();
+}
+
+function clearInvFilters() {
+  document.getElementById('invSearch').value = '';
+  document.getElementById('invFilterCat').value = '';
+  document.getElementById('invFilterMarca').value = '';
+  document.getElementById('invFilterEstado').value = '';
+  document.getElementById('invFilterStock').value = '';
+  _invSortField = 'nombre'; _invSortAsc = true;
+  filterInventario();
 }
 
 async function saveStock(id) {
