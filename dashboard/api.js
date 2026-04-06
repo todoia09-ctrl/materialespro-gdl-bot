@@ -420,6 +420,45 @@ router.get('/catalogo', authMiddleware(['admin']), (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// PATCH /api/catalogo/:codigo/comercial — actualizar campos comerciales
+router.patch('/catalogo/:codigo/comercial', authMiddleware(['admin']), express.json(), async (req, res) => {
+  try {
+    var codigo = req.params.codigo;
+    var { destacado, en_oferta, precio_oferta, oferta_hasta, mas_vendido } = req.body;
+
+    // Validar max 15 destacados
+    if (destacado === true) {
+      var countRes = await query("SELECT COUNT(*) as n FROM catalogo_productos WHERE destacado=true AND codigo != $1", [codigo]);
+      if (countRes.rows[0] && parseInt(countRes.rows[0].n) >= 15) {
+        return res.status(400).json({ error: 'M\u00e1ximo 15 productos destacados permitidos' });
+      }
+    }
+
+    await query(`
+      UPDATE catalogo_productos SET
+        destacado      = COALESCE($2, destacado),
+        en_oferta      = COALESCE($3, en_oferta),
+        precio_oferta  = $4,
+        oferta_hasta   = $5,
+        mas_vendido    = COALESCE($6, mas_vendido),
+        actualizado_en = NOW()
+      WHERE codigo = $1`,
+      [codigo, destacado, en_oferta, precio_oferta || null, oferta_hasta || null, mas_vendido]
+    );
+    res.json({ ok: true, codigo });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/catalogo/comercial — productos con campos comerciales desde DB
+router.get('/catalogo/comercial', authMiddleware(['admin']), async (req, res) => {
+  try {
+    var result = await query(
+      "SELECT codigo, nombre, categoria, precio_venta, destacado, en_oferta, precio_oferta, oferta_hasta, mas_vendido, orden_display FROM catalogo_productos WHERE activo=true ORDER BY orden_display, nombre"
+    );
+    res.json({ productos: result.rows || [] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // POST /api/catalogo/importar — recibe Excel en base64, parsea y actualiza
 router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limit: '10mb' }), (req, res) => {
   try {

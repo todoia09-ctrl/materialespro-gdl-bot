@@ -394,6 +394,34 @@ select:focus{border-color:var(--rust)}
           <tbody id="catTable"><tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
         </table>
       </div>
+
+      <div class="table-wrap" style="margin-top:2rem">
+        <div class="table-header">
+          <span class="section-title">⭐ Productos Destacados y Ofertas</span>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span id="destacadosCount" style="color:var(--gray);font-size:.78rem"></span>
+            <button class="btn btn-secondary btn-sm" onclick="loadComercial()">🔄 Actualizar</button>
+          </div>
+        </div>
+        <div id="comercialWarn" style="display:none;background:#ff980020;border:1px solid #ff9800;color:#ff9800;padding:.6rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.85rem"></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Categor\u00eda</th>
+                <th>Precio</th>
+                <th style="text-align:center">⭐ Destacado</th>
+                <th style="text-align:center">🔥 En Oferta</th>
+                <th>Precio Oferta</th>
+                <th>Oferta Hasta</th>
+                <th style="text-align:center">🏆 M\u00e1s Vendido</th>
+              </tr>
+            </thead>
+            <tbody id="comercialTable"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- VENDEDORES -->
@@ -608,7 +636,8 @@ function refreshPage() { loadPage(CURRENT); }
 function loadPage(name) {
   const loaders = { dashboard: loadDashboard, pedidos: loadPedidos,
                     clientes: loadClientes, inventario: loadInventario,
-                    campanas: loadCampanas, reportes: loadReportes, vendedores: loadVendedores, config: loadConfig };
+                    campanas: loadCampanas, reportes: loadReportes, vendedores: loadVendedores, config: loadConfig,
+                    catalogo: function() { loadCatalogo(); loadComercial(); } };
   if (loaders[name]) loaders[name]();
 }
 
@@ -1062,6 +1091,87 @@ async function loadCatalogo() {
         <td>${p.activo ? '<span style="color:#4caf50">✅ Activo</span>' : '<span style="color:var(--gray)">⏸ Inactivo</span>'}</td>
       </tr>`).join('');
   } catch(e) { console.error('loadCatalogo', e); }
+}
+
+var _comercialData = [];
+async function loadComercial() {
+  var tk = localStorage.getItem('mp_token');
+  try {
+    var r = await fetch('/api/catalogo/comercial', { headers: { Authorization: 'Bearer ' + tk } });
+    var d = await r.json();
+    _comercialData = d.productos || [];
+    renderComercial();
+  } catch(e) { console.error('loadComercial', e); }
+}
+
+function renderComercial() {
+  var tbody = document.getElementById('comercialTable');
+  var countEl = document.getElementById('destacadosCount');
+  if (!_comercialData.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Sin productos en DB. Ejecuta importar-catalogo.js primero.</td></tr>';
+    return;
+  }
+  var nDest = _comercialData.filter(function(p) { return p.destacado; }).length;
+  countEl.textContent = 'Destacados: ' + nDest + '/15';
+  countEl.style.color = nDest >= 15 ? '#ff9800' : 'var(--gray)';
+
+  tbody.innerHTML = _comercialData.map(function(p) {
+    var ofHasta = p.oferta_hasta ? p.oferta_hasta.substring(0, 10) : '';
+    return '<tr>'
+      + '<td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + (p.nombre || '') + '">' + (p.nombre || '') + '</td>'
+      + '<td style="font-size:.8rem;color:var(--light)">' + (p.categoria || '') + '</td>'
+      + '<td style="color:var(--sand);font-weight:600">$' + Number(p.precio_venta || 0).toLocaleString('es-MX') + '</td>'
+      + '<td style="text-align:center"><input type="checkbox" ' + (p.destacado ? 'checked' : '') + ' onchange="toggleComercial(\'' + p.codigo + '\',\'destacado\',this.checked)"></td>'
+      + '<td style="text-align:center"><input type="checkbox" ' + (p.en_oferta ? 'checked' : '') + ' onchange="toggleComercial(\'' + p.codigo + '\',\'en_oferta\',this.checked)"></td>'
+      + '<td><input type="number" class="input" style="width:90px;padding:.3rem .5rem;font-size:.82rem" value="' + (p.precio_oferta || '') + '" placeholder="$" onchange="updatePrecioOferta(\'' + p.codigo + '\',this.value)"></td>'
+      + '<td><input type="date" class="input" style="width:130px;padding:.3rem .5rem;font-size:.82rem" value="' + ofHasta + '" onchange="updateOfertaHasta(\'' + p.codigo + '\',this.value)"></td>'
+      + '<td style="text-align:center"><input type="checkbox" ' + (p.mas_vendido ? 'checked' : '') + ' onchange="toggleComercial(\'' + p.codigo + '\',\'mas_vendido\',this.checked)"></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function toggleComercial(codigo, field, value) {
+  var tk = localStorage.getItem('mp_token');
+  var warn = document.getElementById('comercialWarn');
+  warn.style.display = 'none';
+  var body = {};
+  body[field] = value;
+  try {
+    var r = await fetch('/api/catalogo/' + codigo + '/comercial', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    var d = await r.json();
+    if (!r.ok) {
+      warn.textContent = d.error || 'Error al actualizar';
+      warn.style.display = 'block';
+      loadComercial();
+      return;
+    }
+    // Actualizar dato local
+    var p = _comercialData.find(function(x) { return x.codigo === codigo; });
+    if (p) p[field] = value;
+    renderComercial();
+  } catch(e) { warn.textContent = e.message; warn.style.display = 'block'; }
+}
+
+async function updatePrecioOferta(codigo, val) {
+  var tk = localStorage.getItem('mp_token');
+  await fetch('/api/catalogo/' + codigo + '/comercial', {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ precio_oferta: val ? parseFloat(val) : null })
+  });
+}
+
+async function updateOfertaHasta(codigo, val) {
+  var tk = localStorage.getItem('mp_token');
+  await fetch('/api/catalogo/' + codigo + '/comercial', {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ oferta_hasta: val || null })
+  });
 }
 
 function descargarPlantilla() {
