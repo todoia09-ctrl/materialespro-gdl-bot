@@ -36,11 +36,29 @@ const twClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json({ limit: '10mb' }));
 
+// ── Basic Auth para Dashboard y API ──────────────
+const _dashUser = process.env.DASHBOARD_USER;
+const _dashPass = process.env.DASHBOARD_PASS;
+if (!_dashUser || !_dashPass) {
+  console.warn('[AUTH] \u26a0\ufe0f  DASHBOARD_USER / DASHBOARD_PASS no configurados — dashboard SIN protección');
+}
+function dashboardAuth(req, res, next) {
+  if (!_dashUser || !_dashPass) return next();
+  const hdr = req.headers.authorization || '';
+  if (hdr.startsWith('Basic ')) {
+    const decoded = Buffer.from(hdr.slice(6), 'base64').toString();
+    const [u, p] = decoded.split(':');
+    if (u === _dashUser && p === _dashPass) return next();
+  }
+  res.set('WWW-Authenticate', 'Basic realm="MaterialesPro Dashboard"');
+  return res.status(401).send('Acceso no autorizado');
+}
+
 // ── Dashboard estático ───────────────────────────
-app.use('/dashboard', express.static(pathMod.join(__dirname, 'dashboard')));
-app.get('/dashboard', (_, res) => res.sendFile(pathMod.join(__dirname, 'dashboard/index.html')));
+app.use('/dashboard', dashboardAuth, express.static(pathMod.join(__dirname, 'dashboard')));
+app.get('/dashboard', dashboardAuth, (_, res) => res.sendFile(pathMod.join(__dirname, 'dashboard/index.html')));
 app.get('/privacy', (_, res) => res.sendFile(pathMod.join(__dirname, 'privacy.html')));
-app.use('/api', dashboardApi);
+app.use('/api', dashboardAuth, dashboardApi);
 
 // ─────────────────────────────────────────────────
 //  CATÁLOGO DINÁMICO
