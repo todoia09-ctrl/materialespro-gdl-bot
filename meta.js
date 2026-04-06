@@ -7,7 +7,7 @@ const axios     = require('axios');
 const Anthropic = require('@anthropic-ai/sdk');
 
 const { logMensaje }                                           = require('./db');
-const { registrarContacto, guardarCotizacion, programarSeguimiento } = require('./crm');
+const { registrarContacto, guardarCotizacion, programarSeguimiento, getNivelPrecio } = require('./crm');
 const { processOrderFlow, getLastQuote, saveLastQuote } = require('./pedido');
 const { isTechnicalQuestion, getTechnicalInfo }                = require('./tecnico');
 const { generateAndSendQuote, isPDFRequest }                   = require('./cotizacion');
@@ -192,8 +192,9 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       // 6. Claude IA
       if (!reply) {
         const history = getHistory('meta-wa:' + from);
-        reply = await getAIResponse(textContent, history, firstName, 'WhatsApp');
-        if (isQuoteResponse && isQuoteResponse(reply)) saveLastQuote(fromNorm, reply.substring(0, 400));
+        const _nivelMeta = cliente ? await getNivelPrecio(fromNorm).catch(function() { return null; }) : null;
+        reply = await getAIResponse(textContent, history, firstName, 'WhatsApp', _nivelMeta);
+        if (isQuoteResponse && isQuoteResponse(reply)) saveLastQuote(fromNorm, reply.substring(0, 1200));
         saveHistory('meta-wa:' + from, [...history,
           { role: 'user',      content: textContent },
           { role: 'assistant', content: reply        }
