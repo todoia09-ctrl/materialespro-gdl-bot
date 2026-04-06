@@ -141,6 +141,60 @@ const CONTACTS = {
 function getContactName(from) { return CONTACTS[from] || null; }
 
 // ─────────────────────────────────────────────────
+//  HANDOFF A ASESOR HUMANO
+// ─────────────────────────────────────────────────
+const _handoffMap = new Map();
+const HANDOFF_TTL = 30 * 60 * 1000;
+
+function isHandoffTrigger(msg) {
+  var m = msg.toLowerCase()
+    .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i')
+    .replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[¿¡!?.,]/g,'').trim();
+  var triggers = [
+    'quiero hablar con alguien','necesito un asesor','hablar con humano',
+    'hablar con una persona','hablar con alguien','no me ayudas',
+    'quiero un asesor','pasame con un asesor','comuniquenme con alguien',
+    'asesor humano','atencion humana','agente real',
+    'manager','gerente','supervisor','quiero hablar con un humano',
+    'no me sirve el bot','no me entiendes','no entiendes'
+  ];
+  for (var i = 0; i < triggers.length; i++) {
+    if (m.includes(triggers[i])) return true;
+  }
+  return false;
+}
+
+function isInHandoff(clientKey) {
+  var entry = _handoffMap.get(clientKey);
+  if (!entry) return false;
+  if (Date.now() - entry.ts > HANDOFF_TTL) {
+    _handoffMap.delete(clientKey);
+    return false;
+  }
+  return true;
+}
+
+async function activateHandoff(clientKey, clientName, clientPhone, lastMessage, history) {
+  _handoffMap.set(clientKey, { ts: Date.now() });
+  console.log('[HANDOFF] Activado para', clientKey, '- asesor humano por 30 min');
+  // Notificar al vendedor
+  var vendorPhone = process.env.VENDOR_WHATSAPP || '';
+  if (!vendorPhone) return;
+  var summary = (history || []).filter(function(h) { return h.role === 'user'; })
+    .slice(-3).map(function(h) { return '\u2022 ' + (h.content || '').substring(0, 80); }).join('\n');
+  var notif = '\ud83d\udea8 *HANDOFF — Cliente solicita asesor*\n\n'
+    + '\ud83d\udc64 ' + (clientName || 'Sin nombre') + '\n'
+    + '\ud83d\udcf1 ' + clientPhone + '\n'
+    + '\ud83d\udcac \u00daltimo mensaje: "' + (lastMessage || '').substring(0, 200) + '"\n'
+    + (summary ? '\n\ud83d\udcdd Resumen conversaci\u00f3n:\n' + summary : '')
+    + '\n\n\u23f0 El bot se pausa 30 min para este cliente.';
+  try {
+    var { sendMetaWAMessage } = require('./meta');
+    await sendMetaWAMessage(vendorPhone.replace('+',''), notif);
+  } catch (e) { console.error('[HANDOFF] Error notificando vendor:', e.message); }
+}
+
+// ─────────────────────────────────────────────────
 //  SYSTEM PROMPT
 // ─────────────────────────────────────────────────
 function buildSystemPrompt(clientName, channel, nivelInfo) {
@@ -351,6 +405,15 @@ app.post('/webhook/whatsapp', async (req, res) => {
       if (handled) return;
     }
 
+    // ── 1b. Handoff a asesor humano ────────────────
+    if (isInHandoff(from)) return;
+    if (textBody && isHandoffTrigger(textBody)) {
+      const history = getHistory('wa:' + from);
+      await activateHandoff(from, name, from, textBody, history);
+      await sendWA(from, 'Entiendo, te conecto con un asesor ahora mismo. En unos minutos te contactar\u00e1 nuestro equipo. \ud83d\ude4b');
+      return;
+    }
+
     let message = textBody;
     let reply   = null;
 
@@ -443,7 +506,7 @@ app.get('/webhook/meta', (req, res) => {
 app.post('/webhook/meta', async (req, res) => {
   res.sendStatus(200);
   try {
-    await processMetaWebhook(req.body, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse);
+    await processMetaWebhook(req.body, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse, { isInHandoff, isHandoffTrigger, activateHandoff });
   } catch (err) { console.error('[META ERR]', err.message); }
 });
 

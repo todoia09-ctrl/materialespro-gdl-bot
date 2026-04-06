@@ -128,7 +128,7 @@ async function getMetaName(userId, token) {
 // ─────────────────────────────────────────────────
 //  PIPELINE COMPLETA — WHATSAPP CLOUD API
 // ─────────────────────────────────────────────────
-async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse) {
+async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse, handoff) {
   const messages = value.messages || [];
   const contacts = value.contacts || [];
 
@@ -164,6 +164,17 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       // 1. CRM — usar número normalizado
       const cliente = await registrarContacto(fromNorm, { nombre: userName, canal: 'whatsapp_meta' }).catch(function() { return null; });
       if (cliente && textContent) logMensaje(cliente.id, 'whatsapp_meta', 'in', textContent, 'texto').catch(function() {});
+
+      // 1b. Handoff a asesor humano
+      if (handoff) {
+        if (handoff.isInHandoff(fromNorm)) continue;
+        if (textContent && handoff.isHandoffTrigger(textContent)) {
+          var history = getHistory('meta-wa:' + from);
+          await handoff.activateHandoff(fromNorm, userName, from, textContent, history);
+          await sendMetaWAMessage(from, 'Entiendo, te conecto con un asesor ahora mismo. En unos minutos te contactar\u00e1 nuestro equipo. \ud83d\ude4b');
+          continue;
+        }
+      }
 
       let reply = null;
 
@@ -237,7 +248,7 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
 // ─────────────────────────────────────────────────
 //  PROCESADOR PRINCIPAL DE EVENTOS META
 // ─────────────────────────────────────────────────
-async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse) {
+async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse, handoff) {
   const pageToken = process.env.META_PAGE_ACCESS_TOKEN;
   const entries   = body.entry || [];
   const object    = body.object || '';
@@ -249,7 +260,7 @@ async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, 
         if (change.field !== 'messages') continue;
         const value = change.value || {};
         if (value.statuses && !value.messages) continue;
-        await processWhatsAppMessage(value, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse);
+        await processWhatsAppMessage(value, getAIResponse, getHistory, saveHistory, getCatalog, getCache, isQuoteResponse, handoff);
       }
       continue;
     }
