@@ -92,6 +92,41 @@ const vendorTokens = new Map();
 const lastQuotes   = new Map();
 
 // ─────────────────────────────────────────────────
+//  PARSEAR ITEMS DESDE COTIZACIÓN DE CLAUDE
+// ─────────────────────────────────────────────────
+function parseItemsFromQuote(rawQuote) {
+  if (!rawQuote) return [];
+  const items = [];
+  var lines = rawQuote.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].replace(/\*/g, '').trim();
+    if (!line) continue;
+    // Patron 1: "11xNombre: 11 × $2,315 = $25,465"
+    // Patron 2: "Nombre $2,315/pza: 11 × $2,315 = $25,465"
+    // Patron 3: "11 cubetas × $2,097 = $23,067"
+    // Patron 4: "11 × $2,097 = $23,067"
+    var m = line.match(/(\d+)\s*(?:\w+\s+)?[x×]\s*\$?([\d,]+(?:\.\d+)?)\s*=\s*\$?([\d,]+(?:\.\d+)?)/i);
+    if (m) {
+      var qty = parseInt(m[1], 10);
+      var precio = parseFloat(m[2].replace(/,/g, ''));
+      // Intentar extraer nombre del producto
+      var producto = 'Producto';
+      // "NxNombre: qty × ..."
+      var nameMatch = line.match(/^\d+[x×]\s*(.+?):/i);
+      if (nameMatch) {
+        producto = nameMatch[1].trim();
+      } else {
+        // "Nombre: qty × ..."
+        var nameMatch2 = line.match(/^(.+?):\s*\d+\s*[x×]/i);
+        if (nameMatch2) producto = nameMatch2[1].trim();
+      }
+      items.push({ producto: producto, qty: qty, precio: precio, unidad: 'pza' });
+    }
+  }
+  return items;
+}
+
+// ─────────────────────────────────────────────────
 //  CRÉDITO PRE-AUTORIZADO
 // ─────────────────────────────────────────────────
 const CREDIT_CLIENTS = {
@@ -476,6 +511,7 @@ if (state === S.IDLE) {
     order.clientPhone = from;
     order.clientName  = clientName;
     order.rawQuote    = lastQuote || 'Cotización del chat';
+    order.items       = parseItemsFromQuote(order.rawQuote);
     order.ts          = Date.now();
     set(S.ASKING_TYPE);
     return '¡Perfecto! ¿Cómo prefieres recibir tu pedido?\n\n'
@@ -725,12 +761,13 @@ if (state === S.IDLE) {
     ]);
 
         // ── Extraer/calcular total ────────────────────────
-    // FIX: calcular desde items_json primero (más confiable)
-    if (!order.total || order.total === 0) {
-      if (order.items && order.items.length > 0) {
-        const _itemsTotal = order.items.reduce((s,i) => s + ((i.qty||1) * (i.precio||0)), 0);
-        if (_itemsTotal > 0) order.total = _itemsTotal;
-      }
+    // Recalcular items por si rawQuote se actualizó después de IDLE
+    if (!order.items || order.items.length === 0) {
+      order.items = parseItemsFromQuote(order.rawQuote);
+    }
+    if (order.items && order.items.length > 0) {
+      const _itemsTotal = order.items.reduce((s,i) => s + ((i.qty||1) * (i.precio||0)), 0);
+      if (_itemsTotal > 0) order.total = _itemsTotal;
     }
     // Fallback: parsear rawQuote buscando TOTAL o último precio grande
     if (!order.total && order.rawQuote) {
