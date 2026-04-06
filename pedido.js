@@ -321,6 +321,7 @@ function startVendorTimer(sessionKey, sendToClient) {
   return setTimeout(async () => {
     const data = activeOrders.get(sessionKey);
     if (!data || data.state !== S.WAITING_VENDOR) return;
+    if (recentlyConfirmed.has(sessionKey)) return;
     data.state = S.CONFIRMED;
     activeOrders.set(sessionKey, data);
     // BUG P FIX: marcar para evitar doble mensaje de Claude IA

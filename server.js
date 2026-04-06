@@ -151,7 +151,8 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
     + '- NUNCA cierres ni confirmes un pedido tú mismo. Cuando el cliente dice sí/confirma/seria todo → responde SOLO: ¿Hacemos el pedido? El sistema se encarga del resto.\n'
     + '- NUNCA menciones costo de envío en cotizaciones. El envío se determina después de elegir tipo de entrega.\n'
     + '- NUNCA uses tablas markdown (|col|) — WhatsApp no las renderiza. Usa listas con guión o asterisco.\n'
-    + '- Formato cotización: *NxNombre*: N × $precio = *$total*\n';
+    + '- Formato cotización: *NxNombre*: N × $precio = *$total*\n'
+    + '- Si el cliente responde "no", "nada", "gracias", "estoy bien", "es todo", "nada más" u otra frase de cierre después de "¿algo más?", despídete cálidamente SIN hacer otra pregunta. Ejemplo: "\u00a1Perfecto ' + (clientName || '') + '! Fue un placer atenderte. \u00a1Hasta pronto! \uD83D\uDC4B"\n';
 }
 
 // ─────────────────────────────────────────────────
