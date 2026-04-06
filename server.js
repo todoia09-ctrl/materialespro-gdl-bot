@@ -45,7 +45,6 @@ if (!_dashUser || !_dashPass) {
 function dashboardAuth(req, res, next) {
   if (!_dashUser || !_dashPass) return next();
   const hdr = req.headers.authorization || '';
-  console.log('[AUTH DEBUG] user:', _dashUser, 'hdr:', hdr.substring(0,30));
   if (hdr.startsWith('Basic ')) {
     const decoded = Buffer.from(hdr.slice(6), 'base64').toString();
     const [u, p] = decoded.split(':');
@@ -59,7 +58,7 @@ function dashboardAuth(req, res, next) {
 app.use('/dashboard', dashboardAuth, express.static(pathMod.join(__dirname, 'dashboard')));
 app.get('/dashboard', dashboardAuth, (_, res) => res.sendFile(pathMod.join(__dirname, 'dashboard/index.html')));
 app.get('/privacy', (_, res) => res.sendFile(pathMod.join(__dirname, 'privacy.html')));
-app.use('/api', dashboardAuth, dashboardApi);
+app.use('/api', dashboardApi);
 
 // ─────────────────────────────────────────────────
 //  CATÁLOGO DINÁMICO
