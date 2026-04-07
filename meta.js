@@ -133,7 +133,7 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
   const contacts = value.contacts || [];
 
   for (const msg of messages) {
-    if (!['text', 'audio', 'image', 'document'].includes(msg.type)) continue;
+    if (!['text', 'audio', 'image', 'document', 'button', 'interactive'].includes(msg.type)) continue;
     if (isDuplicate(msg.id)) { console.log('[META WA] Duplicado ignorado:', msg.id); continue; }
 
     const from        = msg.from;                    // ej: 5213313469831
@@ -154,6 +154,14 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       textContent = caption ? '[Imagen recibida: "' + caption + '"]' : '[Imagen recibida. Que material necesitas?]';
     } else if (msg.type === 'document') {
       textContent = '[Documento recibido. Escribe la lista de materiales y la cotizo.]';
+    } else if (msg.type === 'button') {
+      textContent = msg.button && msg.button.text ? msg.button.text : '';
+    } else if (msg.type === 'interactive') {
+      if (msg.interactive && msg.interactive.button_reply) {
+        textContent = msg.interactive.button_reply.title || '';
+      } else if (msg.interactive && msg.interactive.list_reply) {
+        textContent = msg.interactive.list_reply.title || '';
+      }
     }
 
     if (!textContent) continue;
