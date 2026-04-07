@@ -877,8 +877,59 @@ async function verCliente(wa) {
           <button class="btn btn-green btn-sm" onclick="guardarNivel('${c.whatsapp}')">💾 Guardar</button>
         </div>
         <div style="margin-top:.5rem;font-size:.75rem;color:var(--gray)">Niveles 2 y 3 se asignan automáticamente por volumen acumulado.</div>
-      </div>`;
+      </div>
+      <div style="margin-top:1.25rem;border-top:1px solid rgba(255,255,255,.08);padding-top:1.25rem">
+        <div style="color:var(--sand);font-size:.8rem;font-weight:600;margin-bottom:.75rem">&#x2699;&#xFE0F; ACCIONES</div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="btn btn-sm" id="btnNoCampana"
+            style="background:rgba(255,200,0,.12);color:#ffc800;border:1px solid rgba(255,200,0,.3)"
+            onclick="toggleNoCampana()">
+            &#x1F6AB; No campana
+          </button>
+          <button class="btn btn-sm" id="btnDesactivar"
+            style="background:rgba(255,255,255,.06);color:var(--white);border:1px solid rgba(255,255,255,.12)"
+            onclick="toggleActivo()">
+            &#x23F8; Deshabilitar
+          </button>
+          <button class="btn btn-sm"
+            style="background:rgba(220,50,50,.15);color:#ff6b6b;border:1px solid rgba(220,50,50,.3)"
+            onclick="eliminarCliente()">
+            &#x1F5D1; Eliminar cliente
+          </button>
+        </div>
+      </div>
+`;
+  window._clienteWA = c.whatsapp;
+  window._clienteActivo = c.activo;
+  window._clienteNoCampana = c.no_campana;
   openModal('modalCliente');
+}
+
+
+async function toggleNoCampana() {
+  var wa = window._clienteWA;
+  var actual = window._clienteNoCampana;
+  var nuevo = !actual;
+  if (!confirm(nuevo ? '\u00BFMarcar este cliente como NO CAMPANA? No recibira campanas masivas.' : '\u00BFPermitir campanas a este cliente nuevamente?')) return;
+  var r = await api('/clientes/' + encodeURIComponent(wa) + '/nocampana', { method: 'PATCH', body: JSON.stringify({ valor: nuevo }) });
+  if (r && r.ok) { alert(nuevo ? '\u2705 Cliente marcado como No Campana.' : '\u2705 Cliente habilitado para campanas.'); closeModal('modalCliente'); loadClientes(); }
+}
+
+async function toggleActivo() {
+  var wa = window._clienteWA;
+  var actual = window._clienteActivo;
+  var nuevo = !actual;
+  if (!confirm(nuevo ? '\u00BFHabilitar este cliente?' : '\u00BFDeshabilitar este cliente? El bot lo ignorara.')) return;
+  var r = await api('/clientes/' + encodeURIComponent(wa) + '/deshabilitar', { method: 'PATCH', body: JSON.stringify({ activo: nuevo }) });
+  if (r && r.ok) { alert(nuevo ? '\u2705 Cliente habilitado.' : '\u2705 Cliente deshabilitado.'); closeModal('modalCliente'); loadClientes(); }
+}
+
+async function eliminarCliente() {
+  var wa = window._clienteWA;
+  if (!confirm('\u26A0\uFE0F \u00BFEliminar este cliente permanentemente? Esta accion no se puede deshacer.')) return;
+  if (!confirm('\u00BFEsta seguro? Se eliminaran todos los datos del cliente.')) return;
+  var r = await api('/clientes/' + encodeURIComponent(wa), { method: 'DELETE' });
+  if (r && r.ok) { alert('\u2705 Cliente eliminado.'); closeModal('modalCliente'); loadClientes(); }
 }
 
 async function syncInventario() {

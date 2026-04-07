@@ -246,6 +246,36 @@ router.patch('/clientes/:id', authMiddleware(), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// ─────────────────────────────────────────────────
+//  CLIENTES — ACCIONES
+// ─────────────────────────────────────────────────
+router.patch('/clientes/:id/nocampana', authMiddleware(['admin']), express.json(), async (req, res) => {
+  try {
+    const wa = decodeURIComponent(req.params.id);
+    const valor = req.body.valor !== false;
+    await query('UPDATE clientes SET no_campana=$1 WHERE whatsapp=$2', [valor, wa]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.patch('/clientes/:id/deshabilitar', authMiddleware(['admin']), express.json(), async (req, res) => {
+  try {
+    const wa = decodeURIComponent(req.params.id);
+    const activo = req.body.activo !== false;
+    await query('UPDATE clientes SET activo=$1 WHERE whatsapp=$2', [activo, wa]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/clientes/:id', authMiddleware(['admin']), async (req, res) => {
+  try {
+    const wa = decodeURIComponent(req.params.id);
+    await query('DELETE FROM clientes WHERE whatsapp=$1', [wa]);
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ─────────────────────────────────────────────────
 //  INVENTARIO
 // ─────────────────────────────────────────────────
