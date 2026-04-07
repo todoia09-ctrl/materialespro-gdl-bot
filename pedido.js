@@ -14,6 +14,20 @@ const { verificarStock, reducirStock } = require('./inventario'); // stock real
 // Twilio singleton removido — usando Meta WA
 
 // ─────────────────────────────────────────────────
+//  HORARIO DE NEGOCIO (America/Mexico_City)
+// ─────────────────────────────────────────────────
+function isBusinessHours() {
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+  const day = now.getDay(); // 0=Dom, 1=Lun...6=Sab
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const t = h * 60 + m;
+  if (day === 0) return false; // Domingo cerrado
+  if (day === 6) return t >= 480 && t < 840; // Sab 8:00-14:00
+  return t >= 480 && t < 1080; // Lun-Vie 8:00-18:00
+}
+
+// ─────────────────────────────────────────────────
 //  ESTADOS DEL FLUJO
 // ─────────────────────────────────────────────────
 const S = {
@@ -120,7 +134,7 @@ function parseItemsFromQuote(rawQuote) {
         var nameMatch2 = line.match(/^(.+?):\s*\d+\s*[x×]/i);
         if (nameMatch2) producto = nameMatch2[1].trim();
       }
-      items.push({ producto: producto, qty: qty, precio: precio, unidad: 'pza' });
+      items.push({ nombre: producto, qty: qty, precio: precio, unidad: 'pza' });
     }
   }
   return items;
@@ -810,8 +824,7 @@ if (state === S.IDLE) {
     recentlyConfirmed.add(key);
     setTimeout(() => recentlyConfirmed.delete(key), 15000);
 
-    const token = generateToken();
-        // -- Verificar stock antes de notificar al vendedor --
+    // -- Verificar stock antes de continuar --
     const _stockCheck = await verificarStock(order.items || []);
     if (!_stockCheck.ok) {
       activeOrders.delete(key);
@@ -819,19 +832,11 @@ if (state === S.IDLE) {
       const _falt = _stockCheck.faltantes.map(f =>
         '• ' + f.producto + ': pedido ' + f.pedido + ' ' + f.unidad + ', disponible ' + f.disponible
       ).join('\n');
-      return '⚠️ Sin stock suficiente.\n\n' + _falt +
-        '\n\n¿Qué prefieres?\n1️⃣ Avísame cuando llegue\n2️⃣ Ver alternativa\n3️⃣ Hablar con un asesor';
+      return '\u26A0\uFE0F Sin stock suficiente.\n\n' + _falt +
+        '\n\n\u00BFQu\u00E9 prefieres?\n1\uFE0F\u20E3 Av\u00EDsame cuando llegue\n2\uFE0F\u20E3 Ver alternativa\n3\uFE0F\u20E3 Hablar con un asesor';
     }
 
-    vendorTokens.set(token, key);
-
-    await Promise.allSettled([
-      notifyVendorWhatsApp(order, token, negocioNombre),
-      notifyVendorEmail(order, token, negocioNombre)
-    ]);
-
-        // ── Extraer/calcular total ────────────────────────
-    // Recalcular items por si rawQuote se actualizó después de IDLE
+    // ── Extraer/calcular total ────────────────────────
     if (!order.items || order.items.length === 0) {
       order.items = parseItemsFromQuote(order.rawQuote);
     }
@@ -839,35 +844,77 @@ if (state === S.IDLE) {
       const _itemsTotal = order.items.reduce((s,i) => s + ((i.qty||1) * (i.precio||0)), 0);
       if (_itemsTotal > 0) order.total = _itemsTotal;
     }
-    // Fallback: parsear rawQuote buscando TOTAL o último precio grande
     if (!order.total && order.rawQuote) {
       var _rq = order.rawQuote;
-      // Buscar 'Total: $X,XXX' primero
       var _tm = _rq.match(new RegExp('[Tt]otal[^\\d]*(\\d[\\d,]+)', 'i'))
              || _rq.match(new RegExp('[Ss]ubtotal[^\\d]*(\\d[\\d,]+)', 'i'));
-      // Si no, tomar el último precio mencionado
       if (!_tm) {
         var _allPrices = [..._rq.matchAll(new RegExp('\\$(\\d[\\d,]+)', 'g'))];
         if (_allPrices.length > 0) _tm = _allPrices[_allPrices.length - 1];
       }
       if (_tm) order.total = parseFloat(_tm[1].replace(/,/g, ''));
     }
+
     // ── Guardar pedido en DB ────────────────────────
     try {
       const _result = await guardarPedido(from, order, 'whatsapp');
       if (_result && _result.folio) {
         order.pedidoId = _result.pedidoId;
+        order.folio = _result.folio;
         console.log('[PEDIDO DB] Guardado folio:', _result.folio, 'cliente:', from);
       }
     } catch (_dbErr) {
       console.error('[PEDIDO DB] Error completo:', _dbErr.stack || _dbErr.message);
     }
-    // ─────────────────────────────────────────────────────
-    const timer = startVendorTimer(key, sendToClient);
-    activeOrders.set(key, { state: S.WAITING_VENDOR, order, token, timer });
+
+    // ══════════════════════════════════════════════════
+    //  REGLAS DE CONFIRMACI\u00D3N
+    // ══════════════════════════════════════════════════
+    const isPickup = order.type === 'pickup';
+
+    // ── REGLA 1: Pickup + stock OK → auto-confirmar inmediatamente ──
+    if (isPickup) {
+      data.state = S.CONFIRMED;
+      activeOrders.set(key, data);
+      // Reducir stock
+      try { await reducirStock(order.items || [], order.folio || order.pedidoId || 'auto'); }
+      catch (_re) { console.error('[PICKUP] reducirStock:', _re.message); }
+      // Actualizar estado en DB
+      if (order.pedidoId) {
+        await actualizarEstadoPedido(order.pedidoId, 'confirmado').catch(e =>
+          console.error('[PICKUP] actualizarEstado:', e.message)
+        );
+      }
+      const _pickupDate = (order.pickupDate && order.pickupDate.length > 2) ? order.pickupDate : 'Coordinamos fecha contigo';
+      return '\u2705 *\u00A1Pedido confirmado!*\n\n'
+        + '\uD83D\uDCCD *Te esperamos en:*\n'
+        + '*MaterialesPro GDL* \u2014 Av. L\u00F3pez Mateos Sur 6506, Zapopan\n'
+        + '\uD83D\uDDFA\uFE0F https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA\n'
+        + '\uD83D\uDD50 Horario: Lun\u2013Vie 8am\u20136pm \u00B7 S\u00E1b 8am\u20132pm\n'
+        + '\uD83D\uDCC5 ' + _pickupDate + '\n\n'
+        + '\u00BFAlgo m\u00E1s en lo que te pueda ayudar?';
+    }
+
+    // ── REGLA 2: Entrega en horario → pendiente, vendedor confirma en dashboard ──
+    if (isBusinessHours()) {
+      activeOrders.delete(key);
+      await deleteActiveOrder(key).catch(()=>{});
+      console.log('[PEDIDO] En horario, pendiente para dashboard. Pedido:', order.pedidoId);
+      return '\u2705 *Pedido registrado*\n\nTu pedido est\u00E1 registrado. Nuestro equipo lo confirmar\u00E1 en breve.\n\n\u00BFAlgo m\u00E1s en lo que te pueda ayudar?';
+    }
+
+    // ── REGLA 3: Fuera de horario → notificar vendedor por WA, sin auto-confirm ──
+    const token = generateToken();
+    vendorTokens.set(token, key);
+    await Promise.allSettled([
+      notifyVendorWhatsApp(order, token, negocioNombre),
+      notifyVendorEmail(order, token, negocioNombre)
+    ]);
+    // Sin startVendorTimer — el vendedor responde manualmente
+    activeOrders.set(key, { state: S.WAITING_VENDOR, order, token, timer: null });
     saveActiveOrder(key, S.WAITING_VENDOR, order, token).catch(e => console.error('[ACTIVE_ORDER]', e.message));
 
-    return '✅ *Pedido recibido*\n\nVerificando stock con el almacén. 🔍\nTe confirmamos en los próximos *15 minutos*.';
+    return '\u2705 *Pedido recibido*\n\nTu pedido fue enviado a nuestro equipo. Te confirmaremos a la brevedad.\n\n\u00BFAlgo m\u00E1s en lo que te pueda ayudar?';
   }
 
   if (state === S.WAITING_VENDOR) {
