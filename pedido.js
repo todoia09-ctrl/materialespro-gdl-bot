@@ -369,7 +369,7 @@ function startVendorTimer(sessionKey, sendToClient) {
       msg += '📍 *Te esperamos en:*\n'
         + '*MaterialesPro GDL* — Av. López Mateos Sur 6506, Zapopan\n'
         + '🗺️ https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA\n'
-        + '🕐 Horario: Lunes a Sábado 8am–6pm\n'
+        + '🕐 Horario: Lun\u2013Vie 8am\u20136pm \u00b7 S\u00e1b 8am\u20132pm\n'
         + '📅 ' + ((order.pickupDate && order.pickupDate.length > 2) ? order.pickupDate : 'Coordinamos fecha contigo') + '\n\n';
     } else {
       msg += '🚚 Entrega coordinada.\n📅 ' + (order.datetime || 'Coordinamos fecha') + '\n📍 ' + (order.street || '') + ', Col. ' + (order.colony || '') + '\n\n';
@@ -557,7 +557,7 @@ if (state === S.IDLE) {
     const _msgNorm = normalize(msg);
     if (_msgNorm.includes('domingo') || _msgNorm === 'domingo') {
       set(S.ASKING_DATE);
-      return '⚠️ Los *domingos estamos cerrados*. Atendemos *Lunes a Sábado 8am–6pm*.\n¿Qué otro día planeas pasar?';
+      return '\u26a0\ufe0f Los *domingos estamos cerrados*. Atendemos *Lun\u2013Vie 8am\u20136pm \u00b7 S\u00e1b 8am\u20132pm*.\n\u00bfQu\u00e9 otro d\u00eda planeas pasar?';
     }
     // FIX HORARIO: Lun-Vie 8am-6pm, Sab 8am-2pm
     const _esSabado = _msgNorm.includes('sabado') || _msgNorm.includes('sábado');
@@ -593,7 +593,7 @@ if (state === S.IDLE) {
       const _nombresDia = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
       if (_dow === 0) {
         set(S.ASKING_DATE);
-        return '⚠️ Esa fecha es *domingo* y estamos cerrados. Atendemos Lunes a Sábado 8am-6pm.\n\n¿Qué otro día planeas pasar?';
+        return '\u26a0\ufe0f Esa fecha es *domingo* y estamos cerrados. Atendemos Lun\u2013Vie 8am\u20136pm \u00b7 S\u00e1b 8am\u20132pm.\n\n\u00bfQu\u00e9 otro d\u00eda planeas pasar?';
       }
       const _nombreReal = _nombresDia[_dow];
       const _diaEscrito = _dias.find(d => _msgLow.includes(d));
@@ -651,7 +651,7 @@ if (state === S.IDLE) {
       const _dtNombres = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
       const _dtReal = _dtNombres[_dtDow];
       if (_dtDow === 0) {
-        return '⚠️ Esa fecha es *domingo* y no hacemos entregas. Atendemos Lunes a Sábado.\n\n¿Qué otro día prefieres?';
+        return '\u26a0\ufe0f Esa fecha es *domingo* y no hacemos entregas. Atendemos Lun\u2013Vie 8am\u20136pm \u00b7 S\u00e1b 8am\u20132pm.\n\n\u00bfQu\u00e9 otro d\u00eda prefieres?';
       }
       const _dtDias = ['lunes','martes','miercoles','miércoles','jueves','viernes','sabado','sábado'];
       const _dtEscrito = _dtDias.find(d => _dtLow.includes(d));
