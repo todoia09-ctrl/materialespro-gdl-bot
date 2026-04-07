@@ -59,17 +59,17 @@ async function getClientesSegmento(segmento) {
   let sql;
   switch (segmento) {
     case 'todos':
-      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND whatsapp IS NOT NULL`; break;
+      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND no_campana=FALSE AND whatsapp IS NOT NULL`; break;
     case 'zona_norte':
-      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND zona='norte'`; break;
+      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND no_campana=FALSE AND zona='norte'`; break;
     case 'zona_sur':
-      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND zona='sur'`; break;
+      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND no_campana=FALSE AND zona='sur'`; break;
     case 'zona_este':
-      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND zona='este'`; break;
+      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND no_campana=FALSE AND zona='este'`; break;
     case 'con_credito':
-      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND credito_limite > 0`; break;
+      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND no_campana=FALSE AND credito_limite > 0`; break;
     case 'sin_compras_30d':
-      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND ultimo_contacto < NOW() - INTERVAL '30 days'`; break;
+      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND no_campana=FALSE AND ultimo_contacto < NOW() - INTERVAL '30 days'`; break;
     case 'compraron_adhesivos':
       sql = `SELECT DISTINCT c.whatsapp, c.nombre FROM clientes c JOIN pedidos p ON p.cliente_id=c.id WHERE c.activo=TRUE AND p.items_json::text ILIKE '%adhesivo%'`; break;
     case 'compraron_texturas':
@@ -79,7 +79,7 @@ async function getClientesSegmento(segmento) {
     case 'pedidos_grandes':
       sql = `SELECT DISTINCT c.whatsapp, c.nombre FROM clientes c JOIN pedidos p ON p.cliente_id=c.id WHERE c.activo=TRUE AND p.total >= 5000`; break;
     default:
-      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND whatsapp IS NOT NULL`; break;
+      sql = `SELECT whatsapp, nombre FROM clientes WHERE activo=TRUE AND no_campana=FALSE AND whatsapp IS NOT NULL`; break;
   }
   try {
     const r = await query(sql);

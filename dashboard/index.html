@@ -881,6 +881,11 @@ async function verCliente(wa) {
       <div style="margin-top:1.25rem;border-top:1px solid rgba(255,255,255,.08);padding-top:1.25rem">
         <div style="color:var(--sand);font-size:.8rem;font-weight:600;margin-bottom:.75rem">&#x2699;&#xFE0F; ACCIONES</div>
         <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="btn btn-sm"
+            style="background:rgba(100,149,237,.15);color:#6495ED;border:1px solid rgba(100,149,237,.3)"
+            onclick="editarCliente()">
+            &#x270F; Editar datos
+          </button>
           <button class="btn btn-sm" id="btnNoCampana"
             style="background:rgba(255,200,0,.12);color:#ffc800;border:1px solid rgba(255,200,0,.3)"
             onclick="toggleNoCampana()">
@@ -902,9 +907,29 @@ async function verCliente(wa) {
   window._clienteWA = c.whatsapp;
   window._clienteActivo = c.activo;
   window._clienteNoCampana = c.no_campana;
+  // Actualizar textos de botones segun estado
+  setTimeout(function() {
+    var btnNC = document.getElementById('btnNoCampana');
+    var btnDes = document.getElementById('btnDesactivar');
+    if (btnNC) btnNC.innerHTML = c.no_campana ? '&#x2705; Campana activa' : '&#x1F6AB; No campana';
+    if (btnDes) btnDes.innerHTML = c.activo ? '&#x23F8; Deshabilitar' : '&#x25B6; Habilitar';
+    if (btnNC) btnNC.style.background = c.no_campana ? 'rgba(50,200,50,.15)' : 'rgba(255,200,0,.12)';
+    if (btnNC) btnNC.style.color = c.no_campana ? '#4caf50' : '#ffc800';
+    if (btnNC) btnNC.style.border = c.no_campana ? '1px solid rgba(50,200,50,.3)' : '1px solid rgba(255,200,0,.3)';
+  }, 50);
   openModal('modalCliente');
 }
 
+
+async function editarCliente() {
+  var wa = window._clienteWA;
+  var nombre = prompt('Nombre del cliente:', document.querySelector('#modalClienteContent .detail-row:first-child b, #modalClienteContent') ? (document.querySelector('#modalClienteContent').innerText.match(/Nombre[\s\S]{0,5}([^\n]+)/)?.[1]?.trim() || '') : '');
+  if (nombre === null) return; // cancelado
+  var notas = prompt('Notas (opcional):');
+  if (notas === null) return;
+  var r = await api('/clientes/' + encodeURIComponent(wa), { method: 'PATCH', body: JSON.stringify({ notas: notas || undefined }) });
+  if (r && r.ok) { alert('\u2705 Datos actualizados.'); closeModal('modalCliente'); loadClientes(); }
+}
 
 async function toggleNoCampana() {
   var wa = window._clienteWA;

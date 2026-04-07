@@ -874,8 +874,8 @@ if (state === S.IDLE) {
 
     // ── REGLA 1: Pickup + stock OK → auto-confirmar inmediatamente ──
     if (isPickup) {
-      data.state = S.CONFIRMED;
-      activeOrders.set(key, data);
+      existing.state = S.CONFIRMED;
+      activeOrders.set(key, existing);
       // Reducir stock
       try { await reducirStock(order.items || [], order.folio || order.pedidoId || 'auto'); }
       catch (_re) { console.error('[PICKUP] reducirStock:', _re.message); }
