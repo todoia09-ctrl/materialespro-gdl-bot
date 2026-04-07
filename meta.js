@@ -29,8 +29,12 @@ setInterval(function() {
     if (ts < cutoff) _processedMsgIds.delete(id);
   }
 }, 60 * 60 * 1000);
-const _campaignCatMap = new Map();
-const _campaignProdMap = new Map();
+async function _setCampCat(phone, val) { await query('INSERT INTO campaign_sessions(phone,cat_data,updated_at) VALUES($1,$2,NOW()) ON CONFLICT(phone) DO UPDATE SET cat_data=$2,updated_at=NOW()', [phone, JSON.stringify(val)]); }
+async function _getCampCat(phone) { try { var r = await query('SELECT cat_data FROM campaign_sessions WHERE phone=$1', [phone]); return r.rows[0] ? JSON.parse(r.rows[0].cat_data) : null; } catch(e) { return null; } }
+async function _delCampCat(phone) { await query('UPDATE campaign_sessions SET cat_data=NULL,updated_at=NOW() WHERE phone=$1', [phone]); }
+async function _setCampProd(phone, val) { await query('INSERT INTO campaign_sessions(phone,prod_data,updated_at) VALUES($1,$2,NOW()) ON CONFLICT(phone) DO UPDATE SET prod_data=$2,updated_at=NOW()', [phone, JSON.stringify(val)]); }
+async function _getCampProd(phone) { try { var r = await query('SELECT prod_data FROM campaign_sessions WHERE phone=$1', [phone]); return r.rows[0] ? JSON.parse(r.rows[0].prod_data) : null; } catch(e) { return null; } }
+async function _delCampProd(phone) { await query('UPDATE campaign_sessions SET prod_data=NULL,updated_at=NOW() WHERE phone=$1', [phone]); }
 const WA_PHONE_ID = process.env.META_PHONE_NUMBER_ID;
 const WA_TOKEN    = process.env.META_WHATSAPP_TOKEN;
 
@@ -192,12 +196,13 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       if (getCache) reply = getCache(textContent, firstName);
 
       // 2-pre. Cantidad para producto de campa\u00f1a
-      if (!reply && textContent && _campaignProdMap.has(fromNorm)) {
+      var _campProdData = (!reply && textContent) ? await _getCampProd(fromNorm) : null;
+      if (!reply && textContent && _campProdData !== null) {
         var _qtyMatch = textContent.match(/(\d+)/);
         if (_qtyMatch) {
           var _qty = parseInt(_qtyMatch[1]);
-          var _prod = _campaignProdMap.get(fromNorm);
-          _campaignProdMap.delete(fromNorm);
+          var _prod = _campProdData;
+          await _delCampProd(fromNorm);
           if (_qty > 0 && _prod) {
             // Si es array (multiples productos), buscar por nombre en el mensaje
             if (Array.isArray(_prod)) {
@@ -219,10 +224,11 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       }
 
       // 2a. Respuesta num\u00e9rica a promociones de campa\u00f1a
-      if (!reply && textContent && /^\d{1,2}$/.test(textContent.trim()) && _campaignCatMap.has(fromNorm)) {
+      var _campCatData = (!reply && textContent && /^\d{1,2}$/.test(textContent.trim())) ? await _getCampCat(fromNorm) : null;
+      if (!reply && textContent && /^\d{1,2}$/.test(textContent.trim()) && _campCatData !== null) {
         try {
           var _selIdx = parseInt(textContent.trim()) - 1;
-          var _savedCats = _campaignCatMap.get(fromNorm);
+          var _savedCats = _campCatData;
           if (_selIdx >= 0 && _selIdx < _savedCats.length) {
             var _selCat = _savedCats[_selIdx];
             var _catEmojis2 = { impermeabilizantes:'\uD83C\uDFE0', morteros:'\uD83E\uDDF1', selladores:'\uD83D\uDD27', adhesivos:'\uD83E\uDDEA', pisos:'\uD83C\uDFD7\uFE0F', anclajes:'\u2693', aditivos:'\u2697\uFE0F', grouts:'\uD83C\uDFDB\uFE0F', complementos:'\uD83D\uDEE0\uFE0F' };
@@ -243,13 +249,13 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
               _catReply += '\n\u00bfQuieres cotizar alguno? Dime cu\u00e1ntas unidades necesitas.';
               reply = _catReply;
               if (_catProds.rows.length === 1) {
-                _campaignProdMap.set(fromNorm, _catProds.rows[0]);
+                await _setCampProd(fromNorm, _catProds.rows[0]);
               } else {
-                _campaignProdMap.set(fromNorm, _catProds.rows);
+                await _setCampProd(fromNorm, _catProds.rows);
               }
             }
           }
-          _campaignCatMap.delete(fromNorm);
+          await _delCampCat(fromNorm);
         } catch (_e) { console.error('[META CAMPAIGN CAT]', _e.message); }
       }
 
@@ -283,7 +289,7 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
             }
             _campMsg += '\u00bfQu\u00e9 categor\u00eda te interesa? Responde el n\u00famero o escr\u00edbeme qu\u00e9 necesitas.';
             reply = _campMsg;
-            _campaignCatMap.set(fromNorm, Object.keys(_cats));
+            await _setCampCat(fromNorm, Object.keys(_cats));
           }
         } catch (_e) { console.error('[META CAMPAIGN INTEREST]', _e.message); }
       }

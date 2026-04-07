@@ -156,6 +156,12 @@ async function initSchema() {
       token        TEXT,
       actualizado  TIMESTAMPTZ DEFAULT NOW()
     )`,
+    `CREATE TABLE IF NOT EXISTS campaign_sessions (
+      phone      VARCHAR(30) PRIMARY KEY,
+      cat_data   TEXT,
+      prod_data  TEXT,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_estado  ON pedidos(estado)`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_creado  ON pedidos(creado_en DESC)`,
     `CREATE INDEX IF NOT EXISTS idx_cots_estado     ON cotizaciones(estado)`,
