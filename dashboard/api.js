@@ -235,12 +235,24 @@ router.patch('/clientes/:id/nivel', authMiddleware(), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.patch('/clientes/:id', authMiddleware(), async (req, res) => {
-  const { notas, credito_limite, zona } = req.body;
+router.patch('/clientes/:id', authMiddleware(), express.json(), async (req, res) => {
+  const { notas, credito_limite, zona, nombre, rfc, email } = req.body;
   try {
+    // Soporta busqueda por id numerico O por whatsapp string
+    const idParam = req.params.id;
+    const isWhatsapp = idParam.includes('whatsapp') || idParam.includes('+');
+    const whereClause = isWhatsapp ? 'WHERE whatsapp=$7' : 'WHERE id=$7';
+    const idValue = isWhatsapp ? decodeURIComponent(idParam) : parseInt(idParam);
     await query(
-      'UPDATE clientes SET notas=COALESCE($1,notas), credito_limite=COALESCE($2,credito_limite), zona=COALESCE($3,zona) WHERE id=$4',
-      [notas, credito_limite, zona, req.params.id]
+      `UPDATE clientes SET
+        notas=COALESCE($1,notas),
+        credito_limite=COALESCE($2,credito_limite),
+        zona=COALESCE($3,zona),
+        nombre=COALESCE($4,nombre),
+        rfc=COALESCE($5,rfc),
+        email=COALESCE($6,email)
+       ${whereClause}`,
+      [notas||null, credito_limite!=null?credito_limite:null, zona||null, nombre||null, rfc||null, email||null, idValue]
     );
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }

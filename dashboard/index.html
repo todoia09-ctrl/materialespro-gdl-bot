@@ -841,6 +841,7 @@ function renderClientes(list) {
         <td>$${Number(c.total_compras||0).toLocaleString('es-MX')}</td>
         <td style="color:var(--gray);font-size:.75rem">${fmtDate(c.ultimo_contacto)}</td>
         <td>${c.credito_limite > 0 ? '<span style="color:var(--green)">$' + Number(c.credito_limite).toLocaleString('es-MX') + '</span>' : '—'}</td>
+        <td style="text-align:center;font-size:1rem">${!c.activo ? '<span title="Deshabilitado" style="color:#ff6b6b">&#x26D4;</span>' : '<span title="Activo" style="color:#4caf50">&#x2714;</span>'} ${c.no_campana ? '<span title="No campana" style="color:#ffc800">&#x1F6AB;</span>' : ''}</td>
         <td><button class="btn btn-secondary btn-sm" onclick="verCliente('${c.whatsapp}')">Ver</button></td>
       </tr>`).join('');
   } else {
@@ -923,14 +924,59 @@ async function verCliente(wa) {
 
 async function editarCliente() {
   var wa = window._clienteWA;
-  var nombre = prompt('Nombre del cliente:', document.querySelector('#modalClienteContent .detail-row:first-child b, #modalClienteContent') ? (document.querySelector('#modalClienteContent').innerText.match(/Nombre[\s\S]{0,5}([^\n]+)/)?.[1]?.trim() || '') : '');
-  if (nombre === null) return; // cancelado
-  var notas = prompt('Notas (opcional):');
-  if (notas === null) return;
-  var r = await api('/clientes/' + encodeURIComponent(wa), { method: 'PATCH', body: JSON.stringify({ notas: notas || undefined }) });
-  if (r && r.ok) { alert('\u2705 Datos actualizados.'); closeModal('modalCliente'); loadClientes(); }
+  var data = await api('/clientes/' + encodeURIComponent(wa));
+  if (!data || !data.cliente) return;
+  var c = data.cliente;
+  var zonas = ['norte','gdl','sur','este','sur_lejano'];
+  var zonaOpts = zonas.map(function(z) {
+    return '<option value="' + z + '"' + (c.zona === z ? ' selected' : '') + '>' + z + '</option>';
+  }).join('');
+  var formHtml = '<div style="padding:.5rem 0">'
+    + '<div style="color:var(--sand);font-size:.8rem;font-weight:600;margin-bottom:1rem">&#x270F;&#xFE0F; EDITAR CLIENTE</div>'
+    + '<div style="display:grid;gap:.6rem">'
+    + '<div><label style="font-size:.75rem;color:var(--gray)">Nombre</label>'
+    +   '<input id="e_nombre" value="' + (c.nombre||'').replace(/"/g,'&quot;') + '" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:.45rem .7rem;color:var(--white);font-size:.88rem"></div>'
+    + '<div><label style="font-size:.75rem;color:var(--gray)">RFC</label>'
+    +   '<input id="e_rfc" value="' + (c.rfc||'').replace(/"/g,'&quot;') + '" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:.45rem .7rem;color:var(--white);font-size:.88rem"></div>'
+    + '<div><label style="font-size:.75rem;color:var(--gray)">Email</label>'
+    +   '<input id="e_email" value="' + (c.email||'').replace(/"/g,'&quot;') + '" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:.45rem .7rem;color:var(--white);font-size:.88rem"></div>'
+    + '<div><label style="font-size:.75rem;color:var(--gray)">Cr&#xe9;dito l&#xed;mite (MXN)</label>'
+    +   '<input id="e_credito" type="number" value="' + (c.credito_limite||0) + '" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:.45rem .7rem;color:var(--white);font-size:.88rem"></div>'
+    + '<div><label style="font-size:.75rem;color:var(--gray)">Zona</label>'
+    +   '<select id="e_zona" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:.45rem .7rem;color:var(--white);font-size:.88rem">' + zonaOpts + '</select></div>'
+    + '<div><label style="font-size:.75rem;color:var(--gray)">Notas</label>'
+    +   '<textarea id="e_notas" rows="2" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:.45rem .7rem;color:var(--white);font-size:.88rem;resize:vertical">' + (c.notas||'') + '</textarea></div>'
+    + '<div style="display:flex;gap:.75rem;margin-top:.25rem">'
+    +   '<button class="btn btn-primary btn-sm" onclick="guardarEdicionCliente()">&#x1F4BE; Guardar</button>'
+    +   '<button class="btn btn-secondary btn-sm" onclick="verCliente(window._clienteWA)">Cancelar</button>'
+    + '</div></div></div>';
+  document.getElementById('modalClienteContent').innerHTML = formHtml;
 }
 
+async function guardarEdicionCliente() {
+  var wa = window._clienteWA;
+  var nombre = document.getElementById('e_nombre').value.trim();
+  var rfc = document.getElementById('e_rfc').value.trim().toUpperCase();
+  var email = document.getElementById('e_email').value.trim().toLowerCase();
+  var credito = parseFloat(document.getElementById('e_credito').value) || 0;
+  var zona = document.getElementById('e_zona').value;
+  var notas = document.getElementById('e_notas').value.trim();
+  var payload = {};
+  if (nombre) payload.nombre = nombre;
+  if (rfc)    payload.rfc    = rfc;
+  if (email)  payload.email  = email;
+  payload.credito_limite = credito;
+  if (zona)   payload.zona   = zona;
+  if (notas)  payload.notas  = notas;
+  var r = await api('/clientes/' + encodeURIComponent(wa), { method: 'PATCH', body: payload });
+  if (r && r.ok) {
+    alert('✅ Datos actualizados correctamente.');
+    verCliente(wa);
+    loadClientes();
+  } else {
+    alert('❌ Error al guardar. Intenta de nuevo.');
+  }
+}
 async function toggleNoCampana() {
   var wa = window._clienteWA;
   var actual = window._clienteNoCampana;
