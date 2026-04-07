@@ -30,6 +30,7 @@ setInterval(function() {
   }
 }, 60 * 60 * 1000);
 const _campaignCatMap = new Map();
+const _campaignProdMap = new Map();
 const WA_PHONE_ID = process.env.META_PHONE_NUMBER_ID;
 const WA_TOKEN    = process.env.META_WHATSAPP_TOKEN;
 
@@ -190,6 +191,31 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       // 2. Cache
       if (getCache) reply = getCache(textContent, firstName);
 
+      // 2-pre. Cantidad para producto de campa\u00f1a
+      if (!reply && textContent && _campaignProdMap.has(fromNorm)) {
+        var _qtyMatch = textContent.match(/(\d+)/);
+        if (_qtyMatch) {
+          var _qty = parseInt(_qtyMatch[1]);
+          var _prod = _campaignProdMap.get(fromNorm);
+          _campaignProdMap.delete(fromNorm);
+          if (_qty > 0 && _prod) {
+            // Si es array (multiples productos), buscar por nombre en el mensaje
+            if (Array.isArray(_prod)) {
+              var _txtLow = textContent.toLowerCase();
+              var _match = _prod.find(function(p) { return _txtLow.indexOf(p.nombre.toLowerCase().split(' ')[0]) !== -1; });
+              _prod = _match || _prod[0];
+            }
+            var _po = Math.round(parseFloat(_prod.precio_oferta));
+            var _total = _qty * _po;
+            reply = '\u00a1Perfecto! Cotizando ' + _qty + ' x ' + _prod.nombre
+              + ' a precio de oferta $' + _po.toLocaleString('es-MX') + ':\n\n'
+              + _qty + ' x $' + _po.toLocaleString('es-MX')
+              + ' = *$' + _total.toLocaleString('es-MX') + '*\n\n'
+              + '\u00bfHacemos el pedido?';
+          }
+        }
+      }
+
       // 2a. Respuesta num\u00e9rica a promociones de campa\u00f1a
       if (!reply && textContent && /^\d{1,2}$/.test(textContent.trim()) && _campaignCatMap.has(fromNorm)) {
         try {
@@ -214,6 +240,11 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
               }
               _catReply += '\n\u00bfQuieres cotizar alguno? Dime cu\u00e1ntas unidades necesitas.';
               reply = _catReply;
+              if (_catProds.rows.length === 1) {
+                _campaignProdMap.set(fromNorm, _catProds.rows[0]);
+              } else {
+                _campaignProdMap.set(fromNorm, _catProds.rows);
+              }
             }
           }
           _campaignCatMap.delete(fromNorm);
