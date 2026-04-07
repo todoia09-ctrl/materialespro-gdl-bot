@@ -375,7 +375,14 @@ select:focus{border-color:var(--rust)}
             </select>
           </div>
         </div>
-        <div style="margin-bottom:1rem">
+        <div style="margin-bottom:.75rem">
+          <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Plantilla aprobada (opcional)</label>
+          <select id="campTemplate" style="width:100%" onchange="var m=document.getElementById('campMsgWrap');m.style.display=this.value?'none':'block'">
+            <option value="">Sin plantilla — texto libre (solo clientes activos 24h)</option>
+            <option value="materialespro_promo">\uD83D\uDD25 materialespro_promo — Promo especial (todos los clientes)</option>
+          </select>
+        </div>
+        <div id="campMsgWrap" style="margin-bottom:1rem">
           <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Mensaje <span style="color:var(--gray)">(usa {nombre} para personalizar)</span></label>
           <textarea class="camp-msg" id="campMsg" placeholder="Hola {nombre}, tenemos una promoción especial en adhesivos esta semana..."></textarea>
         </div>
@@ -1040,27 +1047,31 @@ async function loadCampanas() {
 async function previewCamp() {
   const seg  = document.getElementById('campSegmento').value;
   const prev = document.getElementById('campPreview');
-  const data = await api('/campanas/preview?segmento=' + seg);
+  const data = await api('/campanas/preview', { method: 'POST', body: { segmento: seg } });
   if (data) {
     prev.style.display = 'block';
-    prev.textContent = '👥 Esta campaña llegará a ' + data.total + ' clientes — ' + data.descripcion;
+    prev.textContent = '\uD83D\uDC65 Esta campa\u00f1a llegar\u00e1 a ' + data.total + ' clientes \u2014 ' + data.descripcion;
   }
 }
 
 async function crearCampana() {
-  const nombre   = document.getElementById('campNombre').value.trim();
-  const mensaje  = document.getElementById('campMsg').value.trim();
-  const segmento = document.getElementById('campSegmento').value;
-  if (!nombre || !mensaje) { toast('Nombre y mensaje son requeridos', 'error'); return; }
-  if (!confirm('¿Enviar esta campaña ahora? Los mensajes saldrán de inmediato a todos los clientes del segmento seleccionado.')) return;
-  const r = await api('/campanas', { method: 'POST', body: { nombre, mensaje, segmento } });
+  const nombre        = document.getElementById('campNombre').value.trim();
+  const mensaje       = document.getElementById('campMsg').value.trim();
+  const segmento      = document.getElementById('campSegmento').value;
+  const template_name = document.getElementById('campTemplate').value || null;
+  if (!nombre) { toast('Nombre es requerido', 'error'); return; }
+  if (!template_name && !mensaje) { toast('Mensaje es requerido para texto libre', 'error'); return; }
+  if (!confirm('\u00bfEnviar esta campa\u00f1a ahora? Los mensajes saldr\u00e1n de inmediato a todos los clientes del segmento seleccionado.')) return;
+  const r = await api('/campanas', { method: 'POST', body: { nombre, mensaje: template_name ? '' : mensaje, segmento, template_name } });
   if (r?.id) {
-    toast('Campaña creada y enviando... 📣', 'success');
+    toast('Campa\u00f1a creada y enviando... \uD83D\uDCE3', 'success');
     document.getElementById('campNombre').value = '';
     document.getElementById('campMsg').value    = '';
+    document.getElementById('campTemplate').value = '';
+    document.getElementById('campMsgWrap').style.display = 'block';
     document.getElementById('campPreview').style.display = 'none';
     loadCampanas();
-  } else toast('Error al crear campaña', 'error');
+  } else toast('Error al crear campa\u00f1a', 'error');
 }
 
 // ── VENDEDORES ───────────────────────────────────

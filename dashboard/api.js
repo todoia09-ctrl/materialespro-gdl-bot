@@ -285,10 +285,10 @@ router.post('/campanas/preview', authMiddleware(['admin']), async (req, res) => 
 });
 
 router.post('/campanas', authMiddleware(['admin']), async (req, res) => {
-  const { nombre, mensaje, segmento } = req.body;
-  if (!nombre || !mensaje || !segmento) return res.status(400).json({ error: 'Faltan campos' });
+  const { nombre, mensaje, segmento, template_name } = req.body;
+  if (!nombre || (!mensaje && !template_name) || !segmento) return res.status(400).json({ error: 'Faltan campos' });
   try {
-    const id = await crearCampana(nombre, mensaje, segmento, req.user.email);
+    const id = await crearCampana(nombre, mensaje || '', segmento, req.user.email, template_name || undefined);
     res.json({ id, ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
