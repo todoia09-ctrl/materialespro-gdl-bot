@@ -1029,8 +1029,8 @@ async function loadCampanas() {
   const data = await api('/campanas');
   if (!data) return;
   const tbody = document.getElementById('campTable');
-  if (data.campanas?.length) {
-    tbody.innerHTML = data.campanas.map(c => `
+  if (data && data.length) {
+    tbody.innerHTML = data.map(c => `
       <tr>
         <td>${c.nombre}</td>
         <td style="font-size:.78rem;color:var(--gray)">${c.segmento}</td>
