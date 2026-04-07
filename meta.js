@@ -94,13 +94,22 @@ function makeSendToClient(fromDigits) {
 // ─────────────────────────────────────────────────
 async function sendDM(recipientId, text, token) {
   try {
+    const isIGToken = token && token.startsWith('EAA') && process.env.META_IG_ACCESS_TOKEN && token === process.env.META_IG_ACCESS_TOKEN;
+    const endpoint = isIGToken
+      ? META_API + '/me/messages'
+      : META_API + '/me/messages';
     await axios.post(
-      META_API + '/me/messages',
-      { recipient: { id: recipientId }, message: { text: text.substring(0, 2000) } },
-      { params: { access_token: token } }
+      endpoint,
+      {
+        recipient: { id: recipientId },
+        message: { text: text.substring(0, 1000) },
+        messaging_type: 'RESPONSE'
+      },
+      { headers: { Authorization: 'Bearer ' + token }, params: { access_token: token } }
     );
   } catch (err) {
-    console.error('[META DM ERR]', err.response && err.response.data && err.response.data.error ? err.response.data.error.message : err.message);
+    const errMsg = err.response && err.response.data && err.response.data.error ? err.response.data.error.message : err.message;
+    console.error('[META DM ERR]', errMsg);
   }
 }
 
