@@ -806,6 +806,10 @@ if (state === S.IDLE) {
     if (!_confirmTriggers.includes(c) && !c.startsWith('si ') && !c.startsWith('dale '))
       return '¿Confirmas? Responde *SÍ* o *NO*.';
 
+    if (recentlyConfirmed.has(key)) { return null; }
+    recentlyConfirmed.add(key);
+    setTimeout(() => recentlyConfirmed.delete(key), 15000);
+
     const token = generateToken();
         // -- Verificar stock antes de notificar al vendedor --
     const _stockCheck = await verificarStock(order.items || []);
