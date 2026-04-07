@@ -559,21 +559,59 @@ if (state === S.IDLE) {
       set(S.ASKING_DATE);
       return '\u26a0\ufe0f Los *domingos estamos cerrados*. Atendemos *Lun\u2013Vie 8am\u20136pm \u00b7 S\u00e1b 8am\u20132pm*.\n\u00bfQu\u00e9 otro d\u00eda planeas pasar?';
     }
+
+    // ── Calcular fecha din\u00e1mica desde "hoy", "ma\u00f1ana", o nombre de d\u00eda ──
+    var _nowMx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+    var _mesesEs = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    var _diasEs  = ['domingo','lunes','martes','mi\u00e9rcoles','jueves','viernes','s\u00e1bado'];
+    var _diaMap  = { lunes:1, martes:2, miercoles:3, jueves:4, viernes:5, sabado:6 };
+    var _targetDate = null;
+    var _nextWeek = false;
+
+    if (_msgNorm === 'hoy' || _msgNorm.startsWith('hoy ')) {
+      _targetDate = new Date(_nowMx);
+    } else if (_msgNorm === 'manana' || _msgNorm.startsWith('manana ')) {
+      _targetDate = new Date(_nowMx);
+      _targetDate.setDate(_targetDate.getDate() + 1);
+      if (_targetDate.getDay() === 0) { _targetDate.setDate(_targetDate.getDate() + 1); }
+    } else {
+      var _diaKey = Object.keys(_diaMap).find(function(k) { return _msgNorm.includes(k); });
+      if (_diaKey) {
+        var _targetDow = _diaMap[_diaKey];
+        var _currentDow = _nowMx.getDay();
+        var _diff = _targetDow - _currentDow;
+        if (_diff <= 0) { _diff += 7; _nextWeek = true; }
+        _targetDate = new Date(_nowMx);
+        _targetDate.setDate(_targetDate.getDate() + _diff);
+      }
+    }
+
+    if (_targetDate) {
+      if (_targetDate.getDay() === 0) {
+        set(S.ASKING_DATE);
+        return '\u26a0\ufe0f Ese d\u00eda es *domingo* y estamos cerrados. Atendemos *Lun\u2013Vie 8am\u20136pm \u00b7 S\u00e1b 8am\u20132pm*.\n\u00bfQu\u00e9 otro d\u00eda planeas pasar?';
+      }
+      var _diaCapital = _diasEs[_targetDate.getDay()].charAt(0).toUpperCase() + _diasEs[_targetDate.getDay()].slice(1);
+      var _fechaStr = _diaCapital + ' ' + _targetDate.getDate() + ' de ' + _mesesEs[_targetDate.getMonth()];
+      var _horaMatch = msg.match(/\d{1,2}(?::\d{2})?\s*(?:am|pm)/i);
+      order.pickupDate = _fechaStr + (_horaMatch ? ' a las ' + _horaMatch[0] : '');
+    }
+
     // FIX HORARIO: Lun-Vie 8am-6pm, Sab 8am-2pm
-    const _esSabado = _msgNorm.includes('sabado') || _msgNorm.includes('sábado');
+    var _esSabado = _targetDate ? _targetDate.getDay() === 6 : (_msgNorm.includes('sabado') || _msgNorm.includes('s\u00e1bado'));
     const _horaMsg = parseHoraMsg(msg);
     if (_horaMsg !== null) {
       if (_horaMsg < 8) {
         set(S.ASKING_DATE);
-        return '⚠️ Abrimos a las *8am*. ¿Qué hora te funciona dentro de nuestro horario?\n\n⏰ Lun–Vie: 8am–6pm · Sáb: 8am–2pm';
+        return '\u26a0\ufe0f Abrimos a las *8am*. \u00bfQu\u00e9 hora te funciona dentro de nuestro horario?\n\n\u23F0 Lun\u2013Vie: 8am\u20136pm \u00b7 S\u00e1b: 8am\u20132pm';
       }
       if (_esSabado && _horaMsg >= 14) {
         set(S.ASKING_DATE);
-        return '⚠️ Los *sábados cerramos a las 2pm*.\n\n¿Puedes pasar antes de las 2pm, o prefieres otro día?\n\n⏰ Lun–Vie: 8am–6pm · Sáb: 8am–2pm';
+        return '\u26a0\ufe0f Los *s\u00e1bados cerramos a las 2pm*.\n\n\u00bfPuedes pasar antes de las 2pm, o prefieres otro d\u00eda?\n\n\u23F0 Lun\u2013Vie: 8am\u20136pm \u00b7 S\u00e1b: 8am\u20132pm';
       }
       if (!_esSabado && _horaMsg >= 18) {
         set(S.ASKING_DATE);
-        return '⚠️ Cerramos a las *6pm*. ¿Qué hora te funciona?\n\n⏰ Lun–Vie: 8am–6pm · Sáb: 8am–2pm';
+        return '\u26a0\ufe0f Cerramos a las *6pm*. \u00bfQu\u00e9 hora te funciona?\n\n\u23F0 Lun\u2013Vie: 8am\u20136pm \u00b7 S\u00e1b: 8am\u20132pm';
       }
     }
     if (_horaMsg === null) {
@@ -581,8 +619,16 @@ if (state === S.IDLE) {
       return '\u23F0 \u00bfA qu\u00e9 hora planeas pasar?\n\n\u23F0 Lun\u2013Vie: 8am\u20136pm \u00b7 S\u00e1b: 8am\u20132pm';
     }
 
-    // BUG D FIX: validar día de semana
-    const _dias = ['lunes','martes','miercoles','miércoles','jueves','viernes','sabado','sábado'];
+    // ── Confirmaci\u00f3n si es de la pr\u00f3xima semana ──
+    if (_nextWeek && _targetDate) {
+      var _diaConf = _diasEs[_targetDate.getDay()].charAt(0).toUpperCase() + _diasEs[_targetDate.getDay()].slice(1);
+      var _fechaConf = _diaConf + ' ' + _targetDate.getDate() + ' de ' + _mesesEs[_targetDate.getMonth()];
+      set(S.ASKING_DATE);
+      return '\u00bfConfirmas que es el *' + _fechaConf + '*? (pr\u00f3xima semana)\nResponde *s\u00ed* o escribe otra fecha.';
+    }
+
+    // BUG D FIX: validar d\u00eda de semana en fechas num\u00e9ricas
+    const _dias = ['lunes','martes','miercoles','mi\u00e9rcoles','jueves','viernes','sabado','s\u00e1bado'];
     const _msgLow = msg.toLowerCase();
     const _fechaMatch = _msgLow.match(/(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?/);
     if (_fechaMatch) {
@@ -590,29 +636,35 @@ if (state === S.IDLE) {
       const _y = _fechaMatch[3] ? parseInt(_fechaMatch[3]) : new Date().getFullYear();
       const _fecha = new Date(_y < 100 ? _y + 2000 : _y, _m, _d);
       const _dow = _fecha.getDay(); // 0=dom, 6=sab
-      const _nombresDia = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+      const _nombresDia = ['domingo','lunes','martes','mi\u00e9rcoles','jueves','viernes','s\u00e1bado'];
       if (_dow === 0) {
         set(S.ASKING_DATE);
         return '\u26a0\ufe0f Esa fecha es *domingo* y estamos cerrados. Atendemos Lun\u2013Vie 8am\u20136pm \u00b7 S\u00e1b 8am\u20132pm.\n\n\u00bfQu\u00e9 otro d\u00eda planeas pasar?';
       }
+      // Formatear fecha num\u00e9rica a texto legible
+      var _fNombre = _nombresDia[_dow].charAt(0).toUpperCase() + _nombresDia[_dow].slice(1);
+      order.pickupDate = _fNombre + ' ' + _d + ' de ' + _mesesEs[_m];
+      if (_horaMsg !== null) {
+        var _hMatch = msg.match(/\d{1,2}(?::\d{2})?\s*(?:am|pm)/i);
+        if (_hMatch) order.pickupDate += ' a las ' + _hMatch[0];
+      }
       const _nombreReal = _nombresDia[_dow];
       const _diaEscrito = _dias.find(d => _msgLow.includes(d));
       if (_diaEscrito) {
-        const _realNorm = _nombreReal.replace('é','e').replace('á','a');
-        const _escNorm = _diaEscrito.replace('é','e').replace('á','a');
+        const _realNorm = _nombreReal.replace('\u00e9','e').replace('\u00e1','a');
+        const _escNorm = _diaEscrito.replace('\u00e9','e').replace('\u00e1','a');
         if (!_realNorm.startsWith(_escNorm.substring(0,4))) {
-          // FIX J: detener flujo y pedir confirmación del día correcto
           order._fechaConflicto = { d: _d, m: _m+1, y: _y, diaReal: _nombreReal.toUpperCase(), diaEscrito: _diaEscrito.toUpperCase() };
           set(S.ASKING_DATE);
-          return '⚠️ *Hay un conflicto de fecha:*\n'
+          return '\u26a0\ufe0f *Hay un conflicto de fecha:*\n'
             + 'El ' + _d + '/' + (_m+1) + '/' + _y + ' es *' + _nombreReal.toUpperCase() + '*, no ' + _diaEscrito.toUpperCase() + '.\n\n'
-            + '¿Qué prefieres?\n'
-            + '1️⃣ *' + _nombreReal.toUpperCase() + ' ' + _d + '/' + (_m+1) + '* (la fecha que pusiste)\n'
-            + '2️⃣ *' + _diaEscrito.toUpperCase() + '* — dame la fecha correcta';
+            + '\u00bfQu\u00e9 prefieres?\n'
+            + '1\ufe0f\u20e3 *' + _nombreReal.toUpperCase() + ' ' + _d + '/' + (_m+1) + '* (la fecha que pusiste)\n'
+            + '2\ufe0f\u20e3 *' + _diaEscrito.toUpperCase() + '* \u2014 dame la fecha correcta';
         }
       }
     }
-    set(S.ASKING_PAYMENT); return '¿Cuál será tu método de pago?\n\n' + getPaymentOptions('pickup', from);
+    set(S.ASKING_PAYMENT); return '\u00bfCu\u00e1l ser\u00e1 tu m\u00e9todo de pago?\n\n' + getPaymentOptions('pickup', from);
   }
   if (state === S.ASKING_STREET)    { order.street    = msg; set(S.ASKING_COLONY);    return '¿Cuál es la colonia?'; }
   if (state === S.ASKING_COLONY)    { order.colony = msg;
