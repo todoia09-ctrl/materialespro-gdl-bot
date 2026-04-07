@@ -425,7 +425,11 @@ select:focus{border-color:var(--rust)}
         <div id="catResult" style="display:none;padding:1rem;border-radius:8px;margin-top:1rem;font-size:.9rem"></div>
       </div>
 
-      <div class="table-wrap">
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sec-precios').scrollIntoView({behavior:'smooth'})">📋 Precios</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sec-destacados').scrollIntoView({behavior:'smooth'})">⭐ Destacados y Ofertas</button>
+      </div>
+      <div class="table-wrap" id="sec-precios">
         <div class="table-header">
           <span class="section-title">Productos actuales</span>
           <button class="btn btn-secondary btn-sm" onclick="loadCatalogo()">🔄 Actualizar</button>
@@ -436,7 +440,7 @@ select:focus{border-color:var(--rust)}
         </table>
       </div>
 
-      <div class="table-wrap" style="margin-top:2rem">
+      <div class="table-wrap" id="sec-destacados" style="margin-top:2rem">
         <div class="table-header">
           <span class="section-title">⭐ Productos Destacados y Ofertas</span>
           <div style="display:flex;gap:.5rem;align-items:center">
