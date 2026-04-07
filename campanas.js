@@ -13,7 +13,7 @@ const { query } = require('./db');
 // ─────────────────────────────────────────────────
 function getMetaConfig() {
   return {
-    token:   process.env.META_WA_TOKEN,
+    token:   process.env.META_WHATSAPP_TOKEN || process.env.META_WA_TOKEN,
     phoneId: process.env.META_PHONE_NUMBER_ID,
   };
 }
@@ -97,7 +97,7 @@ async function getClientesSegmento(segmento) {
 function sendMetaMessage(to, payload) {
   return new Promise((resolve, reject) => {
     const { token, phoneId } = getMetaConfig();
-    if (!token || !phoneId) return reject(new Error('META_WA_TOKEN o META_PHONE_NUMBER_ID no configurados'));
+    if (!token || !phoneId) return reject(new Error('META_WHATSAPP_TOKEN o META_PHONE_NUMBER_ID no configurados'));
 
     // Normalizar número — quitar prefijos whatsapp: y +
     const toNum = to.replace('whatsapp:', '').replace('+', '').replace(/\s/g, '');
