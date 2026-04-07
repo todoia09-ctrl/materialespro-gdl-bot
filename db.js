@@ -148,6 +148,14 @@ async function initSchema() {
     `ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS telefono VARCHAR(30)`,
     `ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS empresa VARCHAR(100)`,
     `ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS telefono VARCHAR(30)`,
+    `CREATE TABLE IF NOT EXISTS active_orders (
+      id           SERIAL PRIMARY KEY,
+      session_key  TEXT UNIQUE NOT NULL,
+      state        TEXT,
+      order_json   JSONB,
+      token        TEXT,
+      actualizado  TIMESTAMPTZ DEFAULT NOW()
+    )`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_estado  ON pedidos(estado)`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_creado  ON pedidos(creado_en DESC)`,
     `CREATE INDEX IF NOT EXISTS idx_cots_estado     ON cotizaciones(estado)`,

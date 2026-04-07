@@ -376,6 +376,16 @@ function startVendorTimer(sessionKey, sendToClient) {
     }
     msg += 'Nuestro equipo se comunicará contigo para confirmar pago y entrega. 📞\n';
     msg += '\n¿Algo más en lo que te podamos ayudar?';
+    // ── Actualizar estado en DB al auto-confirmar ──
+    if (order.pedidoId) {
+      await actualizarEstadoPedido(order.pedidoId, 'confirmado').catch(e =>
+        console.error('[VENDOR TIMER] actualizarEstado:', e.message)
+      );
+    }
+    // ── Reducir stock al auto-confirmar ──
+    try { await reducirStock(order.items || [], order.folio || order.pedidoId || 'auto'); }
+    catch (_re) { console.error('[VENDOR TIMER] reducirStock:', _re.message); }
+
     await sendToClient(sessionKey, msg);
     console.log('[VENDOR TIMER] Auto-confirmado:', sessionKey);
   }, 2 * 60 * 1000);
@@ -790,12 +800,12 @@ if (state === S.IDLE) {
         console.log('[PEDIDO DB] Guardado folio:', _result.folio, 'cliente:', from);
       }
     } catch (_dbErr) {
-      console.error('[PEDIDO DB] Error al guardar:', _dbErr.message);
+      console.error('[PEDIDO DB] Error completo:', _dbErr.stack || _dbErr.message);
     }
     // ─────────────────────────────────────────────────────
     const timer = startVendorTimer(key, sendToClient);
     activeOrders.set(key, { state: S.WAITING_VENDOR, order, token, timer });
-    saveActiveOrder(key, S.WAITING_VENDOR, order, token).catch(()=>{});
+    saveActiveOrder(key, S.WAITING_VENDOR, order, token).catch(e => console.error('[ACTIVE_ORDER]', e.message));
 
     return '✅ *Pedido recibido*\n\nVerificando stock con el almacén. 🔍\nTe confirmamos en los próximos *15 minutos*.';
   }

@@ -491,7 +491,7 @@ app.post('/webhook/whatsapp', async (req, res) => {
 
   try {
     // ── CRM: registrar contacto y logear mensaje ──
-    const cliente = await registrarContacto(from, { nombre: name, canal: 'whatsapp' }).catch(() => null);
+    const cliente = await registrarContacto(from, { nombre: name, canal: 'whatsapp' }).catch(e => { console.error('[CRM] registrarContacto FAILED:', e.message); return null; });
     if (cliente && textBody) {
       logMensaje(cliente.id, 'whatsapp', 'in', textBody, hasMedia ? 'media' : 'texto').catch(() => {});
     }
@@ -543,7 +543,7 @@ app.post('/webhook/whatsapp', async (req, res) => {
         }).then(async result => {
           // Guardar cotización en CRM
           if (result && cliente) {
-            const cotId = await guardarCotizacion(from, result.quoteNumber, [], result.total, result.pdfUrl, 'whatsapp').catch(() => null);
+            const cotId = await guardarCotizacion(from, result.quoteNumber, [], result.total, result.pdfUrl, 'whatsapp').catch(e => { console.error('[COT]', e.message); return null; });
             if (cotId) await programarSeguimiento(from, cotId).catch(() => {});
           }
         }).catch(e => console.error('[PDF]', e.message));
