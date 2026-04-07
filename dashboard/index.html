@@ -979,21 +979,51 @@ async function guardarEdicionCliente() {
   }
 }
 async function toggleNoCampana() {
-  var wa = window._clienteWA;
+  var id = window._clienteId;
   var actual = window._clienteNoCampana;
   var nuevo = !actual;
-  if (!confirm(nuevo ? '\u00BFMarcar este cliente como NO CAMPANA? No recibira campanas masivas.' : '\u00BFPermitir campanas a este cliente nuevamente?')) return;
-  var r = await api('/clientes/' + (window._clienteId || encodeURIComponent(wa)) + '/nocampana', { method: 'PATCH', body: JSON.stringify({ valor: nuevo }) });
-  if (r && r.ok) { alert(nuevo ? '\u2705 Cliente marcado como No Campana.' : '\u2705 Cliente habilitado para campanas.'); closeModal('modalCliente'); loadClientes(); }
+  if (!id) { alert('Error: ID de cliente no encontrado'); return; }
+  if (!confirm(nuevo ? '¿Marcar este cliente como NO CAMPANA? No recibira campanas masivas.' : '¿Permitir campanas a este cliente nuevamente?')) return;
+  try {
+    var tk = localStorage.getItem('mp_token');
+    var res = await fetch('/api/clientes/' + id + '/nocampana', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
+      body: JSON.stringify({ valor: nuevo })
+    });
+    var data = await res.json();
+    if (data && data.ok) {
+      alert(nuevo ? '✅ Cliente marcado como No Campana.' : '✅ Cliente habilitado para campanas.');
+      closeModal('modalCliente');
+      loadClientes();
+    } else {
+      alert('Error: ' + (data.error || 'respuesta inesperada'));
+    }
+  } catch(e) { alert('Error de conexion: ' + e.message); }
 }
 
 async function toggleActivo() {
-  var wa = window._clienteWA;
+  var id = window._clienteId;
   var actual = window._clienteActivo;
   var nuevo = !actual;
-  if (!confirm(nuevo ? '\u00BFHabilitar este cliente?' : '\u00BFDeshabilitar este cliente? El bot lo ignorara.')) return;
-  var r = await api('/clientes/' + (window._clienteId || encodeURIComponent(wa)) + '/deshabilitar', { method: 'PATCH', body: JSON.stringify({ activo: nuevo }) });
-  if (r && r.ok) { alert(nuevo ? '\u2705 Cliente habilitado.' : '\u2705 Cliente deshabilitado.'); closeModal('modalCliente'); loadClientes(); }
+  if (!id) { alert('Error: ID de cliente no encontrado'); return; }
+  if (!confirm(nuevo ? '¿Habilitar este cliente?' : '¿Deshabilitar este cliente? El bot lo ignorara.')) return;
+  try {
+    var tk = localStorage.getItem('mp_token');
+    var res = await fetch('/api/clientes/' + id + '/deshabilitar', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
+      body: JSON.stringify({ activo: nuevo })
+    });
+    var data = await res.json();
+    if (data && data.ok) {
+      alert(nuevo ? '✅ Cliente habilitado.' : '✅ Cliente deshabilitado.');
+      closeModal('modalCliente');
+      loadClientes();
+    } else {
+      alert('Error: ' + (data.error || 'respuesta inesperada'));
+    }
+  } catch(e) { alert('Error de conexion: ' + e.message); }
 }
 
 async function eliminarCliente() {
