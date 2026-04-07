@@ -906,6 +906,7 @@ async function verCliente(wa) {
       </div>
 `;
   window._clienteWA = c.whatsapp;
+  window._clienteId = c.id;
   window._clienteActivo = c.activo;
   window._clienteNoCampana = c.no_campana;
   // Actualizar textos de botones segun estado
@@ -982,7 +983,7 @@ async function toggleNoCampana() {
   var actual = window._clienteNoCampana;
   var nuevo = !actual;
   if (!confirm(nuevo ? '\u00BFMarcar este cliente como NO CAMPANA? No recibira campanas masivas.' : '\u00BFPermitir campanas a este cliente nuevamente?')) return;
-  var r = await api('/clientes/' + encodeURIComponent(wa) + '/nocampana', { method: 'PATCH', body: JSON.stringify({ valor: nuevo }) });
+  var r = await api('/clientes/' + (window._clienteId || encodeURIComponent(wa)) + '/nocampana', { method: 'PATCH', body: JSON.stringify({ valor: nuevo }) });
   if (r && r.ok) { alert(nuevo ? '\u2705 Cliente marcado como No Campana.' : '\u2705 Cliente habilitado para campanas.'); closeModal('modalCliente'); loadClientes(); }
 }
 
@@ -991,7 +992,7 @@ async function toggleActivo() {
   var actual = window._clienteActivo;
   var nuevo = !actual;
   if (!confirm(nuevo ? '\u00BFHabilitar este cliente?' : '\u00BFDeshabilitar este cliente? El bot lo ignorara.')) return;
-  var r = await api('/clientes/' + encodeURIComponent(wa) + '/deshabilitar', { method: 'PATCH', body: JSON.stringify({ activo: nuevo }) });
+  var r = await api('/clientes/' + (window._clienteId || encodeURIComponent(wa)) + '/deshabilitar', { method: 'PATCH', body: JSON.stringify({ activo: nuevo }) });
   if (r && r.ok) { alert(nuevo ? '\u2705 Cliente habilitado.' : '\u2705 Cliente deshabilitado.'); closeModal('modalCliente'); loadClientes(); }
 }
 
@@ -999,7 +1000,7 @@ async function eliminarCliente() {
   var wa = window._clienteWA;
   if (!confirm('\u26A0\uFE0F \u00BFEliminar este cliente permanentemente? Esta accion no se puede deshacer.')) return;
   if (!confirm('\u00BFEsta seguro? Se eliminaran todos los datos del cliente.')) return;
-  var r = await api('/clientes/' + encodeURIComponent(wa), { method: 'DELETE' });
+  var r = await api('/clientes/' + (window._clienteId || encodeURIComponent(wa)), { method: 'DELETE' });
   if (r && r.ok) { alert('\u2705 Cliente eliminado.'); closeModal('modalCliente'); loadClientes(); }
 }
 

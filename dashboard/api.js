@@ -264,26 +264,44 @@ router.patch('/clientes/:id', authMiddleware(), async (req, res) => {
 // ─────────────────────────────────────────────────
 router.patch('/clientes/:id/nocampana', authMiddleware(['admin']), async (req, res) => {
   try {
-    const wa = decodeURIComponent(req.params.id);
-    const valor = req.body.valor !== false;
-    await query('UPDATE clientes SET no_campana=$1 WHERE whatsapp=$2', [valor, wa]);
+    const idParam = req.params.id;
+    const valor = req.body && req.body.valor !== false;
+    const isNumeric = /^\d+$/.test(idParam);
+    if (isNumeric) {
+      await query('UPDATE clientes SET no_campana=$1 WHERE id=$2', [valor, parseInt(idParam)]);
+    } else {
+      const wa = decodeURIComponent(idParam);
+      await query('UPDATE clientes SET no_campana=$1 WHERE whatsapp=$2', [valor, wa]);
+    }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.patch('/clientes/:id/deshabilitar', authMiddleware(['admin']), async (req, res) => {
   try {
-    const wa = decodeURIComponent(req.params.id);
-    const activo = req.body.activo !== false;
-    await query('UPDATE clientes SET activo=$1 WHERE whatsapp=$2', [activo, wa]);
+    const idParam = req.params.id;
+    const activo = req.body && req.body.activo !== false;
+    const isNumeric = /^\d+$/.test(idParam);
+    if (isNumeric) {
+      await query('UPDATE clientes SET activo=$1 WHERE id=$2', [activo, parseInt(idParam)]);
+    } else {
+      const wa = decodeURIComponent(idParam);
+      await query('UPDATE clientes SET activo=$1 WHERE whatsapp=$2', [activo, wa]);
+    }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.delete('/clientes/:id', authMiddleware(['admin']), async (req, res) => {
   try {
-    const wa = decodeURIComponent(req.params.id);
-    await query('DELETE FROM clientes WHERE whatsapp=$1', [wa]);
+    const idParam = req.params.id;
+    const isNumeric = /^\d+$/.test(idParam);
+    if (isNumeric) {
+      await query('DELETE FROM clientes WHERE id=$1', [parseInt(idParam)]);
+    } else {
+      const wa = decodeURIComponent(idParam);
+      await query('DELETE FROM clientes WHERE whatsapp=$1', [wa]);
+    }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
