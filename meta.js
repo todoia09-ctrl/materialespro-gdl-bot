@@ -212,6 +212,7 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
               + _qty + ' x $' + _po.toLocaleString('es-MX')
               + ' = *$' + _total.toLocaleString('es-MX') + '*\n\n'
               + '\u00bfHacemos el pedido?';
+            saveLastQuote(fromNorm, reply);
           }
         }
       }
