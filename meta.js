@@ -400,7 +400,8 @@ async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, 
         const history = getHistory(key);
         const reply   = await getAIResponse(text || '[sin texto]', history, userName, channel);
         saveHistory(key, [...history, { role: 'user', content: text }, { role: 'assistant', content: reply }]);
-        await sendDM(senderId, reply, pageToken);
+        const _dmToken = (channel === 'Instagram') ? (process.env.META_IG_ACCESS_TOKEN || pageToken) : pageToken;
+        await sendDM(senderId, reply, _dmToken);
       } catch (err) {
         console.error('[' + channel + ' ERR]', err.message);
         await sendDM(senderId, 'Disculpa, hubo un error. Escribenos por WhatsApp.', pageToken);
