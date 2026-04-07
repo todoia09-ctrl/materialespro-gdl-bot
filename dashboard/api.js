@@ -147,6 +147,15 @@ router.patch('/pedidos/:id/estado', authMiddleware(), async (req, res) => {
             if (estado === 'confirmado') {
               const isPickup = p.tipo === 'pickup';
               let msg = '✅ *¡Pedido confirmado!*\n\n';
+              // Agregar productos al mensaje
+              try {
+                const _items = typeof p.items_json === 'string' ? JSON.parse(p.items_json) : (p.items_json || []);
+                if (Array.isArray(_items) && _items.length > 0) {
+                  msg += '📦 *Productos:*\n' + _items.map(function(i) {
+                    return '• ' + (i.qty||1) + 'x ' + (i.nombre||i.producto||'Producto') + (i.precio ? ' — $' + Number(i.precio).toLocaleString('es-MX') + '/u' : '');
+                  }).join('\n') + '\n\n';
+                }
+              } catch(_pe) { /* items_json parse error, skip */ }
               if (isPickup) {
                 msg += '📍 *Te esperamos en:*\n'
                      + '*MaterialesPro GDL* — Av. López Mateos Sur 6506, Zapopan\n'

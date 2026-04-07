@@ -886,13 +886,19 @@ if (state === S.IDLE) {
         );
       }
       const _pickupDate = (order.pickupDate && order.pickupDate.length > 2) ? order.pickupDate : 'Coordinamos fecha contigo';
-      return '\u2705 *\u00A1Pedido confirmado!*\n\n'
-        + '\uD83D\uDCCD *Te esperamos en:*\n'
+      var _pickupMsg = '\u2705 *\u00A1Pedido confirmado!*\n\n';
+      if (order.items && order.items.length > 0) {
+        _pickupMsg += '\uD83D\uDCE6 *Productos:*\n' + order.items.map(function(i) {
+          return '\u2022 ' + (i.qty||1) + 'x ' + (i.nombre||'Producto') + (i.precio ? ' \u2014 $' + Number(i.precio).toLocaleString('es-MX') + '/u' : '');
+        }).join('\n') + '\n\n';
+      }
+      _pickupMsg += '\uD83D\uDCCD *Te esperamos en:*\n'
         + '*MaterialesPro GDL* \u2014 Av. L\u00F3pez Mateos Sur 6506, Zapopan\n'
         + '\uD83D\uDDFA\uFE0F https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA\n'
         + '\uD83D\uDD50 Horario: Lun\u2013Vie 8am\u20136pm \u00B7 S\u00E1b 8am\u20132pm\n'
         + '\uD83D\uDCC5 ' + _pickupDate + '\n\n'
         + '\u00BFAlgo m\u00E1s en lo que te pueda ayudar?';
+      return _pickupMsg;
     }
 
     // ── REGLA 2: Entrega en horario → pendiente, vendedor confirma en dashboard ──
