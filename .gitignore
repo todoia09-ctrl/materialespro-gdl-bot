@@ -1,3 +1,16 @@
 node_modules/
 .env
 *.log
+
+fix-*.js
+patch-*.js
+patch_*.js
+migrar-*.js
+test-*.js
+debug-*.js
+scan-*.js
+register-*.js
+check-*.js
+*.tmp
+.claude/
+CLAUDE.md
