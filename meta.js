@@ -94,9 +94,8 @@ function makeSendToClient(fromDigits) {
 // ─────────────────────────────────────────────────
 async function sendDM(recipientId, text, token) {
   try {
-    const isIGToken = token && token.startsWith('EAA') && process.env.META_IG_ACCESS_TOKEN && token === process.env.META_IG_ACCESS_TOKEN;
-    const endpoint = isIGToken
-      ? META_API + '/' + (process.env.META_IG_USER_ID || 'me') + '/messages'
+    const endpoint = process.env.META_IG_USER_ID
+      ? META_API + '/' + process.env.META_IG_USER_ID + '/messages'
       : META_API + '/me/messages';
     await axios.post(
       endpoint,
@@ -409,7 +408,7 @@ async function processMetaWebhook(body, getAIResponse, getHistory, saveHistory, 
         const history = getHistory(key);
         const reply   = await getAIResponse(text || '[sin texto]', history, userName, channel);
         saveHistory(key, [...history, { role: 'user', content: text }, { role: 'assistant', content: reply }]);
-        const _dmToken = (channel === 'Instagram') ? (process.env.META_IG_ACCESS_TOKEN || pageToken) : pageToken;
+        const _dmToken = pageToken;
         await sendDM(senderId, reply, _dmToken);
       } catch (err) {
         console.error('[' + channel + ' ERR]', err.message);
