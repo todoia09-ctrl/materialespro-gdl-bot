@@ -102,6 +102,8 @@ function sendMetaMessage(to, payload) {
     // Normalizar número — quitar prefijos whatsapp: y +
     const toNum = to.replace('whatsapp:', '').replace('+', '').replace(/\s/g, '');
 
+    console.log('[CAMP META] Enviando a:', toNum, '| phoneId:', phoneId, '| tokenLen:', token.length);
+
     const body = JSON.stringify({ messaging_product: 'whatsapp', to: toNum, ...payload });
 
     const options = {
@@ -119,6 +121,7 @@ function sendMetaMessage(to, payload) {
       let data = '';
       res.on('data', d => { data += d; });
       res.on('end', () => {
+        console.log('[CAMP META] Response status:', res.statusCode, '| body:', data);
         try {
           const parsed = JSON.parse(data);
           if (parsed.error) reject(new Error(parsed.error.message));
