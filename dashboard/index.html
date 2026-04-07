@@ -1064,6 +1064,7 @@ async function crearCampana() {
   if (!confirm('\u00bfEnviar esta campa\u00f1a ahora? Los mensajes saldr\u00e1n de inmediato a todos los clientes del segmento seleccionado.')) return;
   const r = await api('/campanas', { method: 'POST', body: { nombre, mensaje: template_name ? '' : mensaje, segmento, template_name } });
   if (r?.id) {
+    await api('/campanas/' + r.id + '/enviar', { method: 'POST' });
     toast('Campa\u00f1a creada y enviando... \uD83D\uDCE3', 'success');
     document.getElementById('campNombre').value = '';
     document.getElementById('campMsg').value    = '';
