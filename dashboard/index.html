@@ -318,6 +318,12 @@ select:focus{border-color:var(--rust)}
           <option value="sin">Sin stock</option>
           <option value="con">Con stock</option>
         </select>
+        <select class="input" id="invFilterComercial" style="min-width:130px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
+          <option value="" selected>Comercial: Todos</option>
+          <option value="destacado">⭐ Destacado</option>
+          <option value="oferta">🔥 En Oferta</option>
+          <option value="mas_vendido">🏆 Más Vendido</option>
+        </select>
         <button class="btn btn-secondary btn-sm" onclick="clearInvFilters()">Limpiar</button>
         <button class="btn btn-secondary btn-sm" onclick="syncInventario()">🔄 Sync catálogo</button>
       </div>
@@ -938,6 +944,7 @@ function filterInventario() {
   var marca = document.getElementById('invFilterMarca').value;
   var estado = document.getElementById('invFilterEstado').value;
   var stock = document.getElementById('invFilterStock').value;
+  var comercial = document.getElementById('invFilterComercial').value;
 
   var filtered = _invData.filter(function(p) {
     if (search && p.nombre.toLowerCase().indexOf(search) === -1) return false;
@@ -948,6 +955,9 @@ function filterInventario() {
     if (stock === 'sin' && p.stock > 0) return false;
     if (stock === 'bajo' && (p.stock <= 0 || p.stock > p.stock_minimo)) return false;
     if (stock === 'con' && p.stock <= 0) return false;
+    if (comercial === 'destacado' && !p.destacado) return false;
+    if (comercial === 'oferta' && !p.en_oferta) return false;
+    if (comercial === 'mas_vendido' && !p.mas_vendido) return false;
     return true;
   });
 
@@ -994,6 +1004,7 @@ function clearInvFilters() {
   document.getElementById('invFilterMarca').value = '';
   document.getElementById('invFilterEstado').value = '';
   document.getElementById('invFilterStock').value = '';
+  document.getElementById('invFilterComercial').value = '';
   _invSortField = 'nombre'; _invSortAsc = true;
   filterInventario();
 }
