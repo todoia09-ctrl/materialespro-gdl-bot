@@ -1258,10 +1258,10 @@ function renderComercial() {
       + '<td style="text-align:center"><input type="checkbox" ' + (p.destacado ? 'checked' : '') + ' onchange="toggleComercial(\'' + p.codigo + '\',\'destacado\',this.checked)"></td>'
       + '<td style="text-align:center"><input type="checkbox" ' + (p.en_oferta ? 'checked' : '') + ' onchange="toggleComercial(\'' + p.codigo + '\',\'en_oferta\',this.checked)"></td>'
       + '<td style="white-space:nowrap">'
+        + '<input type="number" id="po_' + p.codigo + '" class="input" style="width:88px;padding:.3rem .5rem;font-size:.82rem" value="' + (p.precio_oferta || '') + '" placeholder="$">'
         + ' <input type="date" id="oh_' + p.codigo + '" class="input" style="width:128px;padding:.3rem .5rem;font-size:.82rem" value="' + ofHasta + '">'
         + ' <button onclick="saveOfertaRow(\'' + p.codigo + '\')" style="padding:.25rem .55rem;font-size:.8rem;background:#4caf50;color:#fff;border:none;border-radius:4px;cursor:pointer" title="Guardar oferta">💾</button>'
         + '</td>'
-        + '<input type="number" id="po_' + p.codigo + '" class="input" style="width:88px;padding:.3rem .5rem;font-size:.82rem" value="' + (p.precio_oferta || '') + '" placeholder="$">'
       + '<td style="text-align:center"><input type="checkbox" ' + (p.mas_vendido ? 'checked' : '') + ' onchange="toggleComercial(\'' + p.codigo + '\',\'mas_vendido\',this.checked)"></td>'
       + '</tr>';
   }).join('');
