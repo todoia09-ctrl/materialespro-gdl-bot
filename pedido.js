@@ -576,6 +576,10 @@ if (state === S.IDLE) {
         return '⚠️ Cerramos a las *6pm*. ¿Qué hora te funciona?\n\n⏰ Lun–Vie: 8am–6pm · Sáb: 8am–2pm';
       }
     }
+    if (_horaMsg === null) {
+      set(S.ASKING_DATE);
+      return '\u23F0 \u00bfA qu\u00e9 hora planeas pasar?\n\n\u23F0 Lun\u2013Vie: 8am\u20136pm \u00b7 S\u00e1b: 8am\u20132pm';
+    }
 
     // BUG D FIX: validar día de semana
     const _dias = ['lunes','martes','miercoles','miércoles','jueves','viernes','sabado','sábado'];
