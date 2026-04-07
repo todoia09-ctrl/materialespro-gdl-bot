@@ -96,7 +96,7 @@ async function sendDM(recipientId, text, token) {
   try {
     const isIGToken = token && token.startsWith('EAA') && process.env.META_IG_ACCESS_TOKEN && token === process.env.META_IG_ACCESS_TOKEN;
     const endpoint = isIGToken
-      ? META_API + '/me/messages'
+      ? META_API + '/' + (process.env.META_IG_USER_ID || 'me') + '/messages'
       : META_API + '/me/messages';
     await axios.post(
       endpoint,
