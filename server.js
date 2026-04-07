@@ -92,7 +92,7 @@ let _priorityProducts = { ofertas: [], destacados: [], masVendidos: [] };
 async function loadPriorityProducts() {
   try {
     var ofertas = await query(
-      "SELECT codigo, nombre, categoria, unidad, precio_venta, precio_oferta, descuento_maximo FROM catalogo_productos WHERE activo=true AND en_oferta=true AND (oferta_hasta IS NULL OR oferta_hasta >= NOW()) ORDER BY orden_display LIMIT 5"
+      "SELECT codigo, nombre, categoria, unidad, precio_venta, precio_oferta, descuento_maximo FROM catalogo_productos WHERE activo=true AND en_oferta=true AND (oferta_hasta IS NULL OR oferta_hasta >= NOW()) ORDER BY orden_display LIMIT 50"
     );
     var destacados = await query(
       "SELECT codigo, nombre, categoria, unidad, precio_venta, descuento_maximo FROM catalogo_productos WHERE activo=true AND destacado=true AND en_oferta IS NOT TRUE ORDER BY orden_display LIMIT 10"
@@ -123,6 +123,12 @@ function buildCatalogText(cat, nivelInfo) {
       if (_nivel === 4) return Math.round(base * (1 - (p.descuento_maximo || 0.20)));
       return base;
     }
+    // Map de ofertas por codigo para cross-reference
+    var ofertasMap = {};
+    for (var oi = 0; oi < _priorityProducts.ofertas.length; oi++) {
+      var _of = _priorityProducts.ofertas[oi];
+      if (_of.codigo && _of.precio_oferta > 0) ofertasMap[_of.codigo] = _of;
+    }
     function formatLine(p) {
       var _u = 'pza';
       var _n = p.nombre || '';
@@ -130,6 +136,10 @@ function buildCatalogText(cat, nivelInfo) {
         _u = p.unidad || p.presentacion || 'pza';
       }
       var _c = p.categoria ? ' (' + p.categoria + ')' : '';
+      var oferta = p.codigo ? ofertasMap[p.codigo] : null;
+      if (oferta) {
+        return '\uD83D\uDD25 ' + _n + ' $' + Math.round(parseFloat(oferta.precio_oferta)) + '/' + _u + ' \uD83D\uDD25 OFERTA' + _c;
+      }
       return _n + " $" + precioNivel(p) + "/" + _u + _c;
     }
 
@@ -147,7 +157,7 @@ function buildCatalogText(cat, nivelInfo) {
       var _u = o.unidad || 'pza';
       var _c = o.categoria ? ' (' + o.categoria + ')' : '';
       priorityLines.push('\ud83d\udd25 ' + o.nombre + ' ~$' + precioOrig + '~ $' + precioOfe + '/' + _u + _c);
-      priorityCodigos.add(o.codigo);
+      // No add to priorityCodigos — ofertas also appear in full catalog with offer price via formatLine
     }
   }
   if (pp.destacados.length > 0) {
