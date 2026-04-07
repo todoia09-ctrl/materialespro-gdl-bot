@@ -29,6 +29,7 @@ setInterval(function() {
     if (ts < cutoff) _processedMsgIds.delete(id);
   }
 }, 60 * 60 * 1000);
+const _campaignCatMap = new Map();
 const WA_PHONE_ID = process.env.META_PHONE_NUMBER_ID;
 const WA_TOKEN    = process.env.META_WHATSAPP_TOKEN;
 
@@ -189,6 +190,36 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       // 2. Cache
       if (getCache) reply = getCache(textContent, firstName);
 
+      // 2a. Respuesta num\u00e9rica a promociones de campa\u00f1a
+      if (!reply && textContent && /^\d{1,2}$/.test(textContent.trim()) && _campaignCatMap.has(fromNorm)) {
+        try {
+          var _selIdx = parseInt(textContent.trim()) - 1;
+          var _savedCats = _campaignCatMap.get(fromNorm);
+          if (_selIdx >= 0 && _selIdx < _savedCats.length) {
+            var _selCat = _savedCats[_selIdx];
+            var _catEmojis2 = { impermeabilizantes:'\uD83C\uDFE0', morteros:'\uD83E\uDDF1', selladores:'\uD83D\uDD27', adhesivos:'\uD83E\uDDEA', pisos:'\uD83C\uDFD7\uFE0F', anclajes:'\u2693', aditivos:'\u2697\uFE0F', grouts:'\uD83C\uDFDB\uFE0F', complementos:'\uD83D\uDEE0\uFE0F' };
+            var _catProds = await query(
+              "SELECT nombre, precio_venta, precio_oferta, unidad FROM catalogo_productos WHERE en_oferta=true AND activo=true AND categoria=$1 ORDER BY nombre",
+              [_selCat]
+            );
+            if (_catProds && _catProds.rows && _catProds.rows.length > 0) {
+              var _ek = Object.keys(_catEmojis2).find(function(k) { return _selCat.toLowerCase().indexOf(k) !== -1; });
+              var _em = _ek ? _catEmojis2[_ek] : '\uD83D\uDCE6';
+              var _catReply = _em + ' *' + _selCat + '* en oferta:\n\n';
+              for (var _cp of _catProds.rows) {
+                var _cpv = Number(_cp.precio_venta).toLocaleString('es-MX');
+                var _cpo = Number(_cp.precio_oferta).toLocaleString('es-MX');
+                var _cu = _cp.unidad || 'pza';
+                _catReply += '\u2022 *' + _cp.nombre + '*\n  ~~$' + _cpv + '~~ \u2192 *$' + _cpo + '/' + _cu + '*\n';
+              }
+              _catReply += '\n\u00bfQuieres cotizar alguno? Dime cu\u00e1ntas unidades necesitas.';
+              reply = _catReply;
+            }
+          }
+          _campaignCatMap.delete(fromNorm);
+        } catch (_e) { console.error('[META CAMPAIGN CAT]', _e.message); }
+      }
+
       // 2b. Intercept campa\u00f1a "S\u00ed, me interesa"
       if (!reply && textContent && /^s[i\u00ed],?\s*me\s+interesa$/i.test(textContent.trim())) {
         try {
@@ -219,6 +250,7 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
             }
             _campMsg += '\u00bfQu\u00e9 categor\u00eda te interesa? Responde el n\u00famero o escr\u00edbeme qu\u00e9 necesitas.';
             reply = _campMsg;
+            _campaignCatMap.set(fromNorm, Object.keys(_cats));
           }
         } catch (_e) { console.error('[META CAMPAIGN INTEREST]', _e.message); }
       }
