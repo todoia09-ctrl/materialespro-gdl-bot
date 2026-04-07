@@ -195,30 +195,37 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       // 2. Cache
       if (getCache) reply = getCache(textContent, firstName);
 
-      // 2-pre. Cantidad para producto de campa\u00f1a
+      // 2-pre. Selecci\u00f3n de producto o cantidad para producto de campa\u00f1a
       var _campProdData = (!reply && textContent) ? await _getCampProd(fromNorm) : null;
       if (!reply && textContent && _campProdData !== null) {
-        var _qtyMatch = textContent.match(/(\d+)/);
-        if (_qtyMatch) {
-          var _qty = parseInt(_qtyMatch[1]);
-          var _prod = _campProdData;
-          await _delCampProd(fromNorm);
-          if (_qty > 0 && _prod) {
-            // Si es array (multiples productos), buscar por nombre en el mensaje
-            if (Array.isArray(_prod)) {
-              var _txtLow = textContent.toLowerCase();
-              var _match = _prod.find(function(p) { return _txtLow.indexOf(p.nombre.toLowerCase().split(' ')[0]) !== -1; });
-              _prod = _match || _prod[0];
+        // Si es array → el cliente elige producto por n\u00famero
+        if (Array.isArray(_campProdData)) {
+          var _selNum = parseInt(textContent.trim());
+          if (!isNaN(_selNum) && _selNum >= 1 && _selNum <= _campProdData.length) {
+            var _chosen = _campProdData[_selNum - 1];
+            await _setCampProd(fromNorm, _chosen);
+            reply = '\u00bfCu\u00e1ntas unidades de *' + _chosen.nombre + '* necesitas?';
+          } else {
+            reply = 'Responde con el n\u00famero del producto (1, 2, etc.)';
+          }
+        } else {
+          // Es objeto single → el cliente indica cantidad
+          var _qtyMatch = textContent.match(/(\d+)/);
+          if (_qtyMatch) {
+            var _qty = parseInt(_qtyMatch[1]);
+            var _prod = _campProdData;
+            await _delCampProd(fromNorm);
+            if (_qty > 0 && _prod) {
+              var _po = Math.round(parseFloat(_prod.precio_oferta));
+              var _total = _qty * _po;
+              reply = '\u00a1Perfecto! Cotizando ' + _qty + ' x ' + _prod.nombre
+                + ' a precio de oferta $' + _po.toLocaleString('es-MX') + ':\n\n'
+                + _qty + ' x $' + _po.toLocaleString('es-MX')
+                + ' = *$' + _total.toLocaleString('es-MX') + '*\n\n'
+                + '\u00bfHacemos el pedido?';
+              var _cleanQuote = _prod.nombre + ': ' + _qty + ' \u00d7 $' + _po.toLocaleString('es-MX') + ' = $' + _total.toLocaleString('es-MX');
+              saveLastQuote(fromNorm, _cleanQuote);
             }
-            var _po = Math.round(parseFloat(_prod.precio_oferta));
-            var _total = _qty * _po;
-            reply = '\u00a1Perfecto! Cotizando ' + _qty + ' x ' + _prod.nombre
-              + ' a precio de oferta $' + _po.toLocaleString('es-MX') + ':\n\n'
-              + _qty + ' x $' + _po.toLocaleString('es-MX')
-              + ' = *$' + _total.toLocaleString('es-MX') + '*\n\n'
-              + '\u00bfHacemos el pedido?';
-            var _cleanQuote = _prod.nombre + ': ' + _qty + ' \u00d7 $' + _po.toLocaleString('es-MX') + ' = $' + _total.toLocaleString('es-MX');
-            saveLastQuote(fromNorm, _cleanQuote);
           }
         }
       }
@@ -240,19 +247,21 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
               var _ek = Object.keys(_catEmojis2).find(function(k) { return _selCat.toLowerCase().indexOf(k) !== -1; });
               var _em = _ek ? _catEmojis2[_ek] : '\uD83D\uDCE6';
               var _catReply = _em + ' *' + _selCat + '* en oferta:\n\n';
+              var _pn = 1;
               for (var _cp of _catProds.rows) {
-                var _cpv = Number(_cp.precio_venta).toLocaleString('es-MX');
                 var _cpo = Number(_cp.precio_oferta).toLocaleString('es-MX');
                 var _cu = _cp.unidad || 'pza';
-                _catReply += '\u2022 *' + _cp.nombre + '*\n  ~~$' + _cpv + '~~ \u2192 *$' + _cpo + '/' + _cu + '*\n';
+                _catReply += '*' + _pn + '.* ' + _cp.nombre + ' \u2014 *$' + _cpo + '/' + _cu + '*\n';
+                _pn++;
               }
-              _catReply += '\n\u00bfQuieres cotizar alguno? Dime cu\u00e1ntas unidades necesitas.';
-              reply = _catReply;
               if (_catProds.rows.length === 1) {
+                _catReply += '\n\u00bfCu\u00e1ntas unidades necesitas?';
                 await _setCampProd(fromNorm, _catProds.rows[0]);
               } else {
+                _catReply += '\n\u00bfCu\u00e1l te interesa? Responde *1*' + (_catProds.rows.length > 1 ? ' o *' + _catProds.rows.length + '*' : '') + '.';
                 await _setCampProd(fromNorm, _catProds.rows);
               }
+              reply = _catReply;
             }
           }
           await _delCampCat(fromNorm);
