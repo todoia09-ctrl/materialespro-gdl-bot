@@ -262,7 +262,7 @@ router.patch('/clientes/:id', authMiddleware(), async (req, res) => {
 // ─────────────────────────────────────────────────
 //  CLIENTES — ACCIONES
 // ─────────────────────────────────────────────────
-router.patch('/clientes/:id/nocampana', authMiddleware(['admin']), async (req, res) => {
+router.patch('/clientes/:id/nocampana', authMiddleware(), async (req, res) => {
   try {
     const idParam = req.params.id;
     const valor = req.body && req.body.valor !== false;
@@ -277,7 +277,7 @@ router.patch('/clientes/:id/nocampana', authMiddleware(['admin']), async (req, r
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.patch('/clientes/:id/deshabilitar', authMiddleware(['admin']), async (req, res) => {
+router.patch('/clientes/:id/deshabilitar', authMiddleware(), async (req, res) => {
   try {
     const idParam = req.params.id;
     const activo = req.body && req.body.activo !== false;
@@ -292,7 +292,7 @@ router.patch('/clientes/:id/deshabilitar', authMiddleware(['admin']), async (req
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/clientes/:id', authMiddleware(['admin']), async (req, res) => {
+router.delete('/clientes/:id', authMiddleware(), async (req, res) => {
   try {
     const idParam = req.params.id;
     const isNumeric = /^\d+$/.test(idParam);
