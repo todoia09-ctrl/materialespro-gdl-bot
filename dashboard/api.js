@@ -235,7 +235,7 @@ router.patch('/clientes/:id/nivel', authMiddleware(), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.patch('/clientes/:id', authMiddleware(), express.json(), async (req, res) => {
+router.patch('/clientes/:id', authMiddleware(), async (req, res) => {
   const { notas, credito_limite, zona, nombre, rfc, email } = req.body;
   try {
     // Soporta busqueda por id numerico O por whatsapp string
@@ -262,7 +262,7 @@ router.patch('/clientes/:id', authMiddleware(), express.json(), async (req, res)
 // ─────────────────────────────────────────────────
 //  CLIENTES — ACCIONES
 // ─────────────────────────────────────────────────
-router.patch('/clientes/:id/nocampana', authMiddleware(['admin']), express.json(), async (req, res) => {
+router.patch('/clientes/:id/nocampana', authMiddleware(['admin']), async (req, res) => {
   try {
     const wa = decodeURIComponent(req.params.id);
     const valor = req.body.valor !== false;
@@ -271,7 +271,7 @@ router.patch('/clientes/:id/nocampana', authMiddleware(['admin']), express.json(
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.patch('/clientes/:id/deshabilitar', authMiddleware(['admin']), express.json(), async (req, res) => {
+router.patch('/clientes/:id/deshabilitar', authMiddleware(['admin']), async (req, res) => {
   try {
     const wa = decodeURIComponent(req.params.id);
     const activo = req.body.activo !== false;
