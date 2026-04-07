@@ -6,7 +6,7 @@
 const axios     = require('axios');
 const Anthropic = require('@anthropic-ai/sdk');
 
-const { logMensaje }                                           = require('./db');
+const { logMensaje, query }                                    = require('./db');
 const { registrarContacto, guardarCotizacion, programarSeguimiento, getNivelPrecio } = require('./crm');
 const { processOrderFlow, getLastQuote, saveLastQuote } = require('./pedido');
 const { isTechnicalQuestion, getTechnicalInfo }                = require('./tecnico');
@@ -188,6 +188,40 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
 
       // 2. Cache
       if (getCache) reply = getCache(textContent, firstName);
+
+      // 2b. Intercept campa\u00f1a "S\u00ed, me interesa"
+      if (!reply && textContent && /^s[i\u00ed],?\s*me\s+interesa$/i.test(textContent.trim())) {
+        try {
+          var _catEmojis = { impermeabilizantes:'\uD83C\uDFE0', morteros:'\uD83E\uDDF1', selladores:'\uD83D\uDD27', adhesivos:'\uD83E\uDDEA', pisos:'\uD83C\uDFD7\uFE0F', anclajes:'\u2693', aditivos:'\u2697\uFE0F', grouts:'\uD83C\uDFDB\uFE0F', complementos:'\uD83D\uDEE0\uFE0F' };
+          var _ofertas = await query(
+            "SELECT categoria, nombre, precio_venta, precio_oferta FROM catalogo_productos WHERE en_oferta=true AND activo=true ORDER BY categoria, nombre"
+          );
+          if (_ofertas && _ofertas.rows && _ofertas.rows.length > 0) {
+            var _cats = {};
+            for (var _o of _ofertas.rows) {
+              var _cat = _o.categoria || 'Otros';
+              if (!_cats[_cat]) _cats[_cat] = [];
+              _cats[_cat].push(_o);
+            }
+            var _campMsg = '\uD83D\uDD25 \u00a1Hola ' + (firstName || '') + '! Aqu\u00ed est\u00e1n nuestras promociones de esta semana:\n\n';
+            var _n = 1;
+            for (var _catName in _cats) {
+              var _emojiKey = Object.keys(_catEmojis).find(function(k) { return _catName.toLowerCase().indexOf(k) !== -1; });
+              var _emoji = _emojiKey ? _catEmojis[_emojiKey] : '\uD83D\uDCE6';
+              _campMsg += _emoji + ' *' + _n + '. ' + _catName + '*\n';
+              for (var _p of _cats[_catName]) {
+                var _pv = Number(_p.precio_venta).toLocaleString('es-MX');
+                var _po = Number(_p.precio_oferta).toLocaleString('es-MX');
+                _campMsg += '  \u2022 ' + _p.nombre + ' ~~$' + _pv + '~~ \u2192 *$' + _po + '*\n';
+              }
+              _campMsg += '\n';
+              _n++;
+            }
+            _campMsg += '\u00bfQu\u00e9 categor\u00eda te interesa? Responde el n\u00famero o escr\u00edbeme qu\u00e9 necesitas.';
+            reply = _campMsg;
+          }
+        } catch (_e) { console.error('[META CAMPAIGN INTEREST]', _e.message); }
+      }
 
       // 3. Flujo de pedido — usar número normalizado
       if (!reply) {
