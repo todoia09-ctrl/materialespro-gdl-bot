@@ -273,6 +273,26 @@ async function activateHandoff(clientKey, clientName, clientPhone, lastMessage, 
 // ─────────────────────────────────────────────────
 //  SYSTEM PROMPT
 // ─────────────────────────────────────────────────
+var SINONIMOS_TXT = 'SIN\u00d3NIMOS Y EQUIVALENCIAS (interpreta el lenguaje del cliente):\n'
+  + '- losa, azotea, techo, gotera, filtraci\u00f3n, humedad en techo \u2192 Impermeabilizantes acr\u00edlicos / asf\u00e1lticos / base poliuretano\n'
+  + '- manto, membrana, fieltro \u2192 Sika Imper Mantos / Membranas prefabricadas de Impermeabilizaci\u00f3n\n'
+  + '- junta, grieta, fisura, crack \u2192 Sellos para juntas impermeables / Sellado de juntas y adhesivos el\u00e1sticos\n'
+  + '- pega azulejo, pega cer\u00e1mica, pega piso, adhesivo cer\u00e1mica \u2192 Morteros adhesivos y emboquilladores\n'
+  + '- boquilla, fragua, jechadura \u2192 Morteros adhesivos y emboquilladores\n'
+  + '- ep\u00f3xico, epoxi, pegamento estructural \u2192 Adhesivos ep\u00f3xicos\n'
+  + '- ancla, taquete qu\u00edmico, perno \u2192 Anclajes\n'
+  + '- grout, lechada, relleno columna \u2192 Grouts cementosos / Grouts Polim\u00e9ricos\n'
+  + '- aditivo concreto, acelerante, retardante, impermeabilizante integral \u2192 Aditivos para cemento y mortero / Aditivos y adiciones para concreto\n'
+  + '- nivelador, autonivelante, piso parejo \u2192 Niveladores Cement\u00edcios\n'
+  + '- piso industrial, piso de bodega, endurecedor \u2192 Endurecedores superficiales para pisos\n'
+  + '- piso ep\u00f3xico, recubrimiento ep\u00f3xico \u2192 Resinas Ep\u00f3xicas para pisos y recubrimientos\n'
+  + '- poliuretano piso, recubrimiento PU \u2192 Resinas Base Poliuretano para pisos y recubrimientos\n'
+  + '- cancha, pista, piso deportivo, hule \u2192 Resina Base Acrilica para canchas deportivas\n'
+  + '- protecci\u00f3n concreto, pintura concreto, sellador \u2192 Protecci\u00f3n de concreto y mamposteria\n'
+  + '- reparaci\u00f3n concreto, parche, resane \u2192 Morteros para reparaci\u00f3n y protecci\u00f3n de concreto\n'
+  + '- carretera, junta expansion, pavimento \u2192 Sellado de juntas, especialidad carreteras\n'
+  + '- diluyente, limpiador, rodillo, esp\u00e1tula \u2192 Complementos para aplicaci\u00f3n de pisos industriales\n';
+
 function buildSystemPrompt(clientName, channel, nivelInfo) {
   channel = channel || 'WhatsApp';
   const saludo  = clientName ? 'El cliente se llama ' + clientName + '. Úsalo solo al saludar.' : '';
@@ -286,6 +306,7 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
   return 'Eres asesor de ' + CATALOG.negocio.nombre + ' (' + CATALOG.negocio.ciudad + '). Canal: ' + channel + '. Fecha actual: ' + new Date().toLocaleDateString('es-MX', {weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'America/Mexico_City'}) + '.\n'
     + (saludo ? saludo + '\n' : '')
     + '\nCATÁLOGO (precios para este cliente):\n' + catalogTxt
+    + '\n' + SINONIMOS_TXT
     + '\n\nREGLAS:\n'
     + '- ' + formato + '\n'
     + nivelMsg
