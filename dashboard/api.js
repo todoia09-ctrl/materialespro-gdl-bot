@@ -185,9 +185,11 @@ router.patch('/pedidos/:id/estado', authMiddleware(), async (req, res) => {
 // ─────────────────────────────────────────────────
 router.get('/clientes', authMiddleware(), async (req, res) => {
   try {
-    const { q, zona, limit = 50, offset = 0 } = req.query;
-    let sql = 'SELECT * FROM clientes WHERE activo=TRUE';
+    const { q, zona, activo, limit = 50, offset = 0 } = req.query;
+    let sql = 'SELECT * FROM clientes WHERE 1=1';
     const params = [];
+    if (activo === 'true')  { sql += ' AND activo=TRUE'; }
+    if (activo === 'false') { sql += ' AND activo=FALSE'; }
     if (q)    { params.push('%' + q + '%'); sql += ` AND (nombre ILIKE $${params.length} OR whatsapp ILIKE $${params.length})`; }
     if (zona) { params.push(zona);          sql += ` AND zona=$${params.length}`; }
     params.push(parseInt(limit));  sql += ` ORDER BY ultimo_contacto DESC LIMIT $${params.length}`;

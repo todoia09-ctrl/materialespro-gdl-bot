@@ -833,7 +833,7 @@ function renderClientes(list) {
   const tbody = document.getElementById('clientesTable');
   if (list.length) {
     tbody.innerHTML = list.map(c => `
-      <tr>
+      <tr style="${!c.activo ? 'opacity:.45;background:rgba(255,80,80,.06)' : ''}">
         <td>${c.nombre || '<i style="color:var(--gray)">Sin nombre</i>'}</td>
         <td><code style="font-size:.75rem">${c.whatsapp}</code></td>
         <td>${zonaLabel(c.zona)}</td>
@@ -915,6 +915,9 @@ async function verCliente(wa) {
     var btnDes = document.getElementById('btnDesactivar');
     if (btnNC) btnNC.innerHTML = c.no_campana ? '&#x2705; Campana activa' : '&#x1F6AB; No campana';
     if (btnDes) btnDes.innerHTML = c.activo ? '&#x23F8; Deshabilitar' : '&#x25B6; Habilitar';
+    if (btnDes) btnDes.style.background = c.activo ? 'rgba(220,50,50,.15)' : 'rgba(50,200,50,.15)';
+    if (btnDes) btnDes.style.color = c.activo ? '#ff6b6b' : '#4caf50';
+    if (btnDes) btnDes.style.border = c.activo ? '1px solid rgba(220,50,50,.3)' : '1px solid rgba(50,200,50,.3)';
     if (btnNC) btnNC.style.background = c.no_campana ? 'rgba(50,200,50,.15)' : 'rgba(255,200,0,.12)';
     if (btnNC) btnNC.style.color = c.no_campana ? '#4caf50' : '#ffc800';
     if (btnNC) btnNC.style.border = c.no_campana ? '1px solid rgba(50,200,50,.3)' : '1px solid rgba(255,200,0,.3)';
