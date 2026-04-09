@@ -531,7 +531,7 @@ router.get('/catalogo/comercial', authMiddleware(['admin']), async (req, res) =>
 });
 
 // POST /api/catalogo/importar — recibe Excel en base64, parsea y actualiza
-router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limit: '10mb' }), (req, res) => {
+router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limit: '10mb' }), async (req, res) => {
   try {
     const { fileBase64 } = req.body;
     if (!fileBase64) return res.status(400).json({ error: 'fileBase64 requerido' });
@@ -618,13 +618,75 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
     // Guardar nuevo catálogo
     fs.writeFileSync(CATALOG_PATH, JSON.stringify(cat, null, 2), 'utf8');
 
-    console.log(`[CATÁLOGO] Actualizado por ${req.user.email}: ${anterior} → ${productos.length} productos`);
+        console.log(`[CATÁLOGO] Actualizado por ${req.user.email}: ${anterior} → ${productos.length} productos`);
+
+    // ── Upsert a DB catalogo_productos ──────────────────────────────────────
+    let dbInsertados = 0;
+    let dbActualizados = 0;
+    let dbErrores = 0;
+
+    for (const p of productos) {
+      try {
+        const res_db = await query(`
+          INSERT INTO catalogo_productos (
+            codigo, nombre, descripcion, categoria, marca,
+            unidad, precio_venta, precio_2, precio_3, precio_4,
+            costo_neto, rendimiento_m2_por_unidad, rendimiento_nota,
+            activo, actualizado_en
+          ) VALUES (
+            $1, $2, $3, $4, $5,
+            $6, $7, $8, $9, $10,
+            $11, $12, $13,
+            $14, NOW()
+          )
+          ON CONFLICT (codigo) DO UPDATE SET
+            nombre                    = EXCLUDED.nombre,
+            descripcion               = EXCLUDED.descripcion,
+            categoria                 = EXCLUDED.categoria,
+            marca                     = EXCLUDED.marca,
+            unidad                    = EXCLUDED.unidad,
+            precio_venta              = EXCLUDED.precio_venta,
+            precio_2                  = EXCLUDED.precio_2,
+            precio_3                  = EXCLUDED.precio_3,
+            precio_4                  = EXCLUDED.precio_4,
+            costo_neto                = EXCLUDED.costo_neto,
+            rendimiento_m2_por_unidad = EXCLUDED.rendimiento_m2_por_unidad,
+            rendimiento_nota          = EXCLUDED.rendimiento_nota,
+            activo                    = EXCLUDED.activo,
+            actualizado_en            = NOW()
+          RETURNING (xmax = 0) AS fue_insert
+        `, [
+          p.id,
+          p.nombre,
+          p.descripcion || null,
+          p.categoria || 'General',
+          p.marca || null,
+          p.presentacion || null,
+          p.precio    || null,
+          p.precio_2  || null,
+          p.precio_3  || null,
+          p.precio_4  || null,
+          p.costo     || null,
+          p.rendimiento_m2_por_unidad || null,
+          p.rendimiento_nota || null,
+          p.activo,
+        ]);
+        if (res_db.rows[0]?.fue_insert) dbInsertados++;
+        else dbActualizados++;
+      } catch (dbErr) {
+        dbErrores++;
+        console.error(`[CATÁLOGO DB] Error upsert ${p.id}: ${dbErr.message}`);
+      }
+    }
+
+    console.log(`[CATÁLOGO DB] Insertados: ${dbInsertados} | Actualizados: ${dbActualizados} | Errores: ${dbErrores}`);
 
     res.json({
       ok: true,
       mensaje: `Catálogo actualizado: ${productos.length} productos importados`,
       anterior: anterior,
       nuevo: productos.length,
+      db: { insertados: dbInsertados, actualizados: dbActualizados, errores: dbErrores },
       productos_preview: productos.slice(0, 3).map(p => ({ nombre: p.nombre, precio: p.precio, activo: p.activo }))
     });
 
@@ -639,7 +701,7 @@ router.get('/catalogo/plantilla', authMiddleware(['admin']), async (req, res) =>
   try {
     const result = await query(
       `SELECT codigo, nombre, categoria, marca, unidad, descripcion,
-              precio_venta, precio_2, precio_3, precio_4, costo,
+              precio_venta, precio_2, precio_3, precio_4, costo_neto,
               rendimiento_m2_por_unidad, rendimiento_nota, activo
        FROM catalogo_productos
        ORDER BY categoria, nombre`
@@ -656,7 +718,7 @@ router.get('/catalogo/plantilla', authMiddleware(['admin']), async (req, res) =>
       'Precio 2 NETO':                 r.precio_2     != null ? Number(r.precio_2)     : '',
       'Precio 3 NETO':                 r.precio_3     != null ? Number(r.precio_3)     : '',
       'Precio 4 NETO':                 r.precio_4     != null ? Number(r.precio_4)     : '',
-      'Costo NETO':                    r.costo        != null ? Number(r.costo)        : '',
+      'Costo NETO':                    r.costo_neto   != null ? Number(r.costo_neto)   : '',
       'rendimiento_m2_por_unidad':     r.rendimiento_m2_por_unidad != null ? Number(r.rendimiento_m2_por_unidad) : '',
       'rendimiento_nota':              r.rendimiento_nota || '',
       'Activo':                        r.activo ? 'Verdadero' : 'Falso',
