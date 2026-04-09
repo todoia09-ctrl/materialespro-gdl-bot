@@ -634,39 +634,66 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
   }
 });
 
-// GET /api/catalogo/plantilla — descarga plantilla Excel vacía con formato correcto
-router.get('/catalogo/plantilla', authMiddleware(['admin']), (req, res) => {
+// GET /api/catalogo/plantilla – exporta productos reales desde DB con columnas correctas para reimport
+router.get('/catalogo/plantilla', authMiddleware(['admin']), async (req, res) => {
   try {
-    const plantilla = [
-      {
-        id: 'ADH-001',
-        categoria: 'Adhesivos',
-        nombre: 'Ejemplo: Adhesivo Cerámico Estándar',
-        descripcion: 'Descripción del producto',
-        usos: 'Para qué se usa',
-        presentacion: 'Bolsa 25 kg',
-        precio: 230,
-        rendimiento_m2_por_unidad: 4.5,
-        rendimiento_nota: '4 a 5 m² por bolsa',
-        colores: '',
-        activo: true
-      }
-    ];
+    const result = await query(
+      `SELECT codigo, nombre, categoria, marca, unidad, descripcion,
+              precio_venta, precio_2, precio_3, precio_4, costo,
+              rendimiento_m2_por_unidad, rendimiento_nota, activo
+       FROM catalogo_productos
+       ORDER BY categoria, nombre`
+    );
+
+    const rows = (result.rows || []).map(r => ({
+      'Código CRM':               r.codigo   || '',
+      'Artículo':                  r.nombre   || '',
+      'Categoría':                 r.categoria || '',
+      'Marca':                         r.marca    || '',
+      'Se vende por':                  r.unidad   || '',
+      'descripcion':                   r.descripcion || '',
+      'Precio 1 NETO':                 r.precio_venta != null ? Number(r.precio_venta) : '',
+      'Precio 2 NETO':                 r.precio_2     != null ? Number(r.precio_2)     : '',
+      'Precio 3 NETO':                 r.precio_3     != null ? Number(r.precio_3)     : '',
+      'Precio 4 NETO':                 r.precio_4     != null ? Number(r.precio_4)     : '',
+      'Costo NETO':                    r.costo        != null ? Number(r.costo)        : '',
+      'rendimiento_m2_por_unidad':     r.rendimiento_m2_por_unidad != null ? Number(r.rendimiento_m2_por_unidad) : '',
+      'rendimiento_nota':              r.rendimiento_nota || '',
+      'Activo':                        r.activo ? 'Verdadero' : 'Falso',
+    }));
+
+    // Si no hay productos en DB, agregar fila de ejemplo para guiar al usuario
+    if (!rows.length) {
+      rows.push({
+        'Código CRM': 'SIKA-001',
+        'Artículo': 'Ejemplo: Adhesivo Cerámico',
+        'Categoría': 'Adhesivos',
+        'Marca': 'SIKA',
+        'Se vende por': 'Bolsa 25 kg',
+        'descripcion': 'Descripción del producto',
+        'Precio 1 NETO': 230,
+        'Precio 2 NETO': 218,
+        'Precio 3 NETO': 207,
+        'Precio 4 NETO': 184,
+        'Costo NETO': 150,
+        'rendimiento_m2_por_unidad': 4.5,
+        'rendimiento_nota': '4 a 5 m² por bolsa',
+        'Activo': 'Verdadero',
+      });
+    }
 
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(plantilla);
-
-    // Ancho de columnas
+    const ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [
-      { wch: 12 }, { wch: 15 }, { wch: 35 }, { wch: 40 },
-      { wch: 35 }, { wch: 15 }, { wch: 10 }, { wch: 15 },
-      { wch: 25 }, { wch: 20 }, { wch: 8 }
+      { wch: 14 }, { wch: 38 }, { wch: 18 }, { wch: 14 },
+      { wch: 16 }, { wch: 40 }, { wch: 13 }, { wch: 13 },
+      { wch: 13 }, { wch: 13 }, { wch: 12 }, { wch: 22 },
+      { wch: 25 }, { wch: 10 },
     ];
-
     XLSX.utils.book_append_sheet(wb, ws, 'Productos');
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
-    res.setHeader('Content-Disposition', 'attachment; filename="plantilla_catalogo.xlsx"');
+    res.setHeader('Content-Disposition', 'attachment; filename="catalogo_export.xlsx"');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buffer);
   } catch (e) { res.status(500).json({ error: e.message }); }
