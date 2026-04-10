@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MaterialesPro GDL â€” Dashboard</title>
+<title>MaterialesPro GDL — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -16,7 +16,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--white);display:flex;min-height:100vh;overflow-x:hidden}
 
-/* â”€â”€ LOGIN â”€â”€ */
+/* ── LOGIN ── */
 #loginScreen{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:999}
 .login-box{background:var(--cement);border:1px solid rgba(196,169,107,.2);border-radius:12px;padding:2.5rem;width:360px}
 .login-logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--sand);margin-bottom:.3rem}
@@ -30,7 +30,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--white);
 .btn-login:hover{background:var(--rust-l)}
 .login-err{color:var(--red);font-size:.8rem;margin-top:.8rem;display:none}
 
-/* â”€â”€ SIDEBAR â”€â”€ */
+/* ── SIDEBAR ── */
 .sidebar{width:var(--sidebar);background:var(--cement);border-right:1px solid rgba(196,169,107,.1);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:10}
 .sidebar-logo{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,.06)}
 .sidebar-logo .name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--sand)}
@@ -50,7 +50,7 @@ nav{flex:1;padding:1rem 0;overflow-y:auto}
 .btn-logout{background:none;border:none;color:var(--gray);cursor:pointer;font-size:.8rem;margin-top:.5rem;padding:0;width:100%;text-align:left}
 .btn-logout:hover{color:var(--rust)}
 
-/* â”€â”€ MAIN â”€â”€ */
+/* ── MAIN ── */
 .main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
 .topbar{background:var(--cement);border-bottom:1px solid rgba(196,169,107,.1);padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
 .page-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.05em;color:var(--white)}
@@ -62,7 +62,7 @@ nav{flex:1;padding:1rem 0;overflow-y:auto}
 .page{display:none}
 .page.active{display:block}
 
-/* â”€â”€ STAT CARDS â”€â”€ */
+/* ── STAT CARDS ── */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
 .stat-card{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.2rem 1.5rem;position:relative;overflow:hidden}
 .stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%}
@@ -74,7 +74,7 @@ nav{flex:1;padding:1rem 0;overflow-y:auto}
 .stat-value{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1;color:var(--white)}
 .stat-sub{font-size:.72rem;color:var(--gray);margin-top:.3rem}
 
-/* â”€â”€ TABLES â”€â”€ */
+/* ── TABLES ── */
 .section-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em;color:var(--sand);margin-bottom:1rem}
 .table-wrap{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;overflow:hidden;margin-bottom:2rem}
 .table-header{padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06)}
@@ -85,14 +85,14 @@ td{padding:.85rem 1rem;font-size:.84rem;border-bottom:1px solid rgba(255,255,255
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,.02)}
 
-/* â”€â”€ BADGES â”€â”€ */
+/* ── BADGES ── */
 .badge{display:inline-block;padding:.2rem .6rem;border-radius:4px;font-size:.68rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em}
 .badge-pend{background:rgba(245,158,11,.15);color:var(--yellow)}
 .badge-conf{background:rgba(34,197,94,.15);color:var(--green)}
 .badge-canc{background:rgba(239,68,68,.15);color:var(--red)}
 .badge-env{background:rgba(59,130,246,.15);color:var(--blue)}
 
-/* â”€â”€ BUTTONS â”€â”€ */
+/* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:6px;font-size:.82rem;font-weight:500;cursor:pointer;border:none;transition:all .15s}
 .btn-primary{background:var(--rust);color:var(--white)}
 .btn-primary:hover{background:var(--rust-l)}
@@ -102,7 +102,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 .btn-green{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.2)}
 .btn-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.2)}
 
-/* â”€â”€ INVENTARIO â”€â”€ */
+/* ── INVENTARIO ── */
 .inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:2rem}
 .inv-card{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.2rem}
 .inv-card.alerta{border-color:rgba(239,68,68,.3)}
@@ -113,7 +113,7 @@ tbody tr:hover{background:rgba(255,255,255,.02)}
 .inv-controls{display:flex;gap:.5rem;margin-top:1rem;align-items:center}
 .inv-input{flex:1;background:var(--dust);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.4rem .7rem;color:var(--white);font-size:.84rem;font-family:'DM Sans',sans-serif;outline:none}
 
-/* â”€â”€ CAMPAÃ‘AS â”€â”€ */
+/* ── CAMPAÑAS ── */
 .camp-form{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.5rem;margin-bottom:2rem}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
 .camp-msg{width:100%;background:var(--dust);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.75rem 1rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;resize:vertical;min-height:100px}
@@ -122,12 +122,12 @@ select{background:var(--dust);border:1px solid rgba(255,255,255,.08);border-radi
 select:focus{border-color:var(--rust)}
 .preview-badge{background:rgba(196,169,107,.1);border:1px solid rgba(196,169,107,.2);border-radius:6px;padding:.5rem 1rem;font-size:.8rem;color:var(--sand);margin-top:.5rem}
 
-/* â”€â”€ CLIENTES â”€â”€ */
+/* ── CLIENTES ── */
 .search-bar{display:flex;gap:.75rem;margin-bottom:1.5rem}
 .search-input{flex:1;background:var(--cement);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.7rem 1rem;color:var(--white);font-size:.9rem;outline:none;font-family:'DM Sans',sans-serif}
 .search-input:focus{border-color:var(--rust)}
 
-/* â”€â”€ MODAL â”€â”€ */
+/* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:none;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
 .modal{background:var(--cement);border:1px solid rgba(196,169,107,.2);border-radius:12px;padding:2rem;max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
@@ -136,19 +136,19 @@ select:focus{border-color:var(--rust)}
 .detail-row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.84rem}
 .detail-label{color:var(--gray)}
 
-/* â”€â”€ REPORTE â”€â”€ */
+/* ── REPORTE ── */
 .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
 .report-card{background:var(--cement);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1.5rem}
 .report-card-title{font-size:.75rem;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
 
-/* â”€â”€ TOASTS â”€â”€ */
+/* ── TOASTS ── */
 #toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:.5rem}
 .toast{background:var(--cement);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.75rem 1.2rem;font-size:.84rem;animation:slideIn .3s ease;max-width:320px}
 .toast.success{border-left:3px solid var(--green)}
 .toast.error{border-left:3px solid var(--red)}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
-/* â”€â”€ RESPONSIVE â”€â”€ */
+/* ── RESPONSIVE ── */
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);transition:transform .3s}
   .sidebar.open{transform:translateX(0)}
@@ -165,17 +165,17 @@ select:focus{border-color:var(--rust)}
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">Materiales<span>Pro</span> GDL</div>
-    <div class="login-sub">Dashboard del equipo Â· Acceso seguro</div>
+    <div class="login-sub">Dashboard del equipo · Acceso seguro</div>
     <div class="form-group">
-      <label>Correo electrÃ³nico</label>
+      <label>Correo electrónico</label>
       <input type="email" id="loginEmail" placeholder="vendedor@materialespro.mx">
     </div>
     <div class="form-group">
-      <label>ContraseÃ±a</label>
-      <input type="password" id="loginPass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" onkeydown="if(event.key==='Enter')doLogin()">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="btn-login" onclick="doLogin()">Entrar al dashboard</button>
-    <div class="login-err" id="loginErr">Correo o contraseÃ±a incorrectos</div>
+    <div class="login-err" id="loginErr">Correo o contraseña incorrectos</div>
   </div>
 </div>
 
@@ -187,27 +187,27 @@ select:focus{border-color:var(--rust)}
   </div>
   <nav>
     <div class="nav-section">Principal</div>
-    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">ðŸ“Š</span> Dashboard</div>
-    <div class="nav-item" onclick="showPage('pedidos')"><span class="icon">ðŸ“¦</span> Pedidos</div>
-    <div class="nav-item" onclick="showPage('clientes')"><span class="icon">ðŸ‘¥</span> Clientes</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('pedidos')"><span class="icon">📦</span> Pedidos</div>
+    <div class="nav-item" onclick="showPage('clientes')"><span class="icon">👥</span> Clientes</div>
     <div class="nav-section">Operaciones</div>
-    <div class="nav-item" onclick="showPage('inventario')"><span class="icon">ðŸ—ï¸</span> Inventario</div>
-    <div class="nav-item" onclick="showPage('campanas')"><span class="icon">ðŸ“£</span> CampaÃ±as</div>
-    <div class="nav-item" onclick="showPage('catalogo')"><span class="icon">ðŸ“‹</span> CatÃ¡logo</div>
-    <div class="nav-item" onclick="showPage('vendedores')"><span class="icon">ðŸ‘¤</span> Vendedores</div>
-    <div class="nav-item" onclick="showPage('config')"><span class="icon">âš™ï¸</span> ConfiguraciÃ³n</div>
+    <div class="nav-item" onclick="showPage('inventario')"><span class="icon">🏗️</span> Inventario</div>
+    <div class="nav-item" onclick="showPage('campanas')"><span class="icon">📣</span> Campañas</div>
+    <div class="nav-item" onclick="showPage('catalogo')"><span class="icon">📋</span> Catálogo</div>
+    <div class="nav-item" onclick="showPage('vendedores')"><span class="icon">👤</span> Vendedores</div>
+    <div class="nav-item" onclick="showPage('config')"><span class="icon">⚙️</span> Configuración</div>
     <div class="nav-section">Reportes</div>
-    <div class="nav-item" onclick="showPage('reportes')"><span class="icon">ðŸ“ˆ</span> Reportes</div>
+    <div class="nav-item" onclick="showPage('reportes')"><span class="icon">📈</span> Reportes</div>
   </nav>
   <div class="sidebar-user">
     <div class="user-info">
       <div class="user-avatar" id="userAvatar">?</div>
       <div>
         <div class="user-name" id="userName">Cargando...</div>
-        <div class="user-role" id="userRole">â€”</div>
+        <div class="user-role" id="userRole">—</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="logout()">âŸµ Cerrar sesiÃ³n</button>
+    <button class="btn-logout" onclick="logout()">⟵ Cerrar sesión</button>
   </div>
 </div>
 
@@ -217,7 +217,7 @@ select:focus{border-color:var(--rust)}
     <div class="page-title" id="pageTitle">Dashboard</div>
     <div class="topbar-right">
       <div class="badge-live">Bot activo 24/7</div>
-      <button class="btn btn-secondary btn-sm" onclick="refreshPage()">â†» Actualizar</button>
+      <button class="btn btn-secondary btn-sm" onclick="refreshPage()">↻ Actualizar</button>
     </div>
   </div>
 
@@ -226,16 +226,16 @@ select:focus{border-color:var(--rust)}
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="stats-grid" id="statsGrid">
-        <div class="stat-card green"><div class="stat-label">Pedidos hoy</div><div class="stat-value" id="s-pedidos">â€”</div><div class="stat-sub">confirmados</div></div>
-        <div class="stat-card rust"><div class="stat-label">Ingresos hoy</div><div class="stat-value" id="s-ingresos">â€”</div><div class="stat-sub">MXN confirmado</div></div>
-        <div class="stat-card sand"><div class="stat-label">Cotizaciones</div><div class="stat-value" id="s-cots">â€”</div><div class="stat-sub">enviadas hoy</div></div>
-        <div class="stat-card blue"><div class="stat-label">Clientes nuevos</div><div class="stat-value" id="s-clientes">â€”</div><div class="stat-sub">hoy</div></div>
+        <div class="stat-card green"><div class="stat-label">Pedidos hoy</div><div class="stat-value" id="s-pedidos">—</div><div class="stat-sub">confirmados</div></div>
+        <div class="stat-card rust"><div class="stat-label">Ingresos hoy</div><div class="stat-value" id="s-ingresos">—</div><div class="stat-sub">MXN confirmado</div></div>
+        <div class="stat-card sand"><div class="stat-label">Cotizaciones</div><div class="stat-value" id="s-cots">—</div><div class="stat-sub">enviadas hoy</div></div>
+        <div class="stat-card blue"><div class="stat-label">Clientes nuevos</div><div class="stat-value" id="s-clientes">—</div><div class="stat-sub">hoy</div></div>
       </div>
 
       <div class="table-wrap">
         <div class="table-header">
           <span class="section-title">Pedidos recientes</span>
-          <button class="btn btn-secondary btn-sm" onclick="showPage('pedidos')">Ver todos â†’</button>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('pedidos')">Ver todos →</button>
         </div>
         <table>
           <thead><tr><th>Folio</th><th>Cliente</th><th>Tipo</th><th>Total</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
@@ -246,7 +246,7 @@ select:focus{border-color:var(--rust)}
       <div class="table-wrap">
         <div class="table-header"><span class="section-title">Alertas de stock bajo</span></div>
         <table>
-          <thead><tr><th>Producto</th><th>Stock actual</th><th>Stock mÃ­nimo</th><th>Unidad</th><th></th></tr></thead>
+          <thead><tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th><th>Unidad</th><th></th></tr></thead>
           <tbody id="stockAlerts"><tr><td colspan="5" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
         </table>
       </div>
@@ -265,7 +265,7 @@ select:focus{border-color:var(--rust)}
           <option value="">Todas las zonas</option>
           <option value="norte">Norte / Zapopan</option>
           <option value="sur">Sur / Tlaquepaque</option>
-          <option value="este">Este / TonalÃ¡</option>
+          <option value="este">Este / Tonalá</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -289,7 +289,7 @@ select:focus{border-color:var(--rust)}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Cliente</th><th>WhatsApp</th><th>Zona</th><th>Pedidos</th><th>Total compras</th><th>Ãšltimo contacto</th><th>CrÃ©dito</th><th></th></tr></thead>
+          <thead><tr><th>Cliente</th><th>WhatsApp</th><th>Zona</th><th>Pedidos</th><th>Total compras</th><th>Último contacto</th><th>Crédito</th><th></th></tr></thead>
           <tbody id="clientesTable"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
         </table>
       </div>
@@ -297,12 +297,12 @@ select:focus{border-color:var(--rust)}
 
     <!-- INVENTARIO -->
     <div class="page" id="page-inventario">
-      <p style="color:var(--gray);font-size:.85rem;margin-bottom:1rem">Actualiza el stock de cada producto. El bot verificarÃ¡ estas cantidades antes de confirmar pedidos automÃ¡ticamente.</p>
+      <p style="color:var(--gray);font-size:.85rem;margin-bottom:1rem">Actualiza el stock de cada producto. El bot verificará estas cantidades antes de confirmar pedidos automáticamente.</p>
 
       <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:1rem">
         <input class="input" id="invSearch" type="text" placeholder="Buscar por nombre..." style="flex:1;min-width:180px;padding:.45rem .75rem;font-size:.85rem" oninput="filterInventario()">
         <select class="input" id="invFilterCat" style="min-width:140px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
-          <option value="">Todas las categorÃ­as</option>
+          <option value="">Todas las categorías</option>
         </select>
         <select class="input" id="invFilterMarca" style="min-width:120px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
           <option value="">Todas las marcas</option>
@@ -320,12 +320,12 @@ select:focus{border-color:var(--rust)}
         </select>
         <select class="input" id="invFilterComercial" style="min-width:130px;padding:.45rem .5rem;font-size:.82rem" onchange="filterInventario()">
           <option value="" selected>Comercial: Todos</option>
-          <option value="destacado">â­ Destacado</option>
-          <option value="oferta">ðŸ”¥ En Oferta</option>
-          <option value="mas_vendido">ðŸ† MÃ¡s Vendido</option>
+          <option value="destacado">⭐ Destacado</option>
+          <option value="oferta">🔥 En Oferta</option>
+          <option value="mas_vendido">🏆 Más Vendido</option>
         </select>
         <button class="btn btn-secondary btn-sm" onclick="clearInvFilters()">Limpiar</button>
-        <button class="btn btn-secondary btn-sm" onclick="syncInventario()">ðŸ”„ Sync catÃ¡logo</button>
+        <button class="btn btn-secondary btn-sm" onclick="syncInventario()">🔄 Sync catálogo</button>
       </div>
       <div id="invCount" style="color:var(--gray);font-size:.78rem;margin-bottom:.6rem"></div>
 
@@ -333,31 +333,30 @@ select:focus{border-color:var(--rust)}
         <table>
           <thead>
             <tr>
-              <th style="cursor:pointer" onclick="sortInventario('nombre')">Nombre â‡…</th>
-              <th>CategorÃ­a</th>
+              <th style="cursor:pointer" onclick="sortInventario('nombre')">Nombre ⇅</th>
+              <th>Categoría</th>
               <th>Marca</th>
-              <th style="cursor:pointer" onclick="sortInventario('precio')">Precio â‡…</th>
-              <th style="cursor:pointer" onclick="sortInventario('stock')">Stock â‡…</th>
-              <th>MÃ­n</th>
+              <th style="cursor:pointer" onclick="sortInventario('precio')">Precio ⇅</th>
+              <th style="cursor:pointer" onclick="sortInventario('stock')">Stock ⇅</th>
+              <th>Mín</th>
               <th>Unidad</th>
-              <th style="text-align:center">Estado</th>
-              <th>AcciÃ³n</th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody id="invTableBody"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando inventario...</td></tr></tbody>
-          <tbody id="invTableBody"><tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem">Cargando inventario...</td></tr></tbody>
+        </table>
       </div>
 
       <div class="inv-grid" id="invGrid" style="display:none"></div>
     </div>
 
-    <!-- CAMPAÃ‘AS -->
+    <!-- CAMPAÑAS -->
     <div class="page" id="page-campanas">
       <div class="camp-form">
-        <div class="section-title">Nueva campaÃ±a</div>
+        <div class="section-title">Nueva campaña</div>
         <div class="form-row">
           <div>
-            <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Nombre de la campaÃ±a</label>
+            <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Nombre de la campaña</label>
             <input class="inv-input" id="campNombre" placeholder="Promo adhesivos marzo" style="width:100%">
           </div>
           <div>
@@ -366,58 +365,58 @@ select:focus{border-color:var(--rust)}
               <option value="todos">Todos los clientes</option>
               <option value="zona_norte">GDL Norte / Zapopan</option>
               <option value="zona_sur">GDL Sur / Tlaquepaque</option>
-              <option value="zona_este">GDL Este / TonalÃ¡</option>
-              <option value="sin_compras_30d">Sin compras en 30 dÃ­as</option>
+              <option value="zona_este">GDL Este / Tonalá</option>
+              <option value="sin_compras_30d">Sin compras en 30 días</option>
               <option value="compraron_adhesivos">Compraron adhesivos</option>
               <option value="compraron_texturas">Compraron texturizados</option>
               <option value="compraron_imperme">Compraron impermeabilizantes</option>
               <option value="pedidos_grandes">Pedidos > $5,000 MXN</option>
-              <option value="con_credito">Clientes con crÃ©dito</option>
+              <option value="con_credito">Clientes con crédito</option>
             </select>
           </div>
         </div>
         <div style="margin-bottom:.75rem">
           <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Plantilla aprobada (opcional)</label>
           <select id="campTemplate" style="width:100%" onchange="var m=document.getElementById('campMsgWrap');m.style.display=this.value?'none':'block'">
-            <option value="">Sin plantilla â€” texto libre (solo clientes activos 24h)</option>
-            <option value="materialespro_promo">&#x1F525; materialespro_promo â€” Promo especial (todos los clientes)</option>
+            <option value="">Sin plantilla — texto libre (solo clientes activos 24h)</option>
+            <option value="materialespro_promo">&#x1F525; materialespro_promo — Promo especial (todos los clientes)</option>
           </select>
         </div>
         <div id="campMsgWrap" style="margin-bottom:1rem">
           <label style="display:block;font-size:.78rem;color:var(--light);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Mensaje <span style="color:var(--gray)">(usa {nombre} para personalizar)</span></label>
-          <textarea class="camp-msg" id="campMsg" placeholder="Hola {nombre}, tenemos una promociÃ³n especial en adhesivos esta semana..."></textarea>
+          <textarea class="camp-msg" id="campMsg" placeholder="Hola {nombre}, tenemos una promoción especial en adhesivos esta semana..."></textarea>
         </div>
         <div id="campPreview" class="preview-badge" style="display:none"></div>
         <div style="display:flex;gap:.75rem;margin-top:1rem">
-          <button class="btn btn-secondary" onclick="previewCamp()">ðŸ‘ Preview</button>
-          <button class="btn btn-primary" onclick="crearCampana()">ðŸ“£ Crear y enviar campaÃ±a</button>
+          <button class="btn btn-secondary" onclick="previewCamp()">👁 Preview</button>
+          <button class="btn btn-primary" onclick="crearCampana()">📣 Crear y enviar campaña</button>
         </div>
       </div>
 
       <div class="table-wrap">
-        <div class="table-header"><span class="section-title">Historial de campaÃ±as</span></div>
+        <div class="table-header"><span class="section-title">Historial de campañas</span></div>
         <table>
-          <thead><tr><th>CampaÃ±a</th><th>Segmento</th><th>Enviados</th><th>Errores</th><th>Estado</th><th>Fecha</th></tr></thead>
-          <tbody id="campTable"><tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Sin campaÃ±as aÃºn</td></tr></tbody>
+          <thead><tr><th>Campaña</th><th>Segmento</th><th>Enviados</th><th>Errores</th><th>Estado</th><th>Fecha</th></tr></thead>
+          <tbody id="campTable"><tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Sin campañas aún</td></tr></tbody>
         </table>
       </div>
     </div>
 
-    <!-- CATÃLOGO -->
+    <!-- CATÁLOGO -->
     <div class="page" id="page-catalogo">
       <div class="camp-form">
-        <div class="section-title">ðŸ“‹ Importar Lista de Precios</div>
-        <p style="color:var(--light);font-size:.88rem;margin-bottom:1.5rem">Sube tu lista de precios en Excel y el bot actualizarÃ¡ su catÃ¡logo al instante.</p>
+        <div class="section-title">📋 Importar Lista de Precios</div>
+        <p style="color:var(--light);font-size:.88rem;margin-bottom:1.5rem">Sube tu lista de precios en Excel y el bot actualizará su catálogo al instante.</p>
 
         <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
-          <button class="btn btn-secondary" onclick="descargarPlantilla()">â¬‡ï¸ Descargar Plantilla Excel</button>
+          <button class="btn btn-secondary" onclick="descargarPlantilla()">⬇️ Descargar Plantilla Excel</button>
         </div>
 
         <div id="dropZone" onclick="document.getElementById('excelInput').click()"
           style="border:2px dashed rgba(255,255,255,.2);border-radius:12px;padding:3rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1.5rem">
-          <div style="font-size:2.5rem;margin-bottom:.75rem">ðŸ“‚</div>
-          <div style="color:var(--light);font-size:.95rem">Haz clic aquÃ­ o arrastra tu archivo Excel</div>
-          <div style="color:var(--gray);font-size:.78rem;margin-top:.4rem">.xlsx Â· mÃ¡ximo 10MB</div>
+          <div style="font-size:2.5rem;margin-bottom:.75rem">📂</div>
+          <div style="color:var(--light);font-size:.95rem">Haz clic aquí o arrastra tu archivo Excel</div>
+          <div style="color:var(--gray);font-size:.78rem;margin-top:.4rem">.xlsx · máximo 10MB</div>
           <input type="file" id="excelInput" accept=".xlsx,.xls" style="display:none" onchange="previsualizarExcel(this)">
         </div>
 
@@ -426,13 +425,13 @@ select:focus{border-color:var(--rust)}
           <div id="catPreviewInfo" style="color:var(--light);font-size:.88rem;margin-bottom:1rem"></div>
           <div class="table-wrap" style="margin-bottom:1.5rem">
             <table>
-              <thead><tr><th>ID</th><th>CategorÃ­a</th><th>Nombre</th><th>PresentaciÃ³n</th><th>Precio</th><th>Activo</th></tr></thead>
+              <thead><tr><th>ID</th><th>Categoría</th><th>Nombre</th><th>Presentación</th><th>Precio</th><th>Activo</th></tr></thead>
               <tbody id="catPreviewTable"></tbody>
             </table>
           </div>
           <div style="display:flex;gap:.75rem">
-            <button class="btn btn-secondary" onclick="cancelarImport()">âœ• Cancelar</button>
-            <button class="btn btn-primary" onclick="confirmarImport()">âœ… Confirmar e importar</button>
+            <button class="btn btn-secondary" onclick="cancelarImport()">✕ Cancelar</button>
+            <button class="btn btn-primary" onclick="confirmarImport()">✅ Confirmar e importar</button>
           </div>
         </div>
 
@@ -440,26 +439,26 @@ select:focus{border-color:var(--rust)}
       </div>
 
       <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sec-precios').scrollIntoView({behavior:'smooth'})">ðŸ“‹ Precios</button>
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sec-destacados').scrollIntoView({behavior:'smooth'})">â­ Destacados y Ofertas</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sec-precios').scrollIntoView({behavior:'smooth'})">📋 Precios</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('sec-destacados').scrollIntoView({behavior:'smooth'})">⭐ Destacados y Ofertas</button>
       </div>
       <div class="table-wrap" id="sec-precios">
         <div class="table-header">
           <span class="section-title">Productos actuales</span>
-          <button class="btn btn-secondary btn-sm" onclick="loadCatalogo()">ðŸ”„ Actualizar</button>
+          <button class="btn btn-secondary btn-sm" onclick="loadCatalogo()">🔄 Actualizar</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>CategorÃ­a</th><th>Nombre</th><th>PresentaciÃ³n</th><th>Precio</th><th>Estado</th></tr></thead>
+          <thead><tr><th>ID</th><th>Categoría</th><th>Nombre</th><th>Presentación</th><th>Precio</th><th>Estado</th></tr></thead>
           <tbody id="catTable"><tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
         </table>
       </div>
 
       <div class="table-wrap" id="sec-destacados" style="margin-top:2rem">
         <div class="table-header">
-          <span class="section-title">â­ Productos Destacados y Ofertas</span>
+          <span class="section-title">⭐ Productos Destacados y Ofertas</span>
           <div style="display:flex;gap:.5rem;align-items:center">
             <span id="destacadosCount" style="color:var(--gray);font-size:.78rem"></span>
-            <button class="btn btn-secondary btn-sm" onclick="loadComercial()">ðŸ”„ Actualizar</button>
+            <button class="btn btn-secondary btn-sm" onclick="loadComercial()">🔄 Actualizar</button>
           </div>
         </div>
         <div id="comercialWarn" style="display:none;background:#ff980020;border:1px solid #ff9800;color:#ff9800;padding:.6rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.85rem"></div>
@@ -468,13 +467,13 @@ select:focus{border-color:var(--rust)}
             <thead>
               <tr>
                 <th>Nombre</th>
-                <th>CategorÃ­a</th>
+                <th>Categoría</th>
                 <th>Precio</th>
-                <th style="text-align:center">â­ Destacado</th>
-                <th style="text-align:center">ðŸ”¥ En Oferta</th>
+                <th style="text-align:center">⭐ Destacado</th>
+                <th style="text-align:center">🔥 En Oferta</th>
                 <th>Precio Oferta &amp; Hasta</th>
                 <th style="display:none"></th>
-                <th style="text-align:center">ðŸ† MÃ¡s Vendido</th>
+                <th style="text-align:center">🏆 Más Vendido</th>
               </tr>
             </thead>
             <tbody id="comercialTable"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
@@ -497,7 +496,7 @@ select:focus{border-color:var(--rust)}
           <input class="input" id="eVNombre" placeholder="Nombre completo">
           <input class="input" id="eVEmail" placeholder="Email" disabled style="opacity:.5">
           <input class="input" id="eVEmpresa" placeholder="Empresa">
-          <input class="input" id="eVTelefono" placeholder="TelÃ©fono">
+          <input class="input" id="eVTelefono" placeholder="Teléfono">
           <input class="input" id="eVWhatsapp" placeholder="WhatsApp (+52...)">
           <select class="input" id="eVRol">
             <option value="vendedor">Vendedor</option>
@@ -524,14 +523,14 @@ select:focus{border-color:var(--rust)}
           <input id="vEmpresa" placeholder="Empresa / Negocio" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
           <input id="vEmail" placeholder="Email" type="email" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
           <input id="vWhatsapp" placeholder="WhatsApp (+52...)" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
-          <input id="vTelefono" placeholder="TelÃ©fono alterno" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
-          <input id="vPassword" placeholder="ContraseÃ±a" type="password" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <input id="vTelefono" placeholder="Teléfono alterno" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
+          <input id="vPassword" placeholder="Contraseña" type="password" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
           <select id="vRol" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
             <option value="vendedor">Vendedor</option><option value="admin">Admin</option><option value="bodega">Bodega</option>
           </select>
           <select id="vZona" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.5rem .75rem;font-size:.85rem">
             <option value="">Todas las zonas</option>
-            <option value="norte">Norte / Zapopan</option><option value="sur">Sur / Tlaquepaque</option><option value="este">Este / TonalÃ¡</option>
+            <option value="norte">Norte / Zapopan</option><option value="sur">Sur / Tlaquepaque</option><option value="este">Este / Tonalá</option>
           </select>
         </div>
         <div style="display:flex;gap:.5rem;margin-top:1rem">
@@ -543,12 +542,12 @@ select:focus{border-color:var(--rust)}
 
     <!-- CONFIG -->
     <div class="page" id="page-config">
-      <h2 style="color:var(--sand);font-size:1.1rem;letter-spacing:.1em;margin-bottom:1.5rem">CONFIGURACIÃ“N</h2>
-      <!-- Tarifas de envÃ­o -->
+      <h2 style="color:var(--sand);font-size:1.1rem;letter-spacing:.1em;margin-bottom:1.5rem">CONFIGURACIÓN</h2>
+      <!-- Tarifas de envío -->
       <div style="background:var(--cement);border-radius:8px;padding:1.5rem;max-width:600px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-          <h3 style="color:var(--sand);font-size:.9rem">ðŸšš TARIFAS DE ENVÃO</h3>
-          <button class="btn btn-green btn-sm" onclick="saveTarifas()">ðŸ’¾ Guardar</button>
+          <h3 style="color:var(--sand);font-size:.9rem">🚚 TARIFAS DE ENVÍO</h3>
+          <button class="btn btn-green btn-sm" onclick="saveTarifas()">💾 Guardar</button>
         </div>
         <div id="tarifasForm" style="display:grid;gap:.6rem"></div>
         <p style="font-size:.75rem;color:var(--gray);margin-top:.75rem">Los cambios aplican inmediatamente a nuevos pedidos.</p>
@@ -560,11 +559,11 @@ select:focus{border-color:var(--rust)}
       <div style="display:flex;gap:.75rem;margin-bottom:1.5rem">
         <select id="reportPeriod" onchange="loadReportes()">
           <option value="hoy">Hoy</option>
-          <option value="7d" selected>Ãšltimos 7 dÃ­as</option>
-          <option value="30d">Ãšltimos 30 dÃ­as</option>
+          <option value="7d" selected>Últimos 7 días</option>
+          <option value="30d">Últimos 30 días</option>
           <option value="mes">Este mes</option>
         </select>
-        <button class="btn btn-secondary" onclick="loadReportes()">â†» Actualizar</button>
+        <button class="btn btn-secondary" onclick="loadReportes()">↻ Actualizar</button>
       </div>
       <div class="report-grid" id="reportGrid">
         <div style="color:var(--gray);text-align:center;padding:3rem;grid-column:1/-1">Cargando reportes...</div>
@@ -577,7 +576,7 @@ select:focus{border-color:var(--rust)}
 <!-- MODAL DETALLE PEDIDO -->
 <div class="modal-bg" id="modalPedido">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('modalPedido')">âœ•</button>
+    <button class="modal-close" onclick="closeModal('modalPedido')">✕</button>
     <div class="modal-title">Detalle del pedido</div>
     <div id="modalPedidoContent"></div>
   </div>
@@ -586,7 +585,7 @@ select:focus{border-color:var(--rust)}
 <!-- MODAL DETALLE CLIENTE -->
 <div class="modal-bg" id="modalCliente">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('modalCliente')">âœ•</button>
+    <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
     <div class="modal-title">Perfil del cliente</div>
     <div id="modalClienteContent"></div>
   </div>
@@ -598,21 +597,21 @@ select:focus{border-color:var(--rust)}
     <button class="modal-close" onclick="closeModal('modalEditProducto')" style="float:right">&#x2715;</button>
     <div class="modal-title" style="font-size:1.2rem">&#x270F;&#xFE0F; Editar Producto</div>
     <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:1rem;margin-bottom:1rem">
-      <div style="color:var(--sand);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">IdentificaciÃ³n</div>
+      <div style="color:var(--sand);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Identificación</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">CÃ³digo</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Código</label>
         <input id="ep_codigo" disabled style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.4rem .65rem;color:var(--gray);font-size:.84rem;font-family:'DM Mono',monospace"></div>
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Marca</label>
         <input id="ep_marca" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
       </div>
       <div style="margin-top:.6rem"><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Nombre</label>
       <input id="ep_nombre" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
-      <div style="margin-top:.6rem"><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">DescripciÃ³n</label>
+      <div style="margin-top:.6rem"><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Descripción</label>
       <textarea id="ep_descripcion" rows="2" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem;resize:vertical;font-family:'DM Sans',sans-serif"></textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-top:.6rem">
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">CategorÃ­a</label>
-                <select id="ep_categoria" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></select>
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">PresentaciÃ³n</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Categoría</label>
+        <input id="ep_categoria" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Presentación</label>
         <input id="ep_presentacion" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Unidad</label>
         <input id="ep_unidad" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
@@ -625,13 +624,13 @@ select:focus{border-color:var(--rust)}
         <input id="ep_precio_venta" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio Lista</label>
         <input id="ep_precio_lista" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 2 (âˆ’5%)</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 2 (−5%)</label>
         <input id="ep_precio_2" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 3 (âˆ’10%)</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 3 (−10%)</label>
         <input id="ep_precio_3" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 4 (VIP)</label>
         <input id="ep_precio_4" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Desc. mÃ¡x. (%)</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Desc. máx. (%)</label>
         <input id="ep_descuento_maximo" type="number" step="1" min="0" max="100" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
       </div>
     </div>
@@ -640,19 +639,19 @@ select:focus{border-color:var(--rust)}
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem">
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Stock actual</label>
         <input id="ep_stock" type="number" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Stock mÃ­nimo</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Stock mínimo</label>
         <input id="ep_stock_minimo" type="number" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Cant. mÃ­nima venta</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Cant. mínima venta</label>
         <input id="ep_cantidad_minima" type="number" min="0" step="0.01" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
       </div>
     </div>
     <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:1rem;margin-bottom:1rem">
       <div style="color:var(--sand);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Rendimiento</div>
       <div style="display:grid;grid-template-columns:1fr 2fr;gap:.6rem">
-        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">mÂ² por unidad</label>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">m² por unidad</label>
         <input id="ep_rendimiento_m2" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Nota de rendimiento</label>
-        <input id="ep_rendimiento_nota" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem" placeholder="ej: 4 a 5 mÂ² por bolsa"></div>
+        <input id="ep_rendimiento_nota" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem" placeholder="ej: 4 a 5 m² por bolsa"></div>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border-radius:8px;padding:.75rem 1rem;margin-bottom:1.25rem">
@@ -673,15 +672,15 @@ select:focus{border-color:var(--rust)}
 <div id="toasts"></div>
 
 <script>
-// â”€â”€ STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── STATE ──────────────────────────────────────────
 let TOKEN   = localStorage.getItem('mp_token') || '';
 let USER    = JSON.parse(localStorage.getItem('mp_user') || 'null');
 let CURRENT = 'dashboard';
 
 const API = '/api';
 
-// â”€â”€ API HELPER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// HARDENED api() â€” maneja 502, HTML responses, red caÃ­da
+// ── API HELPER ─────────────────────────────────────
+// HARDENED api() — maneja 502, HTML responses, red caída
 async function api(path, opts = {}) {
   try {
     var res = await fetch(API + path, {
@@ -696,7 +695,7 @@ async function api(path, opts = {}) {
     if (!ct.includes('application/json')) {
       var txt = await res.text();
       if (res.status === 502 || res.status === 503) {
-        toast('Servidor despertando â³ espera 20s e intenta de nuevo', 'error');
+        toast('Servidor despertando ⏳ espera 20s e intenta de nuevo', 'error');
       } else {
         toast('Error ' + res.status + ': respuesta inesperada del servidor', 'error');
       }
@@ -706,16 +705,16 @@ async function api(path, opts = {}) {
     return res.json();
   } catch (e) {
     if (e.name === 'TypeError' && e.message.includes('fetch')) {
-      toast('Sin conexiÃ³n a internet', 'error');
+      toast('Sin conexión a internet', 'error');
     } else {
-      toast('Error de conexiÃ³n: ' + e.message, 'error');
+      toast('Error de conexión: ' + e.message, 'error');
     }
     console.error('[API]', e);
     return null;
   }
 }
 
-// â”€â”€ AUTH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── AUTH ───────────────────────────────────────────
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const pass  = document.getElementById('loginPass').value;
@@ -729,13 +728,13 @@ async function doLogin() {
       body: JSON.stringify({ email, password: pass })
     });
     const data = await r.json();
-    if (!r.ok) { err.textContent = data.error || 'Error al iniciar sesiÃ³n'; err.style.display='block'; return; }
+    if (!r.ok) { err.textContent = data.error || 'Error al iniciar sesión'; err.style.display='block'; return; }
     TOKEN = data.token;
     USER  = data.user;
     localStorage.setItem('mp_token', TOKEN);
     localStorage.setItem('mp_user', JSON.stringify(USER));
     initApp();
-  } catch(e) { err.textContent = 'Error de conexiÃ³n'; err.style.display='block'; }
+  } catch(e) { err.textContent = 'Error de conexión'; err.style.display='block'; }
 }
 
 function logout() {
@@ -749,13 +748,13 @@ function logout() {
 function initApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
-  document.getElementById('userName').textContent  = USER?.nombre || USER?.email || 'â€”';
-  document.getElementById('userRole').textContent  = USER?.rol   || 'â€”';
+  document.getElementById('userName').textContent  = USER?.nombre || USER?.email || '—';
+  document.getElementById('userRole').textContent  = USER?.rol   || '—';
   document.getElementById('userAvatar').textContent = (USER?.nombre || USER?.email || '?')[0].toUpperCase();
   showPage('dashboard');
 }
 
-// â”€â”€ NAVIGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── NAVIGATION ─────────────────────────────────────
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -765,7 +764,7 @@ function showPage(name) {
     if (n.getAttribute('onclick')?.includes("'" + name + "'")) n.classList.add('active');
   });
   const titles = { dashboard:'Dashboard', pedidos:'Pedidos', clientes:'Clientes (CRM)',
-                   inventario:'Inventario', campanas:'CampaÃ±as WhatsApp', catalogo:'CatÃ¡logo / Precios', reportes:'Reportes', vendedores:'Vendedores', config:'ConfiguraciÃ³n' };
+                   inventario:'Inventario', campanas:'Campañas WhatsApp', catalogo:'Catálogo / Precios', reportes:'Reportes', vendedores:'Vendedores', config:'Configuración' };
   document.getElementById('pageTitle').textContent = titles[name] || name;
   CURRENT = name;
   loadPage(name);
@@ -773,7 +772,7 @@ function showPage(name) {
 
 function refreshPage() { loadPage(CURRENT); }
 
-  // Auto-refresh cada 30s en pÃ¡ginas activas
+  // Auto-refresh cada 30s en páginas activas
   const _REFRESH_PAGES = ['dashboard','pedidos','clientes'];
   let _refreshTimer = null;
   function startAutoRefresh() {
@@ -787,10 +786,10 @@ function refreshPage() { loadPage(CURRENT); }
   }
   window.startAutoRefresh = startAutoRefresh;
   startAutoRefresh();
-  // Mostrar indicador visual de Ãºltimo refresh
+  // Mostrar indicador visual de último refresh
   setInterval(() => {
     const el = document.querySelector('.badge-live');
-    if (el) el.title = 'Ãšltimo refresh: ' + new Date().toLocaleTimeString('es-MX');
+    if (el) el.title = 'Último refresh: ' + new Date().toLocaleTimeString('es-MX');
   }, 1000);
 
 function loadPage(name) {
@@ -801,7 +800,7 @@ function loadPage(name) {
   if (loaders[name]) loaders[name]();
 }
 
-// â”€â”€ DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── DASHBOARD ─────────────────────────────────────
 async function loadDashboard() {
   const data = await api('/resumen');
   if (!data) return;
@@ -816,10 +815,10 @@ async function loadDashboard() {
     tbody.innerHTML = data.pedidos_recientes.map(p => `
       <tr>
         <td><code style="font-size:.75rem;color:var(--sand)">${p.folio}</code></td>
-        <td>${p.nombre || p.whatsapp || 'â€”'}</td>
-        <td>${p.tipo === 'pickup' ? 'ðŸ“ Recoger' : 'ðŸšš Entrega'}</td>
+        <td>${p.nombre || p.whatsapp || '—'}</td>
+        <td>${p.tipo === 'pickup' ? '📍 Recoger' : '🚚 Entrega'}</td>
         <td>$${Number(p.total||0).toLocaleString('es-MX')}</td>
-        <td>${p.metodo_pago || 'â€”'}</td>
+        <td>${p.metodo_pago || '—'}</td>
         <td>${badgeEstado(p.estado)}</td>
         <td><button class="btn btn-secondary btn-sm" onclick="verPedido(${p.id})">Ver</button></td>
       </tr>`).join('');
@@ -839,11 +838,11 @@ async function loadDashboard() {
         <td><button class="btn btn-secondary btn-sm" onclick="showPage('inventario')">Actualizar</button></td>
       </tr>`).join('');
   } else {
-    sTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--green);padding:1.5rem">âœ… Todo el inventario en orden</td></tr>';
+    sTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--green);padding:1.5rem">✅ Todo el inventario en orden</td></tr>';
   }
 }
 
-// â”€â”€ PEDIDOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PEDIDOS ───────────────────────────────────────
 async function loadPedidos() {
   const estado = document.getElementById('filterEstado').value;
   const zona   = document.getElementById('filterZona').value;
@@ -858,12 +857,12 @@ async function loadPedidos() {
     tbody.innerHTML = data.map(p => `
       <tr>
         <td><code style="font-size:.72rem;color:var(--sand)">${p.folio}</code></td>
-        <td>${p.cliente_nombre || p.whatsapp || 'â€”'}</td>
+        <td>${p.cliente_nombre || p.whatsapp || '—'}</td>
         <td>${zonaLabel(p.zona)}</td>
-        <td>${p.tipo === 'pickup' ? 'ðŸ“ Recoger' : 'ðŸšš Entrega'}</td>
+        <td>${p.tipo === 'pickup' ? '📍 Recoger' : '🚚 Entrega'}</td>
         <td>$${Number(p.total||0).toLocaleString('es-MX')}</td>
-        <td>${p.metodo_pago||'â€”'}</td>
-        <td>${p.factura ? 'ðŸ§¾ SÃ­' : 'No'}</td>
+        <td>${p.metodo_pago||'—'}</td>
+        <td>${p.factura ? '🧾 Sí' : 'No'}</td>
         <td>${badgeEstado(p.estado)}</td>
         <td style="color:var(--gray);font-size:.75rem">${fmtDate(p.creado_en)}</td>
         <td><button class="btn btn-secondary btn-sm" onclick="verPedido(${p.id})">Ver</button></td>
@@ -882,26 +881,26 @@ async function verPedido(id) {
   document.getElementById('modalPedidoContent').innerHTML = `
     <div class="detail-row"><span class="detail-label">Folio</span><code style="color:var(--sand)">${p.folio}</code></div>
     <div class="detail-row"><span class="detail-label">Estado</span>${badgeEstado(p.estado)}</div>
-    <div class="detail-row"><span class="detail-label">Cliente</span>${c?.nombre || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">WhatsApp</span>${c?.whatsapp || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Tipo</span>${p.tipo === 'pickup' ? 'ðŸ“ Recoger en almacÃ©n â€” <a href="https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA" target="_blank" style="color:var(--sand)">Av. LÃ³pez Mateos Sur 6506, Zapopan</a>' : 'ðŸšš Entrega a domicilio'}</div>
+    <div class="detail-row"><span class="detail-label">Cliente</span>${c?.nombre || '—'}</div>
+    <div class="detail-row"><span class="detail-label">WhatsApp</span>${c?.whatsapp || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Tipo</span>${p.tipo === 'pickup' ? '📍 Recoger en almacén — <a href="https://maps.app.goo.gl/C8tAwaQYiEvsqwrHA" target="_blank" style="color:var(--sand)">Av. López Mateos Sur 6506, Zapopan</a>' : '🚚 Entrega a domicilio'}</div>
     ${p.tipo === 'delivery' ? `
-    <div class="detail-row"><span class="detail-label">DirecciÃ³n</span>${p.calle || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Colonia</span>${p.colonia || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Referencias</span>${p.referencia || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Contacto obra</span>${p.contacto_obra || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Tel alterno</span>${p.tel_alterno || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Fecha entrega</span>${p.fecha_entrega || 'â€”'}</div>
-    ${p.maps_link ? `<div class="detail-row"><span class="detail-label">Mapa</span><a href="${p.maps_link}" target="_blank" style="color:var(--sand)">Ver en Maps â†’</a></div>` : ''}
-    ` : `<div class="detail-row"><span class="detail-label">Fecha recogida</span>${p.fecha_recoger || 'â€”'}</div>`}
+    <div class="detail-row"><span class="detail-label">Dirección</span>${p.calle || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Colonia</span>${p.colonia || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Referencias</span>${p.referencia || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Contacto obra</span>${p.contacto_obra || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Tel alterno</span>${p.tel_alterno || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Fecha entrega</span>${p.fecha_entrega || '—'}</div>
+    ${p.maps_link ? `<div class="detail-row"><span class="detail-label">Mapa</span><a href="${p.maps_link}" target="_blank" style="color:var(--sand)">Ver en Maps →</a></div>` : ''}
+    ` : `<div class="detail-row"><span class="detail-label">Fecha recogida</span>${p.fecha_recoger || '—'}</div>`}
     <div class="detail-row"><span class="detail-label">Total</span><b>${Number(p.total||0).toLocaleString('es-MX')} MXN</b></div>
-    ${(()=>{ try { const _it=Array.isArray(p.items_json)?p.items_json:(typeof p.items_json==='string'?JSON.parse(p.items_json||'[]'):(p.items_json||[])); if(!_it.length) return ''; return "<div class='detail-row' style='flex-direction:column;align-items:flex-start'>" + "<span class='detail-label' style='margin-bottom:.4rem'>ðŸ“¦ Productos</span>" + _it.map(i => "<div style='font-size:.84rem;padding:.15rem 0'>â€¢ "+i.qty+"x "+i.nombre+(i.precio?" â€” $"+Number(i.precio).toLocaleString('es-MX')+"/u":"")+"</div>").join('') + "</div>"; } catch(e){ return ''; } })()}
-    <div class="detail-row"><span class="detail-label">Pago</span>${p.metodo_pago || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Factura</span>${p.factura ? 'ðŸ§¾ SÃ­ â€” ' + p.cfdi_email : 'No'}</div>
+    ${(()=>{ try { const _it=Array.isArray(p.items_json)?p.items_json:(typeof p.items_json==='string'?JSON.parse(p.items_json||'[]'):(p.items_json||[])); if(!_it.length) return ''; return "<div class='detail-row' style='flex-direction:column;align-items:flex-start'>" + "<span class='detail-label' style='margin-bottom:.4rem'>📦 Productos</span>" + _it.map(i => "<div style='font-size:.84rem;padding:.15rem 0'>• "+i.qty+"x "+i.nombre+(i.precio?" — $"+Number(i.precio).toLocaleString('es-MX')+"/u":"")+"</div>").join('') + "</div>"; } catch(e){ return ''; } })()}
+    <div class="detail-row"><span class="detail-label">Pago</span>${p.metodo_pago || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Factura</span>${p.factura ? '🧾 Sí — ' + p.cfdi_email : 'No'}</div>
     ${p.factura && p.cfdi_uso ? `<div class="detail-row"><span class="detail-label">CFDI</span>${p.cfdi_uso}</div>` : ''}
     <div style="display:flex;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap">
-      ${p.estado==='pendiente' ? `<button class="btn btn-green btn-sm" onclick="updatePedido(${p.id},'confirmado')">âœ… Confirmar</button>` : ''}
-      ${p.estado!=='cancelado' ? `<button class="btn btn-red btn-sm" onclick="updatePedido(${p.id},'cancelado')">âœ• Cancelar</button>` : ''}
+      ${p.estado==='pendiente' ? `<button class="btn btn-green btn-sm" onclick="updatePedido(${p.id},'confirmado')">✅ Confirmar</button>` : ''}
+      ${p.estado!=='cancelado' ? `<button class="btn btn-red btn-sm" onclick="updatePedido(${p.id},'cancelado')">✕ Cancelar</button>` : ''}
     </div>`;
   openModal('modalPedido');
 }
@@ -912,7 +911,7 @@ async function updatePedido(id, estado) {
   else toast('Error al actualizar', 'error');
 }
 
-// â”€â”€ CLIENTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CLIENTES ──────────────────────────────────────
 async function loadClientes() {
   const zona = document.getElementById('filterZonaC').value;
   const params = new URLSearchParams({ limit: 50 });
@@ -942,7 +941,7 @@ function renderClientes(list) {
         <td>${c.num_pedidos || 0}</td>
         <td>$${Number(c.total_compras||0).toLocaleString('es-MX')}</td>
         <td style="color:var(--gray);font-size:.75rem">${fmtDate(c.ultimo_contacto)}</td>
-        <td>${c.credito_limite > 0 ? '<span style="color:var(--green)">$' + Number(c.credito_limite).toLocaleString('es-MX') + '</span>' : 'â€”'}</td>
+        <td>${c.credito_limite > 0 ? '<span style="color:var(--green)">$' + Number(c.credito_limite).toLocaleString('es-MX') + '</span>' : '—'}</td>
         <td style="text-align:center;font-size:1rem">${!c.activo ? '<span title="Deshabilitado" style="color:#ff6b6b">&#x26D4;</span>' : '<span title="Activo" style="color:#4caf50">&#x2714;</span>'} ${c.no_campana ? '<span title="No campana" style="color:#ffc800">&#x1F6AB;</span>' : ''}</td>
         <td><button class="btn btn-secondary btn-sm" onclick="verCliente('${c.whatsapp}')">Ver</button></td>
       </tr>`).join('');
@@ -956,30 +955,30 @@ async function verCliente(wa) {
   if (!data) return;
   const c = data.cliente;
   document.getElementById('modalClienteContent').innerHTML = `
-    <div class="detail-row"><span class="detail-label">Nombre</span>${c.nombre || 'â€”'}</div>
+    <div class="detail-row"><span class="detail-label">Nombre</span>${c.nombre || '—'}</div>
     <div class="detail-row"><span class="detail-label">WhatsApp</span>${c.whatsapp}</div>
     <div class="detail-row"><span class="detail-label">Zona</span>${zonaLabel(c.zona)}</div>
-    <div class="detail-row"><span class="detail-label">RFC</span>${c.rfc || 'â€”'}</div>
-    <div class="detail-row"><span class="detail-label">Email</span>${c.email || 'â€”'}</div>
+    <div class="detail-row"><span class="detail-label">RFC</span>${c.rfc || '—'}</div>
+    <div class="detail-row"><span class="detail-label">Email</span>${c.email || '—'}</div>
     <div class="detail-row"><span class="detail-label">Pedidos totales</span>${c.num_pedidos || 0}</div>
     <div class="detail-row"><span class="detail-label">Total compras</span><b>$${Number(c.total_compras||0).toLocaleString('es-MX')} MXN</b></div>
-    <div class="detail-row"><span class="detail-label">CrÃ©dito</span>${c.credito_limite > 0 ? '$' + Number(c.credito_limite).toLocaleString('es-MX') + ' MXN' : 'Sin crÃ©dito'}</div>
+    <div class="detail-row"><span class="detail-label">Crédito</span>${c.credito_limite > 0 ? '$' + Number(c.credito_limite).toLocaleString('es-MX') + ' MXN' : 'Sin crédito'}</div>
     <div class="detail-row"><span class="detail-label">Primer contacto</span>${fmtDate(c.primer_contacto)}</div>
-    <div class="detail-row"><span class="detail-label">Ãšltimo contacto</span>${fmtDate(c.ultimo_contacto)}</div>
-    ${data.pedidos?.length ? `<div style="margin-top:1rem"><b style="color:var(--sand);font-size:.85rem">Ãšltimos pedidos</b>
-      ${data.pedidos.slice(0,5).map(p => `<div class="detail-row"><span class="detail-label">${p.folio}</span><span>$${Number(p.total||0).toLocaleString('es-MX')} Â· ${badgeEstado(p.estado)}</span></div>`).join('')}</div>` : ''}
+    <div class="detail-row"><span class="detail-label">Último contacto</span>${fmtDate(c.ultimo_contacto)}</div>
+    ${data.pedidos?.length ? `<div style="margin-top:1rem"><b style="color:var(--sand);font-size:.85rem">Últimos pedidos</b>
+      ${data.pedidos.slice(0,5).map(p => `<div class="detail-row"><span class="detail-label">${p.folio}</span><span>$${Number(p.total||0).toLocaleString('es-MX')} · ${badgeEstado(p.estado)}</span></div>`).join('')}</div>` : ''}
       <div style="margin-top:1.25rem;padding:1rem;background:rgba(255,255,255,.04);border-radius:8px">
-        <div style="color:var(--sand);font-size:.8rem;font-weight:600;margin-bottom:.75rem">ðŸ·ï¸ NIVEL DE PRECIO</div>
+        <div style="color:var(--sand);font-size:.8rem;font-weight:600;margin-bottom:.75rem">🏷️ NIVEL DE PRECIO</div>
         <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
           <select id="nivelSelect" style="flex:1;min-width:160px">
-            <option value="1" ${(c.nivel_precio||1)==1?'selected':''}>Precio 1 â€” PÃºblico general</option>
-            <option value="2" ${(c.nivel_precio||1)==2?'selected':''}>Precio 2 â€” Frecuente (âˆ’5%)</option>
-            <option value="3" ${(c.nivel_precio||1)==3?'selected':''}>Precio 3 â€” Distribuidor (âˆ’10%)</option>
-            <option value="4" ${(c.nivel_precio||1)==4?'selected':''}>Precio 4 â€” VIP (âˆ’20%)</option>
+            <option value="1" ${(c.nivel_precio||1)==1?'selected':''}>Precio 1 — Público general</option>
+            <option value="2" ${(c.nivel_precio||1)==2?'selected':''}>Precio 2 — Frecuente (−5%)</option>
+            <option value="3" ${(c.nivel_precio||1)==3?'selected':''}>Precio 3 — Distribuidor (−10%)</option>
+            <option value="4" ${(c.nivel_precio||1)==4?'selected':''}>Precio 4 — VIP (−20%)</option>
           </select>
-          <button class="btn btn-green btn-sm" onclick="guardarNivel('${c.whatsapp}')">ðŸ’¾ Guardar</button>
+          <button class="btn btn-green btn-sm" onclick="guardarNivel('${c.whatsapp}')">💾 Guardar</button>
         </div>
-        <div style="margin-top:.5rem;font-size:.75rem;color:var(--gray)">Niveles 2 y 3 se asignan automÃ¡ticamente por volumen acumulado.</div>
+        <div style="margin-top:.5rem;font-size:.75rem;color:var(--gray)">Niveles 2 y 3 se asignan automáticamente por volumen acumulado.</div>
       </div>
       <div style="margin-top:1.25rem;border-top:1px solid rgba(255,255,255,.08);padding-top:1.25rem">
         <div style="color:var(--sand);font-size:.8rem;font-weight:600;margin-bottom:.75rem">&#x2699;&#xFE0F; ACCIONES</div>
@@ -1076,11 +1075,11 @@ async function guardarEdicionCliente() {
   if (notas)  payload.notas  = notas;
   var r = await api('/clientes/' + encodeURIComponent(wa), { method: 'PATCH', body: payload });
   if (r && r.ok) {
-    alert('âœ… Datos actualizados correctamente.');
+    alert('✅ Datos actualizados correctamente.');
     verCliente(wa);
     loadClientes();
   } else {
-    alert('âŒ Error al guardar. Intenta de nuevo.');
+    alert('❌ Error al guardar. Intenta de nuevo.');
   }
 }
 async function toggleNoCampana() {
@@ -1088,7 +1087,7 @@ async function toggleNoCampana() {
   var actual = window._clienteNoCampana;
   var nuevo = !actual;
   if (!id) { alert('Error: ID de cliente no encontrado'); return; }
-  if (!confirm(nuevo ? 'Â¿Marcar este cliente como NO CAMPANA? No recibira campanas masivas.' : 'Â¿Permitir campanas a este cliente nuevamente?')) return;
+  if (!confirm(nuevo ? '¿Marcar este cliente como NO CAMPANA? No recibira campanas masivas.' : '¿Permitir campanas a este cliente nuevamente?')) return;
   try {
     var tk = localStorage.getItem('mp_token');
     var res = await fetch('/api/clientes/' + id + '/nocampana', {
@@ -1098,7 +1097,7 @@ async function toggleNoCampana() {
     });
     var data = await res.json();
     if (data && data.ok) {
-      alert(nuevo ? 'âœ… Cliente marcado como No Campana.' : 'âœ… Cliente habilitado para campanas.');
+      alert(nuevo ? '✅ Cliente marcado como No Campana.' : '✅ Cliente habilitado para campanas.');
       closeModal('modalCliente');
       loadClientes();
     } else {
@@ -1112,7 +1111,7 @@ async function toggleActivo() {
   var actual = window._clienteActivo;
   var nuevo = !actual;
   if (!id) { alert('Error: ID de cliente no encontrado'); return; }
-  if (!confirm(nuevo ? 'Â¿Habilitar este cliente?' : 'Â¿Deshabilitar este cliente? El bot lo ignorara.')) return;
+  if (!confirm(nuevo ? '¿Habilitar este cliente?' : '¿Deshabilitar este cliente? El bot lo ignorara.')) return;
   try {
     var tk = localStorage.getItem('mp_token');
     var res = await fetch('/api/clientes/' + id + '/deshabilitar', {
@@ -1122,7 +1121,7 @@ async function toggleActivo() {
     });
     var data = await res.json();
     if (data && data.ok) {
-      alert(nuevo ? 'âœ… Cliente habilitado.' : 'âœ… Cliente deshabilitado.');
+      alert(nuevo ? '✅ Cliente habilitado.' : '✅ Cliente deshabilitado.');
       closeModal('modalCliente');
       loadClientes();
     } else {
@@ -1145,14 +1144,14 @@ async function syncInventario() {
     if (btn) { btn.disabled = true; btn.textContent = 'Sincronizando...'; }
     var r = await api('/inventario/sync', { method: 'POST' });
     if (r && r.ok) {
-      alert('âœ… Sincronizado: ' + r.total + ' productos cargados.\nAhora edita el stock de cada uno.');
+      alert('✅ Sincronizado: ' + r.total + ' productos cargados.\nAhora edita el stock de cada uno.');
       loadInventario();
     } else { alert('Error: ' + (r && r.error ? r.error : 'respuesta inesperada')); }
   } catch(e) { alert('Error al sincronizar: ' + e.message); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = 'ðŸ”„ Sync catÃ¡logo'; } }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '🔄 Sync catálogo'; } }
 }
 
-// â”€â”€ INVENTARIO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── INVENTARIO ────────────────────────────────────
 var _invData = [];
 var _invCatalog = {};
 var _invSortField = 'nombre';
@@ -1195,7 +1194,7 @@ async function loadInventario() {
   cats.sort(); marcas.sort();
   var selCat = document.getElementById('invFilterCat');
   var prevCat = selCat.value;
-  selCat.innerHTML = '<option value="">Todas las categorÃ­as</option>' + cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+  selCat.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
   selCat.value = prevCat;
   var selMarca = document.getElementById('invFilterMarca');
   var prevMarca = selMarca.value;
@@ -1240,7 +1239,7 @@ function filterInventario() {
 
   var tbody = document.getElementById('invTableBody');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Sin resultados' + (_invData.length === 0 ? '.<br><br><button class="btn" onclick="syncInventario()">ðŸ”„ Sincronizar desde catÃ¡logo</button>' : '') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Sin resultados' + (_invData.length === 0 ? '.<br><br><button class="btn" onclick="syncInventario()">🔄 Sincronizar desde catálogo</button>' : '') + '</td></tr>';
     return;
   }
   tbody.innerHTML = filtered.map(function(p) {
@@ -1253,8 +1252,7 @@ function filterInventario() {
       + '<td style="color:' + color + ';font-weight:600">' + p.stock + '</td>'
       + '<td style="color:var(--gray)">' + p.stock_minimo + '</td>'
       + '<td style="font-size:.78rem">' + p.unidad + '</td>'
-            + '<td style="text-align:center;font-size:1.1rem">' + (p.activo !== false ? '<span title="Activo" style="color:#22c55e">&#x2B24;</span>' : '<span title="Inactivo" style="color:#ef4444">&#x2B24;</span>') + '</td>'
-      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">ðŸ’¾</button><button class="btn btn-secondary btn-sm" onclick="openEditProducto(\'' + p.producto_id + '\')">âœï¸</button></div></td>'
+      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button><button class="btn btn-secondary btn-sm" onclick="openEditProducto(\'' + p.producto_id + '\')">✏️</button></div></td>'
       + '</tr>';
   }).join('');
 }
@@ -1278,13 +1276,13 @@ function clearInvFilters() {
 
 async function saveStock(id) {
   const val = parseInt(document.getElementById('inv-' + id).value);
-  if (isNaN(val) || val < 0) { toast('Cantidad invÃ¡lida', 'error'); return; }
+  if (isNaN(val) || val < 0) { toast('Cantidad inválida', 'error'); return; }
   const r = await api('/inventario/' + id, { method: 'PATCH', body: { stock: val } });
-  if (r?.ok) { toast('Stock actualizado âœ…', 'success'); loadInventario(); }
+  if (r?.ok) { toast('Stock actualizado ✅', 'success'); loadInventario(); }
   else toast('Error al guardar', 'error');
 }
 
-// â”€â”€ CAMPAÃ‘AS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CAMPAÑAS ──────────────────────────────────────
 async function loadCampanas() {
   const data = await api('/campanas');
   if (!data) return;
@@ -1300,7 +1298,7 @@ async function loadCampanas() {
         <td style="color:var(--gray);font-size:.75rem">${fmtDate(c.creado_en)}</td>
       </tr>`).join('');
   } else {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Sin campaÃ±as aÃºn. Crea la primera arriba.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem">Sin campañas aún. Crea la primera arriba.</td></tr>';
   }
 }
 
@@ -1335,14 +1333,14 @@ async function crearCampana() {
   } else toast('Error al crear campa\u00f1a', 'error');
 }
 
-// â”€â”€ VENDEDORES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── VENDEDORES ───────────────────────────────────
   async function loadVendedores() {
     const data = await api('/usuarios');
     if (!data || !Array.isArray(data)) return;
     const rows = data.map(v => `
       <div style="background:var(--cement);border-radius:8px;padding:1rem 1.25rem;margin-bottom:.6rem;display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:.5rem;align-items:center">
-        <div><div style="font-weight:600;color:var(--white);font-size:.88rem">${v.nombre||'â€”'}</div><div style="font-size:.76rem;color:var(--gray)">${v.empresa||''}</div></div>
-        <div><div style="font-size:.82rem">${v.email}</div><div style="font-size:.76rem;color:var(--gray)">${v.whatsapp||''} ${v.telefono?'Â· '+v.telefono:''}</div></div>
+        <div><div style="font-weight:600;color:var(--white);font-size:.88rem">${v.nombre||'—'}</div><div style="font-size:.76rem;color:var(--gray)">${v.empresa||''}</div></div>
+        <div><div style="font-size:.82rem">${v.email}</div><div style="font-size:.76rem;color:var(--gray)">${v.whatsapp||''} ${v.telefono?'· '+v.telefono:''}</div></div>
         <div><span style="font-size:.74rem;padding:.2rem .4rem;border-radius:4px;background:rgba(200,92,42,.2);color:var(--sand)">${v.rol}</span>${v.zona?` <span style="font-size:.72rem;color:var(--gray)">${zonaLabel(v.zona)}</span>`:''}</div>
         <div style="display:flex;gap:.25rem;align-items:center">
           <span style="font-size:.74rem;padding:.15rem .4rem;border-radius:4px;background:${v.activo?'rgba(74,193,131,.15)':'rgba(255,80,80,.15)'};color:${v.activo?'var(--green)':'#ff6060'}">${v.activo?'Activo':'Inactivo'}</span>
@@ -1356,9 +1354,9 @@ async function crearCampana() {
   function showVendedorForm() { document.getElementById('vendedorForm').style.display='block'; }
   async function crearVendedor() {
     const body = { nombre:document.getElementById('vNombre').value, empresa:document.getElementById('vEmpresa').value, email:document.getElementById('vEmail').value, whatsapp:document.getElementById('vWhatsapp').value, telefono:document.getElementById('vTelefono').value, password:document.getElementById('vPassword').value, rol:document.getElementById('vRol').value, zona:document.getElementById('vZona').value };
-    if (!body.nombre||!body.email||!body.password){toast('Nombre, email y contraseÃ±a requeridos','error');return;}
+    if (!body.nombre||!body.email||!body.password){toast('Nombre, email y contraseña requeridos','error');return;}
     const r = await api('/usuarios',{method:'POST',body});
-    if (r?.id){toast('Vendedor creado âœ…','success');document.getElementById('vendedorForm').style.display='none';loadVendedores();}
+    if (r?.id){toast('Vendedor creado ✅','success');document.getElementById('vendedorForm').style.display='none';loadVendedores();}
     else toast('Error al crear','error');
   }
   async function toggleVendedor(id,activo){
@@ -1366,13 +1364,13 @@ async function crearCampana() {
     loadVendedores();
   }
 
-// â”€â”€ CONFIG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CONFIG ────────────────────────────────────────
   let _tarifasData = {};
   async function loadConfig() {
     const data = await api('/tarifas');
     if (!data) return;
     _tarifasData = data;
-    const ZONA_LABELS = { norte:'GDL Norte / Zapopan', gdl:'Guadalajara', sur:'Sur / Tlaquepaque', este:'Este / TonalÃ¡ / El Salto', sur_lejano:'Tlajomulco / ZMG Sur', default:'ZMG / Otros' };
+    const ZONA_LABELS = { norte:'GDL Norte / Zapopan', gdl:'Guadalajara', sur:'Sur / Tlaquepaque', este:'Este / Tonalá / El Salto', sur_lejano:'Tlajomulco / ZMG Sur', default:'ZMG / Otros' };
     const rows = Object.entries(data).map(([k,v]) => `
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:.5rem;align-items:center;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
         <div style="font-size:.84rem">${ZONA_LABELS[k]||k}</div>
@@ -1380,7 +1378,7 @@ async function crearCampana() {
           <span style="color:var(--gray);font-size:.8rem">$</span>
           <input type="number" id="tarifa_${k}" value="${v.precio}" style="width:70px;background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:.3rem .4rem;font-size:.84rem">
         </div>
-        <input type="text" id="tiempo_${k}" value="${v.tiempo}" placeholder="1-2 dÃ­as" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:.3rem .4rem;font-size:.8rem">
+        <input type="text" id="tiempo_${k}" value="${v.tiempo}" placeholder="1-2 días" style="background:var(--dark);color:var(--white);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:.3rem .4rem;font-size:.8rem">
       </div>
     `).join('');
     document.getElementById('tarifasForm').innerHTML = rows;
@@ -1389,15 +1387,15 @@ async function crearCampana() {
     const updated = {};
     for (const k of Object.keys(_tarifasData)) {
       const precio = parseFloat(document.getElementById('tarifa_'+k)?.value||0);
-      const tiempo = document.getElementById('tiempo_'+k)?.value||'1-2 dÃ­as';
+      const tiempo = document.getElementById('tiempo_'+k)?.value||'1-2 días';
       updated[k] = { ..._tarifasData[k], precio, tiempo };
     }
     const r = await api('/tarifas',{method:'PUT',body:updated});
-    if (r?.ok) toast('Tarifas guardadas âœ…','success');
+    if (r?.ok) toast('Tarifas guardadas ✅','success');
     else toast('Error al guardar','error');
   }
 
-// â”€â”€ REPORTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── REPORTES ──────────────────────────────────────
 async function guardarNivel(wa) {
     const sel = document.getElementById('nivelSelect');
     if (!sel) { toast('Error: selector no encontrado', 'error'); return; }
@@ -1405,7 +1403,7 @@ async function guardarNivel(wa) {
     const r = await api('/clientes/' + encodeURIComponent(wa) + '/nivel', {
       method: 'PATCH', body: { nivel_precio: nivel }
     });
-    if (r?.ok) { toast('Nivel actualizado âœ…', 'success'); closeModal('modalCliente'); }
+    if (r?.ok) { toast('Nivel actualizado ✅', 'success'); closeModal('modalCliente'); }
     else toast('Error al guardar nivel', 'error');
   }
 
@@ -1430,14 +1428,14 @@ async function guardarNivel(wa) {
       <div style="color:var(--gray);font-size:.8rem;margin-top:.3rem">clientes nuevos</div>
       <hr style="border-color:rgba(255,255,255,.06);margin:1rem 0">
       <div class="detail-row"><span class="detail-label">Cotizaciones enviadas</span><b>${data.cots_enviadas||0}</b></div>
-      <div class="detail-row"><span class="detail-label">ConversiÃ³n cotâ†’pedido</span><b>${data.conversion||0}%</b></div>
+      <div class="detail-row"><span class="detail-label">Conversión cot→pedido</span><b>${data.conversion||0}%</b></div>
       <div class="detail-row"><span class="detail-label">Mensajes procesados</span><b>${data.mensajes||0}</b></div>
     </div>
     <div class="report-card">
-      <div class="report-card-title">Productos mÃ¡s vendidos</div>
+      <div class="report-card-title">Productos más vendidos</div>
       ${(data.top_productos||[]).length ? data.top_productos.map((p,i) => `
         <div class="detail-row">
-          <span class="detail-label">${i+1}. ${p.nombre||'â€”'}</span>
+          <span class="detail-label">${i+1}. ${p.nombre||'—'}</span>
           <b>${p.unidades} uds</b>
         </div>`).join('') : '<div style="color:var(--gray);text-align:center;padding:1rem">Sin datos</div>'}
     </div>
@@ -1451,10 +1449,10 @@ async function guardarNivel(wa) {
     </div>`;
 }
 
-// â”€â”€ UTILS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── UTILS ──────────────────────────────────────────
 function badgeEstado(e) {
   const map = { pendiente:'badge-pend', confirmado:'badge-conf', cancelado:'badge-canc', enviando:'badge-env' };
-  return `<span class="badge ${map[e]||'badge-pend'}">${e||'â€”'}</span>`;
+  return `<span class="badge ${map[e]||'badge-pend'}">${e||'—'}</span>`;
 }
 function badgeCamp(e) {
   const map = { borrador:'badge-pend', enviando:'badge-env', completada:'badge-conf', cancelada:'badge-canc' };
@@ -1462,15 +1460,15 @@ function badgeCamp(e) {
 }
 function zonaLabel(z) {
   const labels = {
-    'norte': 'ðŸ”µ Norte/Zapopan',
-    'sur':   'ðŸŸ  Sur/Tlaquepaque',
-    'este':  'ðŸŸ¢ Este/TonalÃ¡',
-    'sucursal_principal': 'ðŸ“ MaterialesPro Â· Av. LÃ³pez Mateos Sur 6506'
+    'norte': '🔵 Norte/Zapopan',
+    'sur':   '🟠 Sur/Tlaquepaque',
+    'este':  '🟢 Este/Tonalá',
+    'sucursal_principal': '📍 MaterialesPro · Av. López Mateos Sur 6506'
   };
-  return labels[z] || (z ? z : 'â€”');
+  return labels[z] || (z ? z : '—');
 }
 function fmtDate(d) {
-  if (!d) return 'â€”';
+  if (!d) return '—';
   return new Date(d).toLocaleDateString('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 }
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
@@ -1482,14 +1480,14 @@ function toast(msg, type='success') {
   setTimeout(() => t.remove(), 4000);
 }
 
-// â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── INIT ───────────────────────────────────────────
 if (TOKEN && USER) { initApp(); }
 else { document.getElementById('loginScreen').style.display = 'flex'; }
 
 // Auto-refresh dashboard cada 60 segundos
 setInterval(() => { if (CURRENT === 'dashboard') loadDashboard(); }, 60000);
 
-// â”€â”€ CATÃLOGO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CATÁLOGO ──────────────────────────────────────
 let excelFileBase64 = null;
 
 async function loadCatalogo() {
@@ -1509,7 +1507,7 @@ async function loadCatalogo() {
         <td>${p.nombre || ''}</td>
         <td>${p.presentacion || ''}</td>
         <td style="color:var(--sand);font-weight:600">$${Number(p.precio_venta || 0).toLocaleString('es-MX')}</td>
-        <td>${p.activo ? '<span style="color:#4caf50">âœ… Activo</span>' : '<span style="color:var(--gray)">â¸ Inactivo</span>'}</td>
+        <td>${p.activo ? '<span style="color:#4caf50">✅ Activo</span>' : '<span style="color:var(--gray)">⏸ Inactivo</span>'}</td>
       </tr>`).join('');
   } catch(e) { console.error('loadCatalogo', e); }
 }
@@ -1547,7 +1545,7 @@ function renderComercial() {
       + '<td style="white-space:nowrap">'
         + '<input type="number" id="po_' + p.codigo + '" class="input" style="width:88px;padding:.3rem .5rem;font-size:.82rem" value="' + (p.precio_oferta || '') + '" placeholder="$">'
         + ' <input type="date" id="oh_' + p.codigo + '" class="input" style="width:128px;padding:.3rem .5rem;font-size:.82rem" value="' + ofHasta + '">'
-        + ' <button onclick="saveOfertaRow(\'' + p.codigo + '\')" style="padding:.25rem .55rem;font-size:.8rem;background:#4caf50;color:#fff;border:none;border-radius:4px;cursor:pointer" title="Guardar oferta">ðŸ’¾</button>'
+        + ' <button onclick="saveOfertaRow(\'' + p.codigo + '\')" style="padding:.25rem .55rem;font-size:.8rem;background:#4caf50;color:#fff;border:none;border-radius:4px;cursor:pointer" title="Guardar oferta">💾</button>'
         + '</td>'
       + '<td style="text-align:center"><input type="checkbox" ' + (p.mas_vendido ? 'checked' : '') + ' onchange="toggleComercial(\'' + p.codigo + '\',\'mas_vendido\',this.checked)"></td>'
       + '</tr>';
@@ -1590,7 +1588,7 @@ async function saveOfertaRow(codigo) {
   var precioOferta = po.value ? parseFloat(po.value) : null;
   var ofertaHasta  = oh && oh.value ? oh.value : null;
   warn.style.display = 'none';
-  if (btn) { btn.textContent = 'â³'; btn.disabled = true; }
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   try {
     var r = await fetch('/api/catalogo/' + codigo + '/comercial', {
       method: 'PATCH',
@@ -1601,24 +1599,24 @@ async function saveOfertaRow(codigo) {
     if (!r.ok) {
       warn.textContent = d.error || 'Error al guardar oferta';
       warn.style.display = 'block';
-      if (btn) { btn.textContent = 'âŒ'; btn.disabled = false; }
+      if (btn) { btn.textContent = '❌'; btn.disabled = false; }
       return;
     }
     var p = _comercialData.find(function(x) { return x.codigo === codigo; });
     if (p) { p.precio_oferta = precioOferta; p.oferta_hasta = ofertaHasta; }
     if (btn) {
-      btn.textContent = 'âœ…';
+      btn.textContent = '✅';
       btn.disabled = false;
-      setTimeout(function() { if (btn) btn.textContent = 'ðŸ’¾'; }, 1500);
+      setTimeout(function() { if (btn) btn.textContent = '💾'; }, 1500);
     }
   } catch(e) {
     warn.textContent = e.message;
     warn.style.display = 'block';
-    if (btn) { btn.textContent = 'âŒ'; btn.disabled = false; }
+    if (btn) { btn.textContent = '❌'; btn.disabled = false; }
   }
 }
 
-// Stubs â€” reemplazadas por saveOfertaRow
+// Stubs — reemplazadas por saveOfertaRow
 function updatePrecioOferta() {}
 function updateOfertaHasta() {}
 
@@ -1646,13 +1644,13 @@ function previsualizarExcel(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     excelFileBase64 = e.target.result.split(',')[1];
-    // Preview simple â€” mostrar nombre y tamaÃ±o
+    // Preview simple — mostrar nombre y tamaño
     const kb = (file.size / 1024).toFixed(1);
     document.getElementById('catPreviewInfo').textContent =
-      `Archivo: ${file.name} (${kb} KB) â€” Los datos se validarÃ¡n al confirmar`;
+      `Archivo: ${file.name} (${kb} KB) — Los datos se validarán al confirmar`;
     // Limpiar tabla preview
     document.getElementById('catPreviewTable').innerHTML =
-      '<tr><td colspan="6" style="text-align:center;color:var(--light);padding:1rem">âœ… Archivo listo â€” haz clic en Confirmar para importar</td></tr>';
+      '<tr><td colspan="6" style="text-align:center;color:var(--light);padding:1rem">✅ Archivo listo — haz clic en Confirmar para importar</td></tr>';
     document.getElementById('catPreview').style.display = 'block';
     document.getElementById('catResult').style.display  = 'none';
   };
@@ -1670,7 +1668,7 @@ async function confirmarImport() {
   if (!excelFileBase64) return;
   const tk  = localStorage.getItem('mp_token');
   const btn = document.querySelector('#catPreview .btn-primary');
-  btn.textContent = 'â³ Importando...';
+  btn.textContent = '⏳ Importando...';
   btn.disabled    = true;
   try {
     const r = await fetch('/api/catalogo/importar', {
@@ -1685,30 +1683,30 @@ async function confirmarImport() {
       el.style.background = 'rgba(76,175,80,.15)';
       el.style.border      = '1px solid rgba(76,175,80,.3)';
       el.style.color       = '#81c784';
-      el.textContent       = `âœ… ${d.mensaje} (antes: ${d.anterior} productos)`;
+      el.textContent       = `✅ ${d.mensaje} (antes: ${d.anterior} productos)`;
       cancelarImport();
       loadCatalogo();
     } else {
       el.style.background = 'rgba(229,57,53,.15)';
       el.style.border      = '1px solid rgba(229,57,53,.3)';
       el.style.color       = '#ef9a9a';
-      el.textContent       = 'âŒ ' + (d.error || 'Error al importar');
+      el.textContent       = '❌ ' + (d.error || 'Error al importar');
     }
   } catch(e) {
     const el = document.getElementById('catResult');
     el.style.display    = 'block';
     el.style.background = 'rgba(229,57,53,.15)';
     el.style.color      = '#ef9a9a';
-    el.textContent      = 'âŒ Error de conexiÃ³n: ' + e.message;
+    el.textContent      = '❌ Error de conexión: ' + e.message;
   } finally {
-    btn.textContent = 'âœ… Confirmar e importar';
+    btn.textContent = '✅ Confirmar e importar';
     btn.disabled    = false;
   }
 }
 
 </script>
 
-<!-- sync-inventario-standalone removed â€” functions now in main script -->
+<!-- sync-inventario-standalone removed — functions now in main script -->
 <script>
 // -- MODAL EDICION PRODUCTO ------------------------------------------
 var _editProductoCodigo = null;
@@ -1722,14 +1720,7 @@ function openEditProducto(codigo) {
   document.getElementById("ep_nombre").value          = p.nombre || "";
   document.getElementById("ep_marca").value           = p.marca || "";
   document.getElementById("ep_descripcion").value     = cat.descripcion || "";
-  // Poblar select de categorÃ­as con las disponibles en catÃ¡logo
-  var cats = [];
-  _invData.forEach(function(x) { if (x.categoria && cats.indexOf(x.categoria) === -1) cats.push(x.categoria); });
-  cats.sort();
-  var selCat = document.getElementById("ep_categoria");
-  var curCat = p.categoria || "";
-  selCat.innerHTML = cats.map(function(c) { return "<option value=\"" + c + "\"" + (c === curCat ? " selected" : "") + ">" + c + "</option>"; }).join("");
-  if (!cats.includes(curCat) && curCat) selCat.innerHTML += "<option value=\"" + curCat + "\" selected>" + curCat + "</option>";
+  document.getElementById("ep_categoria").value       = p.categoria || "";
   document.getElementById("ep_presentacion").value    = p.presentacion || "";
   document.getElementById("ep_unidad").value          = p.unidad || "";
   document.getElementById("ep_precio_venta").value    = cat.precio_venta  != null ? cat.precio_venta  : "";
@@ -1794,17 +1785,17 @@ async function guardarEditProducto() {
     });
     var data = await res.json();
     if (res.ok && data.ok) {
-      toast("âœ… Producto actualizado", "success");
+      toast("✅ Producto actualizado", "success");
       closeModal("modalEditProducto");
       loadInventario();
     } else {
-      toast("âŒ Error: " + (data.error || "respuesta inesperada"), "error");
+      toast("❌ Error: " + (data.error || "respuesta inesperada"), "error");
     }
   } catch (e) {
-    toast("âŒ Error de conexiÃ³n: " + e.message, "error");
+    toast("❌ Error de conexión: " + e.message, "error");
   } finally {
     btn.disabled = false;
-    btn.textContent = "ðŸ’¾ Guardar cambios";
+    btn.textContent = "💾 Guardar cambios";
   }
 }
 </script>
