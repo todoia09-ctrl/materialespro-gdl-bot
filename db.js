@@ -161,7 +161,7 @@ async function initSchema() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )`,
     `CREATE TABLE IF NOT EXISTS catalogo_productos (
-      codigo                    VARCHAR(20)   PRIMARY KEY,
+      codigo                    VARCHAR(50)   PRIMARY KEY,
       nombre                    TEXT          NOT NULL,
       descripcion               TEXT,
       categoria                 TEXT,
@@ -197,6 +197,10 @@ async function initSchema() {
     `ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nivel_precio  INTEGER DEFAULT 1`,
     `ALTER TABLE clientes ADD COLUMN IF NOT EXISTS no_campana    BOOLEAN DEFAULT FALSE`,
     `ALTER TABLE catalogo_productos ADD COLUMN IF NOT EXISTS presentacion VARCHAR(80)`,
+    `ALTER TABLE inventario ADD COLUMN IF NOT EXISTS categoria     TEXT`,
+    `ALTER TABLE inventario ADD COLUMN IF NOT EXISTS marca         TEXT`,
+    `ALTER TABLE inventario ADD COLUMN IF NOT EXISTS presentacion  TEXT`,
+    `ALTER TABLE inventario ADD COLUMN IF NOT EXISTS precio_venta  NUMERIC(12,2)`,
         `CREATE INDEX IF NOT EXISTS idx_pedidos_estado  ON pedidos(estado)`,
     `CREATE INDEX IF NOT EXISTS idx_pedidos_creado  ON pedidos(creado_en DESC)`,
     `CREATE INDEX IF NOT EXISTS idx_cots_estado     ON cotizaciones(estado)`,
