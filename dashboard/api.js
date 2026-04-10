@@ -872,7 +872,7 @@ router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) =>
       pb(b.activo),
     ]);
 
-    // Actualizar inventario si se proporcionó stock o stock_minimo
+    // Actualizar inventario — stock, stock_minimo Y campos descriptivos sincronizados
     var invUpdates = [];
     var invParams  = [codigo];
     if (b.stock !== undefined && b.stock !== "") {
@@ -882,6 +882,27 @@ router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) =>
     if (b.stock_minimo !== undefined && b.stock_minimo !== "") {
       invParams.push(pi(b.stock_minimo));
       invUpdates.push("stock_minimo = $" + invParams.length);
+    }
+    // Sincronizar campos descriptivos en inventario
+    if (ps(b.nombre)) {
+      invParams.push(ps(b.nombre));
+      invUpdates.push("nombre = $" + invParams.length);
+    }
+    if (ps(b.categoria)) {
+      invParams.push(ps(b.categoria));
+      invUpdates.push("categoria = $" + invParams.length);
+    }
+    if (ps(b.marca)) {
+      invParams.push(ps(b.marca));
+      invUpdates.push("marca = $" + invParams.length);
+    }
+    if (ps(b.presentacion)) {
+      invParams.push(ps(b.presentacion));
+      invUpdates.push("presentacion = $" + invParams.length);
+    }
+    if (ps(b.unidad)) {
+      invParams.push(ps(b.unidad));
+      invUpdates.push("unidad = $" + invParams.length);
     }
     if (invUpdates.length) {
       var invSql = "UPDATE inventario SET " + invUpdates.join(", ") + ", actualizado_en = NOW() WHERE producto_id = $1";
