@@ -591,6 +591,83 @@ select:focus{border-color:var(--rust)}
   </div>
 </div>
 
+<!-- MODAL EDICION PRODUCTO INVENTARIO -->
+<div class="modal-bg" id="modalEditProducto">
+  <div class="modal" style="max-width:660px;width:94%">
+    <button class="modal-close" onclick="closeModal('modalEditProducto')" style="float:right">&#x2715;</button>
+    <div class="modal-title" style="font-size:1.2rem">&#x270F;&#xFE0F; Editar Producto</div>
+    <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="color:var(--sand);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Identificación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Código</label>
+        <input id="ep_codigo" disabled style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.4rem .65rem;color:var(--gray);font-size:.84rem;font-family:'DM Mono',monospace"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Marca</label>
+        <input id="ep_marca" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+      </div>
+      <div style="margin-top:.6rem"><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Nombre</label>
+      <input id="ep_nombre" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+      <div style="margin-top:.6rem"><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Descripción</label>
+      <textarea id="ep_descripcion" rows="2" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem;resize:vertical;font-family:'DM Sans',sans-serif"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-top:.6rem">
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Categoría</label>
+        <input id="ep_categoria" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Presentación</label>
+        <input id="ep_presentacion" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Unidad</label>
+        <input id="ep_unidad" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="color:var(--sand);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Precios (MXN)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem">
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 1 NETO</label>
+        <input id="ep_precio_venta" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio Lista</label>
+        <input id="ep_precio_lista" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 2 (−5%)</label>
+        <input id="ep_precio_2" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 3 (−10%)</label>
+        <input id="ep_precio_3" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Precio 4 (VIP)</label>
+        <input id="ep_precio_4" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Desc. máx. (%)</label>
+        <input id="ep_descuento_maximo" type="number" step="1" min="0" max="100" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="color:var(--sand);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Inventario</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem">
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Stock actual</label>
+        <input id="ep_stock" type="number" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Stock mínimo</label>
+        <input id="ep_stock_minimo" type="number" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Cant. mínima venta</label>
+        <input id="ep_cantidad_minima" type="number" min="0" step="0.01" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="color:var(--sand);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Rendimiento</div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:.6rem">
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">m² por unidad</label>
+        <input id="ep_rendimiento_m2" type="number" step="0.01" min="0" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Nota de rendimiento</label>
+        <input id="ep_rendimiento_nota" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem" placeholder="ej: 4 a 5 m² por bolsa"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border-radius:8px;padding:.75rem 1rem;margin-bottom:1.25rem">
+      <div><div style="font-size:.84rem;font-weight:600">Estado del producto</div>
+      <div style="font-size:.72rem;color:var(--gray);margin-top:.15rem">Inactivo = oculto para el bot</div></div>
+      <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+        <input type="checkbox" id="ep_activo" style="width:16px;height:16px;cursor:pointer;accent-color:var(--rust)">
+        <span id="ep_activo_label" style="font-size:.84rem;font-weight:600;color:var(--green)">Activo</span>
+      </label>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modalEditProducto')">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarEditProducto" onclick="guardarEditProducto()">&#x1F4BE; Guardar cambios</button>
+    </div>
+  </div>
+</div>
 <!-- TOASTS -->
 <div id="toasts"></div>
 
@@ -1151,7 +1228,7 @@ function filterInventario() {
       + '<td style="color:' + color + ';font-weight:600">' + p.stock + '</td>'
       + '<td style="color:var(--gray)">' + p.stock_minimo + '</td>'
       + '<td style="font-size:.78rem">' + p.unidad + '</td>'
-      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button></div></td>'
+      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button><button class=\"btn btn-secondary btn-sm\" onclick=\"openEditProducto('" + p.producto_id + "')\">✏️</button></div></td>'
       + '</tr>';
   }).join('');
 }
@@ -1606,5 +1683,98 @@ async function confirmarImport() {
 </script>
 
 <!-- sync-inventario-standalone removed — functions now in main script -->
+<script>
+// -- MODAL EDICION PRODUCTO ------------------------------------------
+var _editProductoCodigo = null;
+
+function openEditProducto(codigo) {
+  var p = _invData.find(function(x) { return x.producto_id === codigo; });
+  if (!p) { toast("Producto no encontrado", "error"); return; }
+  _editProductoCodigo = codigo;
+  var cat = _invCatalog[codigo] || {};
+  document.getElementById("ep_codigo").value          = codigo || "";
+  document.getElementById("ep_nombre").value          = p.nombre || "";
+  document.getElementById("ep_marca").value           = p.marca || "";
+  document.getElementById("ep_descripcion").value     = cat.descripcion || "";
+  document.getElementById("ep_categoria").value       = p.categoria || "";
+  document.getElementById("ep_presentacion").value    = p.presentacion || "";
+  document.getElementById("ep_unidad").value          = p.unidad || "";
+  document.getElementById("ep_precio_venta").value    = cat.precio_venta  != null ? cat.precio_venta  : "";
+  document.getElementById("ep_precio_lista").value    = cat.precio_lista  != null ? cat.precio_lista  : "";
+  document.getElementById("ep_precio_2").value        = cat.precio_2      != null ? cat.precio_2      : "";
+  document.getElementById("ep_precio_3").value        = cat.precio_3      != null ? cat.precio_3      : "";
+  document.getElementById("ep_precio_4").value        = cat.precio_4      != null ? cat.precio_4      : "";
+  var dm = cat.descuento_maximo;
+  document.getElementById("ep_descuento_maximo").value = dm != null ? Math.round(parseFloat(dm) * 100) : "";
+  document.getElementById("ep_rendimiento_m2").value   = cat.rendimiento_m2_por_unidad != null ? cat.rendimiento_m2_por_unidad : "";
+  document.getElementById("ep_rendimiento_nota").value  = cat.rendimiento_nota || "";
+  document.getElementById("ep_stock").value            = p.stock != null ? p.stock : "";
+  document.getElementById("ep_stock_minimo").value     = p.stock_minimo != null ? p.stock_minimo : "";
+  document.getElementById("ep_cantidad_minima").value  = cat.cantidad_minima != null ? cat.cantidad_minima : "";
+  var isActivo = cat.activo !== false;
+  document.getElementById("ep_activo").checked = isActivo;
+  document.getElementById("ep_activo_label").textContent = isActivo ? "Activo" : "Inactivo";
+  document.getElementById("ep_activo_label").style.color = isActivo ? "var(--green)" : "var(--red)";
+  document.getElementById("ep_activo").onchange = function() {
+    document.getElementById("ep_activo_label").textContent = this.checked ? "Activo" : "Inactivo";
+    document.getElementById("ep_activo_label").style.color = this.checked ? "var(--green)" : "var(--red)";
+  };
+  openModal("modalEditProducto");
+}
+
+async function guardarEditProducto() {
+  var codigo = _editProductoCodigo;
+  if (!codigo) return;
+  var btn = document.getElementById("btnGuardarEditProducto");
+  btn.disabled = true; btn.textContent = "Guardando...";
+  function gv(id) { return document.getElementById(id).value; }
+  function gpf(id) { var v = gv(id); return v !== "" ? parseFloat(v) : null; }
+  function gpi(id) { var v = gv(id); return v !== "" ? parseInt(v) : null; }
+  var dmRaw = gv("ep_descuento_maximo");
+  var dm = dmRaw !== "" ? parseFloat(dmRaw) / 100 : null;
+  var payload = {
+    nombre:                    gv("ep_nombre").trim()          || null,
+    marca:                     gv("ep_marca").trim()           || null,
+    descripcion:               gv("ep_descripcion").trim()     || null,
+    categoria:                 gv("ep_categoria").trim()       || null,
+    presentacion:              gv("ep_presentacion").trim()    || null,
+    unidad:                    gv("ep_unidad").trim()          || null,
+    precio_venta:              gpf("ep_precio_venta"),
+    precio_lista:              gpf("ep_precio_lista"),
+    precio_2:                  gpf("ep_precio_2"),
+    precio_3:                  gpf("ep_precio_3"),
+    precio_4:                  gpf("ep_precio_4"),
+    descuento_maximo:          dm,
+    rendimiento_m2_por_unidad: gpf("ep_rendimiento_m2"),
+    rendimiento_nota:          gv("ep_rendimiento_nota").trim() || null,
+    stock:                     gpi("ep_stock"),
+    stock_minimo:              gpi("ep_stock_minimo"),
+    cantidad_minima:           gpf("ep_cantidad_minima"),
+    activo:                    document.getElementById("ep_activo").checked,
+  };
+  try {
+    var tk  = localStorage.getItem("mp_token");
+    var res = await fetch("/api/catalogo/" + encodeURIComponent(codigo), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tk },
+      body: JSON.stringify(payload)
+    });
+    var data = await res.json();
+    if (res.ok && data.ok) {
+      toast("✅ Producto actualizado", "success");
+      closeModal("modalEditProducto");
+      loadInventario();
+    } else {
+      toast("❌ Error: " + (data.error || "respuesta inesperada"), "error");
+    }
+  } catch (e) {
+    toast("❌ Error de conexión: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "💾 Guardar cambios";
+  }
+}
+</script>
+
 </body>
 </html>

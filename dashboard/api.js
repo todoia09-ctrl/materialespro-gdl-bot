@@ -784,4 +784,91 @@ router.get('/catalogo/plantilla', authMiddleware(['admin']), async (req, res) =>
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// ─────────────────────────────────────────────────────────────
+//  CATÁLOGO — Editar producto completo (campos + stock)
+// ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+//  CATÁLOGO — Editar producto completo (campos + stock)
+// ─────────────────────────────────────────────────────────────
+router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) => {
+  try {
+    var codigo = req.params.codigo;
+    var b = req.body;
+
+    function pf(v) {
+      if (v === "" || v === undefined || v === null) return null;
+      var n = parseFloat(String(v).replace(/[^0-9.-]/g, ""));
+      return isNaN(n) ? null : n;
+    }
+    function ps(v) { return (v === "" || v === undefined) ? null : String(v).trim() || null; }
+    function pb(v) { return v === null || v === undefined ? null : Boolean(v); }
+    function pi(v) {
+      if (v === "" || v === undefined || v === null) return null;
+      var n = parseInt(v);
+      return isNaN(n) ? null : n;
+    }
+
+    var sql = [
+      "UPDATE catalogo_productos SET",
+      "  nombre                    = COALESCE($2,  nombre),",
+      "  descripcion               = COALESCE($3,  descripcion),",
+      "  categoria                 = COALESCE($4,  categoria),",
+      "  marca                     = COALESCE($5,  marca),",
+      "  presentacion              = COALESCE($6,  presentacion),",
+      "  unidad                    = COALESCE($7,  unidad),",
+      "  cantidad                  = COALESCE($8,  cantidad),",
+      "  cantidad_minima           = COALESCE($9,  cantidad_minima),",
+      "  precio_venta              = COALESCE($10, precio_venta),",
+      "  precio_lista              = COALESCE($11, precio_lista),",
+      "  precio_2                  = COALESCE($12, precio_2),",
+      "  precio_3                  = COALESCE($13, precio_3),",
+      "  precio_4                  = COALESCE($14, precio_4),",
+      "  iva                       = COALESCE($15, iva),",
+      "  costo_neto                = COALESCE($16, costo_neto),",
+      "  descuento_maximo          = COALESCE($17, descuento_maximo),",
+      "  rendimiento_m2_por_unidad = COALESCE($18, rendimiento_m2_por_unidad),",
+      "  rendimiento_nota          = COALESCE($19, rendimiento_nota),",
+      "  activo                    = COALESCE($20, activo),",
+      "  actualizado_en            = NOW()",
+      "WHERE codigo = $1"
+    ].join(" ");
+
+    await query(sql, [
+      codigo,
+      ps(b.nombre),          ps(b.descripcion),  ps(b.categoria),    ps(b.marca),
+      ps(b.presentacion),    ps(b.unidad),
+      pf(b.cantidad),        pf(b.cantidad_minima),
+      pf(b.precio_venta),    pf(b.precio_lista),
+      pf(b.precio_2),        pf(b.precio_3),       pf(b.precio_4),
+      pf(b.iva),             pf(b.costo_neto),     pf(b.descuento_maximo),
+      pf(b.rendimiento_m2_por_unidad),
+      ps(b.rendimiento_nota),
+      pb(b.activo),
+    ]);
+
+    // Actualizar inventario si se proporcionó stock o stock_minimo
+    var invUpdates = [];
+    var invParams  = [codigo];
+    if (b.stock !== undefined && b.stock !== "") {
+      invParams.push(pi(b.stock));
+      invUpdates.push("stock = $" + invParams.length);
+    }
+    if (b.stock_minimo !== undefined && b.stock_minimo !== "") {
+      invParams.push(pi(b.stock_minimo));
+      invUpdates.push("stock_minimo = $" + invParams.length);
+    }
+    if (invUpdates.length) {
+      var invSql = "UPDATE inventario SET " + invUpdates.join(", ") + ", actualizado_en = NOW() WHERE producto_id = $1";
+      await query(invSql, invParams);
+    }
+
+    console.log("[CATALOGO PATCH] Actualizado:", codigo);
+    res.json({ ok: true, codigo: codigo });
+  } catch (e) {
+    console.error("[CATALOGO PATCH]", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
 module.exports = router;

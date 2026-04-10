@@ -13,11 +13,18 @@ const { query } = require('./db');
 async function syncFromCatalog(catalogProducts) {
   for (const p of catalogProducts) {
     if (!p.activo) continue;
+    const unidad = p.unidad || (p.presentacion?.includes('kg') ? 'bolsas' : p.presentacion?.includes('L') ? 'cubetas' : 'unidades');
     await query(`
-      INSERT INTO inventario(producto_id, nombre, unidad)
-      VALUES($1,$2,$3)
-      ON CONFLICT(producto_id) DO UPDATE SET nombre=EXCLUDED.nombre`,
-      [p.codigo || p.id, p.nombre, p.unidad || (p.presentacion?.includes('kg') ? 'bolsas' : p.presentacion?.includes('L') ? 'cubetas' : 'unidades')]
+      INSERT INTO inventario(producto_id, nombre, unidad, categoria, marca, presentacion, precio_venta, stock, stock_minimo)
+      VALUES($1,$2,$3,$4,$5,$6,$7, 0, 0)
+      ON CONFLICT(producto_id) DO UPDATE SET
+        nombre       = EXCLUDED.nombre,
+        unidad       = EXCLUDED.unidad,
+        categoria    = EXCLUDED.categoria,
+        marca        = EXCLUDED.marca,
+        presentacion = EXCLUDED.presentacion,
+        precio_venta = EXCLUDED.precio_venta`,
+      [p.codigo || p.id, p.nombre, unidad, p.categoria || null, p.marca || null, p.presentacion || null, p.precio_venta || p.precio || null]
     );
   }
 }
