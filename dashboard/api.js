@@ -470,24 +470,22 @@ router.put('/tarifas', authMiddleware(['admin']), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET /api/catalogo — productos actuales
-router.get('/catalogo', authMiddleware(['admin']), (req, res) => {
+// GET /api/catalogo — productos desde DB (fuente de verdad)
+router.get('/catalogo', authMiddleware(['admin']), async (req, res) => {
   try {
+    const result = await query(`
+      SELECT codigo, nombre, descripcion, categoria, marca,
+             presentacion, unidad, cantidad, cantidad_minima,
+             precio_venta, precio_lista, precio_2, precio_3, precio_4,
+             iva, costo_neto, descuento_maximo,
+             rendimiento_m2_por_unidad, rendimiento_nota,
+             destacado, en_oferta, precio_oferta, oferta_hasta, mas_vendido,
+             unidades_pallet, moneda, activo, creado_en, actualizado_en
+      FROM catalogo_productos
+      ORDER BY categoria, nombre`
+    );
     const cat = JSON.parse(fs.readFileSync(CATALOG_PATH, 'utf8'));
-    const raw = cat.productos || [];
-    const productos = raw.map(p => ({
-      id:           p.codigo || p.id || '',
-      nombre:       p.nombre || '',
-      descripcion:  p.descripcion || '',
-      categoria:    p.categoria || '',
-      marca:        p.marca || '',
-      presentacion: p.unidad || p.presentacion || '',
-      precio:       p.precio_venta || p.precio || 0,
-      precio_lista: p.precio_lista || 0,
-      costo:        p.costo_neto || p.costo || 0,
-      activo:       p.activo !== false,
-    }));
-    res.json({ negocio: cat.negocio || cat.meta || {}, productos, total: productos.length });
+    res.json({ negocio: cat.negocio || cat.meta || {}, productos: result.rows, total: result.rows.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -544,10 +542,7 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
 
     if (!rows.length) return res.status(400).json({ error: 'El archivo está vacío' });
 
-    // Mapeo flexible — soporta tu formato CRM y formato estándar
-    const headers = Object.keys(rows[0]);
-    const esTuFormato = headers.includes('Código CRM') || headers.includes('Artículo');
-
+    // Mapeo flexible — soporta formato CRM y formato estándar
     function getVal(r, ...keys) {
       for (const k of keys) { if (r[k] !== undefined && r[k] !== '') return r[k]; }
       return '';
@@ -558,52 +553,43 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
       return parseFloat(String(v).replace(/[^0-9.]/g, '')) || 0;
     }
 
-    // Construir productos limpios — soporta ambos formatos
+    function parseActivo(v) {
+      if (v === true || v === 1) return true;
+      const s = String(v).toLowerCase().trim();
+      return s === 'verdadero' || s === 'true' || s === '1';
+    }
+
+    // Construir productos limpios — sincronizado con catalogo_productos en DB
     const productos = rows.map((r, i) => {
       const nombre = String(getVal(r, 'Artículo', 'nombre') || '').trim();
       if (!nombre) return null;
-
-      const precio1 = parsePrecio(getVal(r, 'Precio 1 NETO', 'precio'));
-      const precio2 = parsePrecio(getVal(r, 'Precio 2 NETO', 'precio_2'));
-      const precio3 = parsePrecio(getVal(r, 'Precio 3 NETO', 'precio_3'));
-      const precio4 = parsePrecio(getVal(r, 'Precio 4 NETO', 'precio_4'));
-      const costo   = parsePrecio(getVal(r, 'Costo NETO', 'costo'));
-
-      const activoRaw = getVal(r, 'Activo', 'activo');
-      const activo = activoRaw === 'Verdadero' || activoRaw === true ||
-                     String(activoRaw).toLowerCase() === 'true' || activoRaw === 1;
-
-      // Disponibilidad
-      const entrega1dia   = getVal(r, 'ENTREGA 1 DIA') === 'X';
-      const sobrePedido   = getVal(r, 'SOBRE PEDIDO') === 'X';
-      const disponibilidad = entrega1dia ? 'entrega_1dia' : sobrePedido ? 'sobre_pedido' : 'stock';
+      if (nombre.startsWith('→') || nombre.startsWith('VERDE')) return null;
 
       return {
-        id:          String(getVal(r, 'Código CRM', 'id') || '').trim() || `PROD-${String(i+1).padStart(3,'0')}`,
-        categoria:   String(getVal(r, 'Categoría', 'categoria') || 'General').trim(),
+        id:                        String(getVal(r, 'Código CRM', 'id') || '').trim() || `PROD-${String(i+1).padStart(3,'0')}`,
         nombre,
-        descripcion: String(getVal(r, 'descripcion') || '').trim(),
-        usos:        String(getVal(r, 'usos') || '').trim(),
-        presentacion_legacy: String(getVal(r, 'Se vende por', 'presentacion_legacy') || '').trim(),
-        cantidad:    parseFloat(getVal(r, 'Contenido', 'cantidad') || 0) || 0,
-        marca:       String(getVal(r, 'Marca', 'marca') || '').trim(),
-        presentacion: String(getVal(r, 'Presentación', 'presentacion') || '').trim(),
-        unidad:      String(getVal(r, 'Unidad medida', 'unidad') || 'pza').trim(),
-        proveedor:   String(getVal(r, 'Proveedor', 'proveedor') || '').trim(),
-        peso_kg:     parseFloat(getVal(r, 'peso_kg') || 0) || 0,
-        precio:      precio1,
-        precio_2:    precio2,
-        precio_3:    precio3,
-        precio_4:    precio4,
-        costo:       costo,
-        rendimiento_m2_por_unidad: parseFloat(getVal(r, 'rendimiento_m2_por_unidad') || 0) || 0,
-        rendimiento_nota: String(getVal(r, 'rendimiento_nota') || '').trim(),
-        colores:     getVal(r, 'colores') ? String(getVal(r, 'colores')).trim() : undefined,
-        codigo_sat:  String(getVal(r, 'CODIGO SAT', 'codigo_sat') || '').trim(),
-        impuestos:   String(getVal(r, 'impuestos') || 'IVA 16%').trim(),
-        disponibilidad,
-        stock:       parseInt(getVal(r, 'INVENTARIO', 'stock') || 0) || 0,
-        activo,
+        descripcion:               String(getVal(r, 'descripcion') || '').trim(),
+        categoria:                 String(getVal(r, 'Categoría', 'categoria') || 'General').trim(),
+        marca:                     String(getVal(r, 'Marca', 'marca') || '').trim(),
+        presentacion:              String(getVal(r, 'Presentación', 'presentacion') || '').trim(),
+        unidad:                    String(getVal(r, 'Unidad medida', 'unidad') || 'pza').trim(),
+        cantidad:                  parseFloat(getVal(r, 'Contenido', 'cantidad') || 0) || null,
+        cantidad_minima:           parseFloat(getVal(r, 'Cantidad mínima', 'cantidad_minima') || 0) || null,
+        precio_venta:              parsePrecio(getVal(r, 'Precio 1 NETO', 'precio_venta', 'precio')),
+        precio_lista:              parsePrecio(getVal(r, 'Precio lista', 'precio_lista')) || null,
+        precio_2:                  parsePrecio(getVal(r, 'Precio 2 NETO', 'precio_2')) || null,
+        precio_3:                  parsePrecio(getVal(r, 'Precio 3 NETO', 'precio_3')) || null,
+        precio_4:                  parsePrecio(getVal(r, 'Precio 4 NETO', 'precio_4')) || null,
+        iva:                       parsePrecio(getVal(r, 'IVA', 'iva')) || null,
+        costo_neto:                parsePrecio(getVal(r, 'Costo NETO', 'costo_neto', 'costo')) || null,
+        descuento_maximo:          parsePrecio(getVal(r, 'Descuento máximo', 'descuento_maximo')) || null,
+        rendimiento_m2_por_unidad: parseFloat(getVal(r, 'rendimiento_m2_por_unidad') || 0) || null,
+        rendimiento_nota:          String(getVal(r, 'rendimiento_nota') || '').trim() || null,
+        unidades_pallet:           parseInt(getVal(r, 'Unidades pallet', 'unidades_pallet') || 0) || null,
+        moneda:                    String(getVal(r, 'Moneda', 'moneda') || 'MXN').trim(),
+        fecha_precio:              getVal(r, 'Fecha precio', 'fecha_precio') || null,
+        version:                   String(getVal(r, 'Versión', 'version') || '').trim() || null,
+        activo:                    parseActivo(getVal(r, 'Activo', 'activo')),
       };
     }).filter(Boolean);
 
@@ -623,7 +609,7 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
 
         console.log(`[CATÁLOGO] Actualizado por ${req.user.email}: ${anterior} → ${productos.length} productos`);
 
-    // ── Upsert a DB catalogo_productos ──────────────────────────────────────
+    // ── Upsert a DB catalogo_productos (24 campos sincronizados con schema) ──
     let dbInsertados = 0;
     let dbActualizados = 0;
     let dbErrores = 0;
@@ -633,14 +619,20 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
         const res_db = await query(`
           INSERT INTO catalogo_productos (
             codigo, nombre, descripcion, categoria, marca,
-            presentacion, unidad, cantidad, precio_venta, precio_2, precio_3, precio_4,
-            costo_neto, rendimiento_m2_por_unidad, rendimiento_nota,
+            presentacion, unidad, cantidad, cantidad_minima,
+            precio_venta, precio_lista, precio_2, precio_3, precio_4,
+            iva, costo_neto, descuento_maximo,
+            rendimiento_m2_por_unidad, rendimiento_nota,
+            unidades_pallet, moneda, fecha_precio, version,
             activo, actualizado_en
           ) VALUES (
-            $1, $2, $3, $4, $5,
-            $6, $7, $8, $9, $10, $11, $12,
-            $13, $14, $15,
-            $14, NOW()
+            $1,  $2,  $3,  $4,  $5,
+            $6,  $7,  $8,  $9,
+            $10, $11, $12, $13, $14,
+            $15, $16, $17,
+            $18, $19,
+            $20, $21, $22, $23,
+            $24, NOW()
           )
           ON CONFLICT (codigo) DO UPDATE SET
             nombre                    = EXCLUDED.nombre,
@@ -650,33 +642,49 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
             presentacion              = EXCLUDED.presentacion,
             unidad                    = EXCLUDED.unidad,
             cantidad                  = EXCLUDED.cantidad,
+            cantidad_minima           = EXCLUDED.cantidad_minima,
             precio_venta              = EXCLUDED.precio_venta,
+            precio_lista              = EXCLUDED.precio_lista,
             precio_2                  = EXCLUDED.precio_2,
             precio_3                  = EXCLUDED.precio_3,
             precio_4                  = EXCLUDED.precio_4,
+            iva                       = EXCLUDED.iva,
             costo_neto                = EXCLUDED.costo_neto,
+            descuento_maximo          = EXCLUDED.descuento_maximo,
             rendimiento_m2_por_unidad = EXCLUDED.rendimiento_m2_por_unidad,
             rendimiento_nota          = EXCLUDED.rendimiento_nota,
+            unidades_pallet           = EXCLUDED.unidades_pallet,
+            moneda                    = EXCLUDED.moneda,
+            fecha_precio              = EXCLUDED.fecha_precio,
+            version                   = EXCLUDED.version,
             activo                    = EXCLUDED.activo,
             actualizado_en            = NOW()
           RETURNING (xmax = 0) AS fue_insert
         `, [
-          p.id,
-          p.nombre,
-          p.descripcion || null,
-          p.categoria || 'General',
-          p.marca || null,
-          p.presentacion || null,
-          p.unidad || null,
-          p.cantidad || null,
-          p.precio    || null,
-          p.precio_2  || null,
-          p.precio_3  || null,
-          p.precio_4  || null,
-          p.costo     || null,
-          p.rendimiento_m2_por_unidad || null,
-          p.rendimiento_nota || null,
-          p.activo,
+          p.id,                                // $1  codigo
+          p.nombre,                            // $2  nombre
+          p.descripcion || null,               // $3  descripcion
+          p.categoria || 'General',            // $4  categoria
+          p.marca || null,                     // $5  marca
+          p.presentacion || null,              // $6  presentacion
+          p.unidad || null,                    // $7  unidad
+          p.cantidad || null,                  // $8  cantidad
+          p.cantidad_minima || null,           // $9  cantidad_minima
+          p.precio_venta || null,              // $10 precio_venta
+          p.precio_lista || null,              // $11 precio_lista
+          p.precio_2 || null,                  // $12 precio_2
+          p.precio_3 || null,                  // $13 precio_3
+          p.precio_4 || null,                  // $14 precio_4
+          p.iva || null,                       // $15 iva
+          p.costo_neto || null,                // $16 costo_neto
+          p.descuento_maximo || null,          // $17 descuento_maximo
+          p.rendimiento_m2_por_unidad || null, // $18 rendimiento_m2
+          p.rendimiento_nota || null,          // $19 rendimiento_nota
+          p.unidades_pallet || null,           // $20 unidades_pallet
+          p.moneda || 'MXN',                  // $21 moneda
+          p.fecha_precio || null,              // $22 fecha_precio
+          p.version || null,                   // $23 version
+          p.activo,                            // $24 activo
         ]);
         if (res_db.rows[0]?.fue_insert) dbInsertados++;
         else dbActualizados++;
@@ -703,63 +711,69 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
   }
 });
 
-// GET /api/catalogo/plantilla – exporta productos reales desde DB con columnas correctas para reimport
+// GET /api/catalogo/plantilla – exporta productos desde DB, columnas sincronizadas con import
 router.get('/catalogo/plantilla', authMiddleware(['admin']), async (req, res) => {
   try {
     const result = await query(
-      `SELECT codigo, nombre, categoria, marca, presentacion, unidad, cantidad, descripcion,
-              precio_venta, precio_2, precio_3, precio_4, costo_neto,
-              rendimiento_m2_por_unidad, rendimiento_nota, activo
+      `SELECT codigo, nombre, descripcion, categoria, marca,
+              presentacion, unidad, cantidad, cantidad_minima,
+              precio_venta, precio_lista, precio_2, precio_3, precio_4,
+              iva, costo_neto, descuento_maximo,
+              rendimiento_m2_por_unidad, rendimiento_nota,
+              unidades_pallet, moneda, fecha_precio, version, activo
        FROM catalogo_productos
        ORDER BY categoria, nombre`
     );
 
     const rows = (result.rows || []).map(r => ({
-      'Código CRM':               r.codigo   || '',
-      'Artículo':                  r.nombre   || '',
+      'Código CRM':               r.codigo || '',
+      'Artículo':                  r.nombre || '',
+      'descripcion':               r.descripcion || '',
       'Categoría':                 r.categoria || '',
-      'Marca':                         r.marca    || '',
-      'Presentación':                   r.presentacion || '',
-      'Unidad medida':                 r.unidad   || '',
-      'Contenido':                     r.cantidad  != null ? Number(r.cantidad) : '',
-      'descripcion':                   r.descripcion || '',
-      'Precio 1 NETO':                 r.precio_venta != null ? Number(r.precio_venta) : '',
-      'Precio 2 NETO':                 r.precio_2     != null ? Number(r.precio_2)     : '',
-      'Precio 3 NETO':                 r.precio_3     != null ? Number(r.precio_3)     : '',
-      'Precio 4 NETO':                 r.precio_4     != null ? Number(r.precio_4)     : '',
-      'Costo NETO':                    r.costo_neto   != null ? Number(r.costo_neto)   : '',
-      'rendimiento_m2_por_unidad':     r.rendimiento_m2_por_unidad != null ? Number(r.rendimiento_m2_por_unidad) : '',
-      'rendimiento_nota':              r.rendimiento_nota || '',
-      'Activo':                        r.activo ? 'Verdadero' : 'Falso',
+      'Marca':                     r.marca || '',
+      'Presentación':              r.presentacion || '',
+      'Unidad medida':             r.unidad || '',
+      'Contenido':                 r.cantidad != null ? Number(r.cantidad) : '',
+      'Cantidad mínima':           r.cantidad_minima != null ? Number(r.cantidad_minima) : '',
+      'Precio 1 NETO':             r.precio_venta != null ? Number(r.precio_venta) : '',
+      'Precio lista':              r.precio_lista != null ? Number(r.precio_lista) : '',
+      'Precio 2 NETO':             r.precio_2 != null ? Number(r.precio_2) : '',
+      'Precio 3 NETO':             r.precio_3 != null ? Number(r.precio_3) : '',
+      'Precio 4 NETO':             r.precio_4 != null ? Number(r.precio_4) : '',
+      'IVA':                       r.iva != null ? Number(r.iva) : '',
+      'Costo NETO':                r.costo_neto != null ? Number(r.costo_neto) : '',
+      'Descuento máximo':          r.descuento_maximo != null ? Number(r.descuento_maximo) : '',
+      'rendimiento_m2_por_unidad': r.rendimiento_m2_por_unidad != null ? Number(r.rendimiento_m2_por_unidad) : '',
+      'rendimiento_nota':          r.rendimiento_nota || '',
+      'Unidades pallet':           r.unidades_pallet != null ? Number(r.unidades_pallet) : '',
+      'Moneda':                    r.moneda || 'MXN',
+      'Fecha precio':              r.fecha_precio || '',
+      'Versión':                   r.version || '',
+      'Activo':                    r.activo ? 'Verdadero' : 'Falso',
     }));
 
-    // Si no hay productos en DB, agregar fila de ejemplo para guiar al usuario
+    // Si no hay productos en DB, agregar fila de ejemplo
     if (!rows.length) {
       rows.push({
-        'Código CRM': 'SIKA-001',
-        'Artículo': 'Ejemplo: Adhesivo Cerámico',
-        'Categoría': 'Adhesivos',
-        'Marca': 'SIKA',
-        'Se vende por': 'Bolsa 25 kg',
-        'descripcion': 'Descripción del producto',
-        'Precio 1 NETO': 230,
-        'Precio 2 NETO': 218,
-        'Precio 3 NETO': 207,
-        'Precio 4 NETO': 184,
-        'Costo NETO': 150,
-        'rendimiento_m2_por_unidad': 4.5,
-        'rendimiento_nota': '4 a 5 m² por bolsa',
-        'Activo': 'Verdadero',
+        'Código CRM': 'SIKA-001', 'Artículo': 'Ejemplo: Adhesivo Cerámico',
+        'descripcion': 'Descripción del producto', 'Categoría': 'Adhesivos', 'Marca': 'SIKA',
+        'Presentación': 'Bolsa 25 kg', 'Unidad medida': 'bolsa', 'Contenido': 25, 'Cantidad mínima': 1,
+        'Precio 1 NETO': 230, 'Precio lista': 250, 'Precio 2 NETO': 218, 'Precio 3 NETO': 207, 'Precio 4 NETO': 184,
+        'IVA': 36.8, 'Costo NETO': 150, 'Descuento máximo': 20,
+        'rendimiento_m2_por_unidad': 4.5, 'rendimiento_nota': '4 a 5 m² por bolsa',
+        'Unidades pallet': 48, 'Moneda': 'MXN', 'Fecha precio': '', 'Versión': '', 'Activo': 'Verdadero',
       });
     }
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [
-      { wch: 14 }, { wch: 38 }, { wch: 18 }, { wch: 14 },
-      { wch: 16 }, { wch: 40 }, { wch: 13 }, { wch: 13 },
-      { wch: 13 }, { wch: 13 }, { wch: 12 }, { wch: 22 },
-      { wch: 25 }, { wch: 10 },
+      { wch: 14 }, { wch: 38 }, { wch: 30 }, { wch: 18 }, { wch: 14 },
+      { wch: 16 }, { wch: 14 }, { wch: 12 }, { wch: 14 },
+      { wch: 13 }, { wch: 13 }, { wch: 13 }, { wch: 13 }, { wch: 13 },
+      { wch: 10 }, { wch: 12 }, { wch: 15 },
+      { wch: 22 }, { wch: 25 },
+      { wch: 14 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Productos');
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
