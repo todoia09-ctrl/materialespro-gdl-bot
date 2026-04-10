@@ -1252,7 +1252,7 @@ function filterInventario() {
       + '<td style="color:' + color + ';font-weight:600">' + p.stock + '</td>'
       + '<td style="color:var(--gray)">' + p.stock_minimo + '</td>'
       + '<td style="font-size:.78rem">' + p.unidad + '</td>'
-      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button><button class=\"btn btn-secondary btn-sm\" onclick=\"openEditProducto('" + p.producto_id + "')\">✏️</button></div></td>'
+      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button><button class="btn btn-secondary btn-sm" onclick="openEditProducto(\'' + p.producto_id + '\')">✏️</button></div></td>'
       + '</tr>';
   }).join('');
 }
