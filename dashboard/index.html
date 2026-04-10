@@ -1066,7 +1066,7 @@ async function loadInventario() {
     var cr = await fetch('/api/catalogo', { headers: { Authorization: 'Bearer ' + tk } });
     var cd = await cr.json();
     _invCatalog = {};
-    (cd.productos || []).forEach(function(p) { _invCatalog[p.id] = p; if (p.codigo) _invCatalog[p.codigo] = p; });
+    (cd.productos || []).forEach(function(p) { if (p.codigo) _invCatalog[p.codigo] = p; });
   } catch(e) {}
   // Enriquecer items
   _invData = items.map(function(item) {
@@ -1074,9 +1074,10 @@ async function loadInventario() {
     return {
       producto_id: item.producto_id,
       nombre: item.nombre || cat.nombre || '',
-      categoria: cat.categoria || '',
-      marca: cat.marca || '',
-      precio: cat.precio || 0,
+      categoria: item.categoria || cat.categoria || '',
+      marca: item.marca || cat.marca || '',
+      presentacion: item.presentacion || cat.presentacion || '',
+      precio: Number(cat.precio_venta || 0),
       stock: item.stock || 0,
       stock_minimo: item.stock_minimo || 0,
       unidad: item.unidad || 'pza',
