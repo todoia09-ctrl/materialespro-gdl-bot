@@ -117,11 +117,20 @@ function buildCatalogText(cat, nivelInfo) {
     const _dp2   = nivelInfo ? nivelInfo.descuento_p2 : 5;
     const _dp3   = nivelInfo ? nivelInfo.descuento_p3 : 10;
     function precioNivel(p) {
-      const base = p.precio_venta || p.precio || 0;
-      if (_nivel === 2) return Math.round(base * (1 - _dp2 / 100));
-      if (_nivel === 3) return Math.round(base * (1 - _dp3 / 100));
-      if (_nivel === 4) return Math.round(base * (1 - (p.descuento_maximo || 0.20)));
-      return base;
+      const base = parseFloat(p.precio_venta || p.precio || 0);
+      if (_nivel === 2) {
+        const p2 = parseFloat(p.precio_2);
+        return p2 > 0 ? Math.round(p2) : Math.round(base * (1 - _dp2 / 100));
+      }
+      if (_nivel === 3) {
+        const p3 = parseFloat(p.precio_3);
+        return p3 > 0 ? Math.round(p3) : Math.round(base * (1 - _dp3 / 100));
+      }
+      if (_nivel === 4) {
+        const p4 = parseFloat(p.precio_4);
+        return p4 > 0 ? Math.round(p4) : Math.round(base * (1 - (p.descuento_maximo || 0.20)));
+      }
+      return Math.round(base);
     }
     // Map de ofertas por codigo para cross-reference
     var ofertasMap = {};
@@ -130,17 +139,25 @@ function buildCatalogText(cat, nivelInfo) {
       if (_of.codigo && _of.precio_oferta > 0) ofertasMap[_of.codigo] = _of;
     }
     function formatLine(p) {
-      var _u = 'pza';
       var _n = p.nombre || '';
-      if (!/ \(\d/.test(_n) && !/ \d+[,.]\d+ /.test(_n)) {
-        _u = p.presentacion || p.unidad || 'pza';
+      var _u = p.presentacion || p.unidad || 'pza';
+      var _marca = p.marca ? ' \u00b7 ' + String(p.marca).toUpperCase() : '';
+      var _c = p.categoria ? ' [' + p.categoria + ']' : '';
+      var _extras = '';
+      var _rend = parseFloat(p.rendimiento_m2_por_unidad);
+      if (_rend > 0) {
+        _extras += ' | Rinde ' + _rend + 'm\u00b2';
+        if (p.rendimiento_nota) _extras += ' (' + p.rendimiento_nota + ')';
+      } else if (p.rendimiento_nota) {
+        _extras += ' | ' + p.rendimiento_nota;
       }
-      var _c = p.categoria ? ' (' + p.categoria + ')' : '';
+      var _min = parseFloat(p.cantidad_minima || 0);
+      if (_min > 1) _extras += ' | m\u00edn: ' + _min + ' unidades';
       var oferta = p.codigo ? ofertasMap[p.codigo] : null;
       if (oferta) {
-        return '\uD83D\uDD25 ' + _n + ' $' + Math.round(parseFloat(oferta.precio_oferta)) + '/' + _u + ' \uD83D\uDD25 OFERTA' + _c;
+        return '\uD83D\uDD25 ' + _n + _marca + ' $' + Math.round(parseFloat(oferta.precio_oferta)) + '/' + _u + _c + _extras + ' \uD83D\uDD25 OFERTA';
       }
-      return _n + " $" + precioNivel(p) + "/" + _u + _c;
+      return _n + _marca + ' $' + precioNivel(p) + '/' + _u + _c + _extras;
     }
 
   // Productos prioritarios (desde DB)
@@ -311,7 +328,9 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
     + '- ' + formato + '\n'
     + nivelMsg
     + '- Cada precio es por pieza/presentacion completa, NO por litro ni kg\n'
-    + '- Si dan m²: calcula unidades +10% desperdicio y subtotal SIN envio\n'
+    + '- Si el cliente menciona una marca (SIKA, FESTER, TRUPER, etc.), filtra y recomienda SOLO productos de esa marca\n'
+    + '- Si dan m²: usa "Rinde Xm²" del producto → unidades = area_cliente / rendimiento_m2, suma +10% desperdicio. Subtotal SIN envio\n'
+    + '- Precios mostrados ya corresponden al nivel del cliente (nivel 1=precio_venta, 2=precio_2, 3=precio_3, 4=precio_4)\n'
     + '- NO incluyas costo de envio en cotizaciones — el envio se agrega solo si el cliente elige entrega a domicilio\n'
     + '- Proyecto >$' + d.umbral_pesos + ': ' + d.mensaje + '\n'
     + '- Asesor humano: "Te contactamos al ' + CATALOG.negocio.telefono + '"\n'
