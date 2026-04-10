@@ -340,10 +340,11 @@ select:focus{border-color:var(--rust)}
               <th style="cursor:pointer" onclick="sortInventario('stock')">Stock ⇅</th>
               <th>Mín</th>
               <th>Unidad</th>
+              <th style="text-align:center">Estado</th>
               <th>Acción</th>
             </tr>
           </thead>
-          <tbody id="invTableBody"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando inventario...</td></tr></tbody>
+          <tbody id="invTableBody"><tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem">Cargando inventario...</td></tr></tbody>
         </table>
       </div>
 
@@ -610,7 +611,7 @@ select:focus{border-color:var(--rust)}
       <textarea id="ep_descripcion" rows="2" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem;resize:vertical;font-family:'DM Sans',sans-serif"></textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-top:.6rem">
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Categoría</label>
-        <input id="ep_categoria" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
+        <select id="ep_categoria" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></select></div>
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Presentación</label>
         <input id="ep_presentacion" style="width:100%;box-sizing:border-box;background:var(--dust);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.4rem .65rem;color:var(--white);font-size:.84rem"></div>
         <div><label style="font-size:.72rem;color:var(--gray);display:block;margin-bottom:.2rem">Unidad</label>
@@ -1252,6 +1253,7 @@ function filterInventario() {
       + '<td style="color:' + color + ';font-weight:600">' + p.stock + '</td>'
       + '<td style="color:var(--gray)">' + p.stock_minimo + '</td>'
       + '<td style="font-size:.78rem">' + p.unidad + '</td>'
+      + '<td style="text-align:center;font-size:1.1rem">' + (p.activo !== false ? '<span title="Activo" style="color:#22c55e">&#x25CF;</span>' : '<span title="Inactivo" style="color:#ef4444">&#x25CF;</span>') + '</td>'
       + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button><button class="btn btn-secondary btn-sm" onclick="openEditProducto(\'' + p.producto_id + '\')">✏️</button></div></td>'
       + '</tr>';
   }).join('');
@@ -1720,7 +1722,14 @@ function openEditProducto(codigo) {
   document.getElementById("ep_nombre").value          = p.nombre || "";
   document.getElementById("ep_marca").value           = p.marca || "";
   document.getElementById("ep_descripcion").value     = cat.descripcion || "";
-  document.getElementById("ep_categoria").value       = p.categoria || "";
+  // Poblar select de categorias
+  var _cats = [];
+  _invData.forEach(function(x) { if (x.categoria && _cats.indexOf(x.categoria) === -1) _cats.push(x.categoria); });
+  _cats.sort();
+  var _selCat = document.getElementById("ep_categoria");
+  var _curCat = p.categoria || "";
+  _selCat.innerHTML = _cats.map(function(c) { return "<option value=\"" + c + "\"" + (c === _curCat ? " selected" : "") + ">" + c + "</option>"; }).join("");
+  if (_cats.indexOf(_curCat) === -1 && _curCat) _selCat.innerHTML += "<option value=\"" + _curCat + "\" selected>" + _curCat + "</option>";;
   document.getElementById("ep_presentacion").value    = p.presentacion || "";
   document.getElementById("ep_unidad").value          = p.unidad || "";
   document.getElementById("ep_precio_venta").value    = cat.precio_venta  != null ? cat.precio_venta  : "";
