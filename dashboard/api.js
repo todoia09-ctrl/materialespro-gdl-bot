@@ -584,8 +584,11 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
         nombre,
         descripcion: String(getVal(r, 'descripcion') || '').trim(),
         usos:        String(getVal(r, 'usos') || '').trim(),
-        presentacion: String(getVal(r, 'Se vende por', 'presentacion') || 'Pieza').trim(),
+        presentacion_legacy: String(getVal(r, 'Se vende por', 'presentacion_legacy') || '').trim(),
+        cantidad:    parseFloat(getVal(r, 'Contenido', 'cantidad') || 0) || 0,
         marca:       String(getVal(r, 'Marca', 'marca') || '').trim(),
+        presentacion: String(getVal(r, 'Presentación', 'presentacion') || '').trim(),
+        unidad:      String(getVal(r, 'Unidad medida', 'unidad') || 'pza').trim(),
         proveedor:   String(getVal(r, 'Proveedor', 'proveedor') || '').trim(),
         peso_kg:     parseFloat(getVal(r, 'peso_kg') || 0) || 0,
         precio:      precio1,
@@ -630,13 +633,13 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
         const res_db = await query(`
           INSERT INTO catalogo_productos (
             codigo, nombre, descripcion, categoria, marca,
-            unidad, precio_venta, precio_2, precio_3, precio_4,
+            presentacion, unidad, cantidad, precio_venta, precio_2, precio_3, precio_4,
             costo_neto, rendimiento_m2_por_unidad, rendimiento_nota,
             activo, actualizado_en
           ) VALUES (
             $1, $2, $3, $4, $5,
-            $6, $7, $8, $9, $10,
-            $11, $12, $13,
+            $6, $7, $8, $9, $10, $11, $12,
+            $13, $14, $15,
             $14, NOW()
           )
           ON CONFLICT (codigo) DO UPDATE SET
@@ -644,7 +647,9 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
             descripcion               = EXCLUDED.descripcion,
             categoria                 = EXCLUDED.categoria,
             marca                     = EXCLUDED.marca,
+            presentacion              = EXCLUDED.presentacion,
             unidad                    = EXCLUDED.unidad,
+            cantidad                  = EXCLUDED.cantidad,
             precio_venta              = EXCLUDED.precio_venta,
             precio_2                  = EXCLUDED.precio_2,
             precio_3                  = EXCLUDED.precio_3,
@@ -662,6 +667,8 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
           p.categoria || 'General',
           p.marca || null,
           p.presentacion || null,
+          p.unidad || null,
+          p.cantidad || null,
           p.precio    || null,
           p.precio_2  || null,
           p.precio_3  || null,
@@ -700,7 +707,7 @@ router.post('/catalogo/importar', authMiddleware(['admin']), express.json({ limi
 router.get('/catalogo/plantilla', authMiddleware(['admin']), async (req, res) => {
   try {
     const result = await query(
-      `SELECT codigo, nombre, categoria, marca, unidad, descripcion,
+      `SELECT codigo, nombre, categoria, marca, presentacion, unidad, cantidad, descripcion,
               precio_venta, precio_2, precio_3, precio_4, costo_neto,
               rendimiento_m2_por_unidad, rendimiento_nota, activo
        FROM catalogo_productos
@@ -712,7 +719,9 @@ router.get('/catalogo/plantilla', authMiddleware(['admin']), async (req, res) =>
       'Artículo':                  r.nombre   || '',
       'Categoría':                 r.categoria || '',
       'Marca':                         r.marca    || '',
-      'Se vende por':                  r.unidad   || '',
+      'Presentación':                   r.presentacion || '',
+      'Unidad medida':                 r.unidad   || '',
+      'Contenido':                     r.cantidad  != null ? Number(r.cantidad) : '',
       'descripcion':                   r.descripcion || '',
       'Precio 1 NETO':                 r.precio_venta != null ? Number(r.precio_venta) : '',
       'Precio 2 NETO':                 r.precio_2     != null ? Number(r.precio_2)     : '',

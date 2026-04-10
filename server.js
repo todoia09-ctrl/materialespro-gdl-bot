@@ -92,13 +92,13 @@ let _priorityProducts = { ofertas: [], destacados: [], masVendidos: [] };
 async function loadPriorityProducts() {
   try {
     var ofertas = await query(
-      "SELECT codigo, nombre, categoria, unidad, precio_venta, precio_oferta, descuento_maximo FROM catalogo_productos WHERE activo=true AND en_oferta=true AND (oferta_hasta IS NULL OR oferta_hasta >= NOW()) ORDER BY orden_display LIMIT 50"
+      "SELECT codigo, nombre, categoria, presentacion, unidad, precio_venta, precio_oferta, descuento_maximo FROM catalogo_productos WHERE activo=true AND en_oferta=true AND (oferta_hasta IS NULL OR oferta_hasta >= NOW()) ORDER BY orden_display LIMIT 50"
     );
     var destacados = await query(
-      "SELECT codigo, nombre, categoria, unidad, precio_venta, descuento_maximo FROM catalogo_productos WHERE activo=true AND destacado=true AND en_oferta IS NOT TRUE ORDER BY orden_display LIMIT 10"
+      "SELECT codigo, nombre, categoria, presentacion, unidad, precio_venta, descuento_maximo FROM catalogo_productos WHERE activo=true AND destacado=true AND en_oferta IS NOT TRUE ORDER BY orden_display LIMIT 10"
     );
     var masVendidos = await query(
-      "SELECT codigo, nombre, categoria, unidad, precio_venta, descuento_maximo FROM catalogo_productos WHERE activo=true AND mas_vendido=true AND destacado IS NOT TRUE AND en_oferta IS NOT TRUE ORDER BY orden_display LIMIT 10"
+      "SELECT codigo, nombre, categoria, presentacion, unidad, precio_venta, descuento_maximo FROM catalogo_productos WHERE activo=true AND mas_vendido=true AND destacado IS NOT TRUE AND en_oferta IS NOT TRUE ORDER BY orden_display LIMIT 10"
     );
     _priorityProducts = {
       ofertas:     (ofertas && ofertas.rows) || [],
@@ -133,7 +133,7 @@ function buildCatalogText(cat, nivelInfo) {
       var _u = 'pza';
       var _n = p.nombre || '';
       if (!/ \(\d/.test(_n) && !/ \d+[,.]\d+ /.test(_n)) {
-        _u = p.unidad || p.presentacion || 'pza';
+        _u = p.presentacion || p.unidad || 'pza';
       }
       var _c = p.categoria ? ' (' + p.categoria + ')' : '';
       var oferta = p.codigo ? ofertasMap[p.codigo] : null;
@@ -154,7 +154,7 @@ function buildCatalogText(cat, nivelInfo) {
       var o = pp.ofertas[i];
       var precioOrig = precioNivel(o);
       var precioOfe = o.precio_oferta ? Math.round(parseFloat(o.precio_oferta)) : precioOrig;
-      var _u = o.unidad || 'pza';
+      var _u = o.presentacion || o.unidad || 'pza';
       var _c = o.categoria ? ' (' + o.categoria + ')' : '';
       priorityLines.push('\ud83d\udd25 ' + o.nombre + ' ~$' + precioOrig + '~ $' + precioOfe + '/' + _u + _c);
       // No add to priorityCodigos — ofertas also appear in full catalog with offer price via formatLine
