@@ -1176,7 +1176,7 @@ function clearInvFilters() {
 async function saveStock(id) {
   const val = parseInt(document.getElementById('inv-' + id).value);
   if (isNaN(val) || val < 0) { toast('Cantidad inválida', 'error'); return; }
-  const r = await api('/inventario/' + id, { method: 'PUT', body: { stock: val } });
+  const r = await api('/inventario/' + id, { method: 'PATCH', body: { stock: val } });
   if (r?.ok) { toast('Stock actualizado ✅', 'success'); loadInventario(); }
   else toast('Error al guardar', 'error');
 }
