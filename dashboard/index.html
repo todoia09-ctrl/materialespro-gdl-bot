@@ -680,14 +680,38 @@ let CURRENT = 'dashboard';
 const API = '/api';
 
 // ── API HELPER ─────────────────────────────────────
+// HARDENED api() — maneja 502, HTML responses, red caída
 async function api(path, opts = {}) {
-  const res = await fetch(API + path, {
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
-    ...opts,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
-  if (res.status === 401) { logout(); return null; }
-  return res.json();
+  try {
+    var res = await fetch(API + path, {
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+      ...opts,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+    if (res.status === 401) { logout(); return null; }
+    if (res.status === 204) { return { ok: true }; }
+    // Detectar respuesta no-JSON (502 HTML de Render, etc.)
+    var ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      var txt = await res.text();
+      if (res.status === 502 || res.status === 503) {
+        toast('Servidor despertando ⏳ espera 20s e intenta de nuevo', 'error');
+      } else {
+        toast('Error ' + res.status + ': respuesta inesperada del servidor', 'error');
+      }
+      console.warn('[API] non-JSON response', res.status, txt.substring(0, 120));
+      return null;
+    }
+    return res.json();
+  } catch (e) {
+    if (e.name === 'TypeError' && e.message.includes('fetch')) {
+      toast('Sin conexión a internet', 'error');
+    } else {
+      toast('Error de conexión: ' + e.message, 'error');
+    }
+    console.error('[API]', e);
+    return null;
+  }
 }
 
 // ── AUTH ───────────────────────────────────────────

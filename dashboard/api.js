@@ -72,22 +72,46 @@ router.post('/auth/login', async (req, res) => {
 // ─────────────────────────────────────────────────
 router.get('/resumen', authMiddleware(), async (req, res) => {
   try {
-    // FIX timezone: usar NOW() AT TIME ZONE directo en SQL — sin pasar fecha desde JS (Render UTC bug)
-    const [peds, cots, cls, ing, pend, alertas] = await Promise.all([
-      query("SELECT COUNT(*) FROM pedidos      WHERE (creado_en AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", []),
-      query("SELECT COUNT(*) FROM cotizaciones WHERE (creado_en AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", []),
-      query("SELECT COUNT(*) FROM clientes     WHERE (primer_contacto AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", []),
-      query("SELECT COALESCE(SUM(total),0) as t FROM pedidos WHERE estado='confirmado' AND (creado_en AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", []),
-      query("SELECT COUNT(*) FROM pedidos WHERE estado='pendiente'", []),
-      query('SELECT COUNT(*) FROM inventario WHERE stock<=stock_minimo', []),
+    // safeQuery: nunca lanza — devuelve default si falla
+    async function safeQuery(sql, params, def) {
+      try { var r = await query(sql, params); return r; }
+      catch(e) { console.warn("[RESUMEN] query failed:", e.message); return def; }
+    }
+
+    var tzExpr = "(NOW() AT TIME ZONE 'America/Mexico_City')::date";
+    var todayExpr = "= (NOW() AT TIME ZONE 'America/Mexico_City')::date";
+
+    var [peds, cots, cls, ing, pend, alertas, pedRecientes, stockAlertas] = await Promise.all([
+      safeQuery("SELECT COUNT(*) FROM pedidos      WHERE (creado_en AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", [], { rows: [{ count: 0 }] }),
+      safeQuery("SELECT COUNT(*) FROM cotizaciones WHERE (creado_en AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", [], { rows: [{ count: 0 }] }),
+      safeQuery("SELECT COUNT(*) FROM clientes     WHERE (primer_contacto AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", [], { rows: [{ count: 0 }] }),
+      safeQuery("SELECT COALESCE(SUM(total),0) as t FROM pedidos WHERE estado='confirmado' AND (creado_en AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date", [], { rows: [{ t: 0 }] }),
+      safeQuery("SELECT COUNT(*) FROM pedidos WHERE estado='pendiente'", [], { rows: [{ count: 0 }] }),
+      safeQuery('SELECT COUNT(*) FROM inventario WHERE stock<=stock_minimo AND stock_minimo>0', [], { rows: [{ count: 0 }] }),
+      safeQuery(
+        "SELECT p.id, p.folio, p.tipo, p.total, p.metodo_pago, p.estado, c.nombre, c.whatsapp"
+        + " FROM pedidos p LEFT JOIN clientes c ON c.id=p.cliente_id"
+        + " ORDER BY p.creado_en DESC LIMIT 10",
+        [], { rows: [] }
+      ),
+      safeQuery(
+        "SELECT i.producto_id, i.stock, i.stock_minimo, i.unidad, c.nombre"
+        + " FROM inventario i LEFT JOIN catalogo_productos c ON c.codigo=i.producto_id"
+        + " WHERE i.stock <= i.stock_minimo AND i.stock_minimo > 0"
+        + " ORDER BY i.stock ASC LIMIT 10",
+        [], { rows: [] }
+      ),
     ]);
+
     res.json({
-      pedidos_hoy:        parseInt(peds.rows[0].count),
-      cotizaciones_hoy:   parseInt(cots.rows[0].count),
-      clientes_nuevos:    parseInt(cls.rows[0].count),
-      ingresos_hoy:       parseFloat(ing.rows[0].t),
-      pedidos_pendientes: parseInt(pend.rows[0].count),
-      alertas_stock:      parseInt(alertas.rows[0].count),
+      pedidos_hoy:        parseInt((peds.rows[0] || {}).count  || 0),
+      cotizaciones_hoy:   parseInt((cots.rows[0] || {}).count  || 0),
+      clientes_nuevos:    parseInt((cls.rows[0]  || {}).count  || 0),
+      ingresos_hoy:       parseFloat((ing.rows[0] || {}).t     || 0),
+      pedidos_pendientes: parseInt((pend.rows[0]  || {}).count || 0),
+      alertas_stock:      parseInt((alertas.rows[0] || {}).count || 0),
+      pedidos_recientes:  pedRecientes.rows || [],
+      stock_alertas:      stockAlertas.rows || [],
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
