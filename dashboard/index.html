@@ -1400,11 +1400,11 @@ async function loadCatalogo() {
     }
     tbody.innerHTML = d.productos.map(p => `
       <tr>
-        <td><code style="font-size:.75rem">${p.id}</code></td>
-        <td>${p.categoria}</td>
-        <td>${p.nombre}</td>
-        <td>${p.presentacion}</td>
-        <td style="color:var(--sand);font-weight:600">$${p.precio.toLocaleString('es-MX')}</td>
+        <td><code style="font-size:.75rem">${p.codigo}</code></td>
+        <td>${p.categoria || ''}</td>
+        <td>${p.nombre || ''}</td>
+        <td>${p.presentacion || ''}</td>
+        <td style="color:var(--sand);font-weight:600">$${Number(p.precio_venta || 0).toLocaleString('es-MX')}</td>
         <td>${p.activo ? '<span style="color:#4caf50">✅ Activo</span>' : '<span style="color:var(--gray)">⏸ Inactivo</span>'}</td>
       </tr>`).join('');
   } catch(e) { console.error('loadCatalogo', e); }
