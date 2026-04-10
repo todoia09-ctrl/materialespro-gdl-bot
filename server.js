@@ -55,7 +55,15 @@ function dashboardAuth(req, res, next) {
 }
 
 // ── Dashboard estático ───────────────────────────
-app.use('/dashboard', dashboardAuth, express.static(pathMod.join(__dirname, 'dashboard')));
+app.use('/dashboard', dashboardAuth, express.static(pathMod.join(__dirname, 'dashboard'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('index.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
 app.get('/dashboard', dashboardAuth, (_, res) => res.sendFile(pathMod.join(__dirname, 'dashboard/index.html')));
 app.get('/privacy', (_, res) => res.sendFile(pathMod.join(__dirname, 'privacy.html')));
 app.use('/api', dashboardApi);
