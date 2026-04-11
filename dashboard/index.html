@@ -328,6 +328,7 @@ select:focus{border-color:var(--rust)}
         <button class="btn btn-secondary btn-sm" onclick="syncInventario()">🔄 Sync catálogo</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('stockFileInput').click()">📥 Import Stock</button>
         <input type="file" id="stockFileInput" accept=".xlsx,.xls" style="display:none" onchange="importarStock(this)">
+        <button class="btn btn-secondary btn-sm" onclick="exportarStock()">📤 Exportar Stock</button>
       </div>
       <div id="invCount" style="color:var(--gray);font-size:.78rem;margin-bottom:.6rem"></div>
 
@@ -1153,6 +1154,32 @@ async function eliminarCliente() {
   if (!confirm('\u00BFEsta seguro? Se eliminaran todos los datos del cliente.')) return;
   var r = await api('/clientes/' + (window._clienteId || encodeURIComponent(wa)), { method: 'DELETE' });
   if (r && r.ok) { alert('\u2705 Cliente eliminado.'); closeModal('modalCliente'); loadClientes(); }
+}
+
+function exportarStock() {
+  const tk = localStorage.getItem('mp_token');
+  // Descarga directa via link con token en header no es posible — usamos fetch + blob
+  var btn = document.querySelector('[onclick="exportarStock()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Exportando...'; }
+  fetch('/api/inventario/exportar-stock', {
+    headers: { 'Authorization': 'Bearer ' + tk }
+  })
+  .then(r => {
+    if (!r.ok) return r.json().then(d => { throw new Error(d.error || 'Error'); });
+    return r.blob();
+  })
+  .then(blob => {
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const fecha = new Date().toISOString().slice(0, 10);
+    a.href     = url;
+    a.download = 'stock_' + fecha + '.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ Stock exportado', 'success');
+  })
+  .catch(e => toast('❌ Error: ' + e.message, 'error'))
+  .finally(() => { if (btn) { btn.disabled = false; btn.textContent = '📤 Exportar Stock'; } });
 }
 
 async function importarStock(input) {
