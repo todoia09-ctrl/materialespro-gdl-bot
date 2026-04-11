@@ -336,7 +336,7 @@ function buildSystemPrompt(clientName, channel, nivelInfo) {
     + '- ' + formato + '\n'
     + nivelMsg
     + '- Cada precio es por pieza/presentacion completa, NO por litro ni kg\n'
-    + '- Si el cliente menciona una marca (SIKA, FESTER, TRUPER, etc.), filtra y recomienda SOLO productos de esa marca\n'
+    + '- Las marcas disponibles en el catálogo son: ' + [...new Set((CATALOG.productos||[]).map(p=>p.marca).filter(Boolean))].map(m=>m.toUpperCase()).sort().join(', ') + '. PERDURA y PEGADURO son marcas DISTINTAS — NUNCA confundirlas. Si el cliente menciona una marca, recomienda ÚNICAMENTE productos de ESA marca exacta (coincidencia exacta del campo marca).\n'
     + '- Si dan m²: usa "Rinde Xm²" del producto → unidades = area_cliente / rendimiento_m2, suma +10% desperdicio. Subtotal SIN envio\n'
     + '- Precios mostrados ya corresponden al nivel del cliente (nivel 1=precio_venta, 2=precio_2, 3=precio_3, 4=precio_4)\n'
     + '- NO incluyas costo de envio en cotizaciones — el envio se agrega solo si el cliente elige entrega a domicilio\n'
