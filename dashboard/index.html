@@ -1165,7 +1165,7 @@ function exportarStock() {
     headers: { 'Authorization': 'Bearer ' + tk }
   })
   .then(r => {
-    if (!r.ok) return r.json().then(d => { throw new Error(d.error || 'Error'); });
+    if (!r.ok) return r.text().then(t => { throw new Error('Error ' + r.status + ': ' + t.slice(0,80)); });
     return r.blob();
   })
   .then(blob => {

@@ -376,19 +376,18 @@ router.get('/inventario/exportar-stock', authMiddleware(['admin','bodega']), asy
       []
     );
     const rows = result.rows.map(r => ({
-      codigo:       r.codigo      || '',
-      nombre:       r.nombre      || '',
-      marca:        r.marca       || '',
-      categoria:    r.categoria   || '',
-      unidad:       r.unidad      || '',
-      stock:        r.stock       || 0,
-      stock_minimo: r.stock_minimo || 0,
+      codigo:        r.codigo       || '',
+      'Nombre':      r.nombre       || '',
+      'Categoría':   r.categoria    || '',
+      'Marca':       r.marca        || '',
+      stock:         r.stock        || 0,
+      stock_minimo:  r.stock_minimo || 0,
     }));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
     // Ancho de columnas
     ws['!cols'] = [
-      { wch: 20 }, { wch: 40 }, { wch: 15 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 12 }
+      { wch: 22 }, { wch: 45 }, { wch: 22 }, { wch: 16 }, { wch: 10 }, { wch: 12 }
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Stock');
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
