@@ -357,6 +357,8 @@ router.patch('/inventario/:id', authMiddleware(['admin','bodega']), async (req, 
   try {
     await actualizarStock(req.params.id, parseInt(stock), req.user.email);
     res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 // POST /api/inventario/importar-stock — Excel base64 con columnas codigo, stock, stock_minimo
 router.post('/inventario/importar-stock', authMiddleware(['admin','bodega']), express.json({ limit: '5mb' }), async (req, res) => {
@@ -398,9 +400,6 @@ router.post('/inventario/importar-stock', authMiddleware(['admin','bodega']), ex
     console.error('[STOCK IMPORT]', e.message);
     res.status(500).json({ error: 'Error al procesar: ' + e.message });
   }
-});
-
-  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ─────────────────────────────────────────────────
