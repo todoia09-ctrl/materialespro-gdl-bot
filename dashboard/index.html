@@ -289,8 +289,8 @@ select:focus{border-color:var(--rust)}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Cliente</th><th>WhatsApp</th><th>Zona</th><th>Pedidos</th><th>Total compras</th><th>Último contacto</th><th>Crédito</th><th></th></tr></thead>
-          <tbody id="clientesTable"><tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
+          <thead><tr><th>Cliente</th><th>WhatsApp</th><th>Zona</th><th>Pedidos</th><th>Total compras</th><th>Último contacto</th><th>Crédito</th><th>Nivel</th><th></th></tr></thead>
+          <tbody id="clientesTable"><tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem">Cargando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -913,6 +913,19 @@ async function updatePedido(id, estado) {
 }
 
 // ── CLIENTES ──────────────────────────────────────
+
+// ── BADGE NIVEL PRECIO ──────────────────────────────────────────
+function badgeNivel(n) {
+  const map = {
+    1: { label: 'P1 Lista',        color: '#6b7280' },
+    2: { label: 'P2 Mayorista',    color: '#3b82f6' },
+    3: { label: 'P3 Distribuidor', color: '#8b5cf6' },
+    4: { label: 'P4 Especial',     color: '#f59e0b' },
+  };
+  const m = map[n] || map[1];
+  return '<span style="background:' + m.color + ';color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">🏷️ ' + m.label + '</span>';
+}
+
 async function loadClientes() {
   const zona = document.getElementById('filterZonaC').value;
   const params = new URLSearchParams({ limit: 50 });
@@ -943,6 +956,7 @@ function renderClientes(list) {
         <td>$${Number(c.total_compras||0).toLocaleString('es-MX')}</td>
         <td style="color:var(--gray);font-size:.75rem">${fmtDate(c.ultimo_contacto)}</td>
         <td>${c.credito_limite > 0 ? '<span style="color:var(--green)">$' + Number(c.credito_limite).toLocaleString('es-MX') + '</span>' : '—'}</td>
+        <td>${badgeNivel(c.nivel_precio || 1)}</td>
         <td style="text-align:center;font-size:1rem">${!c.activo ? '<span title="Deshabilitado" style="color:#ff6b6b">&#x26D4;</span>' : '<span title="Activo" style="color:#4caf50">&#x2714;</span>'} ${c.no_campana ? '<span title="No campana" style="color:#ffc800">&#x1F6AB;</span>' : ''}</td>
         <td><button class="btn btn-secondary btn-sm" onclick="verCliente('${c.whatsapp}')">Ver</button></td>
       </tr>`).join('');
