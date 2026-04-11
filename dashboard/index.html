@@ -326,6 +326,8 @@ select:focus{border-color:var(--rust)}
         </select>
         <button class="btn btn-secondary btn-sm" onclick="clearInvFilters()">Limpiar</button>
         <button class="btn btn-secondary btn-sm" onclick="syncInventario()">🔄 Sync catálogo</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('stockFileInput').click()">📥 Import Stock</button>
+        <input type="file" id="stockFileInput" accept=".xlsx,.xls" style="display:none" onchange="importarStock(this)">
       </div>
       <div id="invCount" style="color:var(--gray);font-size:.78rem;margin-bottom:.6rem"></div>
 
@@ -1151,6 +1153,40 @@ async function eliminarCliente() {
   if (!confirm('\u00BFEsta seguro? Se eliminaran todos los datos del cliente.')) return;
   var r = await api('/clientes/' + (window._clienteId || encodeURIComponent(wa)), { method: 'DELETE' });
   if (r && r.ok) { alert('\u2705 Cliente eliminado.'); closeModal('modalCliente'); loadClientes(); }
+}
+
+async function importarStock(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  var btn = document.querySelector('[onclick*="stockFileInput"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Importando...'; }
+  try {
+    const b64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload  = () => res(r.result.split(',')[1]);
+      r.onerror = () => rej(new Error('Error leyendo archivo'));
+      r.readAsDataURL(file);
+    });
+    const tk = localStorage.getItem('mp_token');
+    const resp = await fetch('/api/inventario/importar-stock', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + tk, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileBase64: b64 })
+    });
+    const d = await resp.json();
+    if (d.ok) {
+      toast('✅ Stock importado: ' + d.actualizados + ' de ' + d.total + ' productos actualizados', 'success');
+      if (d.errores && d.errores.length) console.warn('[STOCK IMPORT errores]', d.errores);
+      loadInventario();
+    } else {
+      toast('❌ Error: ' + (d.error || 'respuesta inesperada'), 'error');
+    }
+  } catch(e) {
+    toast('❌ Error al importar: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📥 Import Stock'; }
+  }
 }
 
 async function syncInventario() {

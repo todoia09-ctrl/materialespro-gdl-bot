@@ -357,6 +357,47 @@ router.patch('/inventario/:id', authMiddleware(['admin','bodega']), async (req, 
   try {
     await actualizarStock(req.params.id, parseInt(stock), req.user.email);
     res.json({ ok: true });
+
+// POST /api/inventario/importar-stock — Excel base64 con columnas codigo, stock, stock_minimo
+router.post('/inventario/importar-stock', authMiddleware(['admin','bodega']), express.json({ limit: '5mb' }), async (req, res) => {
+  try {
+    const { fileBase64 } = req.body;
+    if (!fileBase64) return res.status(400).json({ error: 'fileBase64 requerido' });
+    const buf  = Buffer.from(fileBase64, 'base64');
+    const wb   = XLSX.read(buf, { type: 'buffer' });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    let actualizados = 0;
+    const errores = [];
+    for (const row of rows) {
+      const codigo   = String(row['codigo'] || row['Codigo'] || row['CODIGO'] || '').trim();
+      const stockVal = row['stock'] !== undefined ? row['stock'] : row['Stock'];
+      const stock    = parseInt(stockVal);
+      const stockMin = (row['stock_minimo'] !== undefined) ? parseInt(row['stock_minimo']) : null;
+      if (!codigo) continue;
+      if (isNaN(stock) || stock < 0) { errores.push(codigo + ': stock invalido'); continue; }
+      try {
+        if (stockMin !== null && !isNaN(stockMin)) {
+          await query(
+            'UPDATE inventario SET stock=$2, stock_minimo=$3, actualizado_en=NOW() WHERE producto_id=$1',
+            [codigo, stock, stockMin]
+          );
+        } else {
+          await query(
+            'UPDATE inventario SET stock=$2, actualizado_en=NOW() WHERE producto_id=$1',
+            [codigo, stock]
+          );
+        }
+        actualizados++;
+      } catch(e) { errores.push(codigo + ': ' + e.message); }
+    }
+    res.json({ ok: true, actualizados, errores: errores.slice(0, 20), total: rows.length });
+  } catch(e) {
+    console.error('[STOCK IMPORT]', e.message);
+    res.status(500).json({ error: 'Error al procesar: ' + e.message });
+  }
+});
+
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
