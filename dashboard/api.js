@@ -366,40 +366,6 @@ router.post('/inventario/importar-stock', authMiddleware(['admin','bodega']), ex
     const buf  = Buffer.from(fileBase64, 'base64');
     const wb   = XLSX.read(buf, { type: 'buffer' });
 
-// GET /api/inventario/exportar-stock — descarga Excel con codigo, nombre, stock, stock_minimo, unidad
-router.get('/inventario/exportar-stock', authMiddleware(['admin','bodega']), async (req, res) => {
-  try {
-    const result = await query(
-      'SELECT i.producto_id as codigo, c.nombre, c.marca, c.categoria, c.unidad, i.stock, i.stock_minimo ' +
-      'FROM inventario i LEFT JOIN catalogo_productos c ON c.codigo = i.producto_id ' +
-      'ORDER BY c.marca ASC, c.nombre ASC',
-      []
-    );
-    const rows = result.rows.map(r => ({
-      codigo:        r.codigo       || '',
-      'Nombre':      r.nombre       || '',
-      'Categoría':   r.categoria    || '',
-      'Marca':       r.marca        || '',
-      stock:         r.stock        || 0,
-      stock_minimo:  r.stock_minimo || 0,
-    }));
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(rows);
-    // Ancho de columnas
-    ws['!cols'] = [
-      { wch: 22 }, { wch: 45 }, { wch: 22 }, { wch: 16 }, { wch: 10 }, { wch: 12 }
-    ];
-    XLSX.utils.book_append_sheet(wb, ws, 'Stock');
-    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    const fecha = new Date().toISOString().slice(0, 10);
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename="stock_' + fecha + '.xlsx"');
-    res.send(buf);
-  } catch(e) {
-    console.error('[STOCK EXPORT]', e.message);
-    res.status(500).json({ error: 'Error al exportar: ' + e.message });
-  }
-});
 
     const ws   = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
@@ -993,4 +959,40 @@ router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) =>
     res.status(500).json({ error: e.message });
   }
 });
+
+// GET /api/inventario/exportar-stock — descarga Excel con codigo, nombre, stock, stock_minimo, unidad
+router.get('/inventario/exportar-stock', authMiddleware(['admin','bodega']), async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT i.producto_id as codigo, c.nombre, c.marca, c.categoria, c.unidad, i.stock, i.stock_minimo ' +
+      'FROM inventario i LEFT JOIN catalogo_productos c ON c.codigo = i.producto_id ' +
+      'ORDER BY c.marca ASC, c.nombre ASC',
+      []
+    );
+    const rows = result.rows.map(r => ({
+      codigo:        r.codigo       || '',
+      'Nombre':      r.nombre       || '',
+      'Categoría':   r.categoria    || '',
+      'Marca':       r.marca        || '',
+      stock:         r.stock        || 0,
+      stock_minimo:  r.stock_minimo || 0,
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    // Ancho de columnas
+    ws['!cols'] = [
+      { wch: 22 }, { wch: 45 }, { wch: 22 }, { wch: 16 }, { wch: 10 }, { wch: 12 }
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, 'Stock');
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const fecha = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="stock_' + fecha + '.xlsx"');
+    res.send(buf);
+  } catch(e) {
+    console.error('[STOCK EXPORT]', e.message);
+    res.status(500).json({ error: 'Error al exportar: ' + e.message });
+  }
+});
+
 module.exports = router;
