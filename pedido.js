@@ -128,7 +128,7 @@ function parseItemsFromQuote(rawQuote) {
       // "NxNombre: qty × ..."
       var nameMatch = line.match(/^\d+[x×]\s*(.+?):/i);
       if (nameMatch) {
-        producto = nameMatch[1].trim();
+        producto = nameMatch[1].trim().replace(/^\d+\s*[x\u00d7]\s*/i, '');
       } else {
         // "Nombre: qty × ..."
         var nameMatch2 = line.match(/^(.+?):\s*\d+\s*[x×]/i);
