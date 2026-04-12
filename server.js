@@ -78,7 +78,7 @@ function loadCatalog() {
       nombre:   'MaterialesPro GDL',
       ciudad:   'Zapopan / Guadalajara, Jalisco',
       telefono: process.env.VENDOR_WHATSAPP || '+52 33 XXXX XXXX',
-      horario:  'Lun-Sab 8am-6pm',
+      horario:  'Lun-Vie 8am-6pm · Sáb 8am-2pm',
       whatsapp: process.env.VENDOR_WHATSAPP || '+52 33 XXXX XXXX',
     };
   }
@@ -212,7 +212,7 @@ function buildCatalogText(cat, nivelInfo) {
   const e = cat.envios || {};
   const gdl = e.gdl_zapopan || { precio: "consultar", tiempo: "1-2 dias" };
   const zmg = e.zmg || { precio: "consultar", tiempo: "1-3 dias" };
-  const horario = (cat.negocio || cat.meta || {}).horario || "Lun-Sab 8am-6pm";
+  const horario = (cat.negocio || cat.meta || {}).horario || 'Lun-Vie 8am-6pm · Sáb 8am-2pm';
   return allProds
     + "\nENVIOS: GDL/Zapopan $" + gdl.precio + " (" + gdl.tiempo + ")"
     + " | ZMG $" + zmg.precio + " (" + zmg.tiempo + ")"
