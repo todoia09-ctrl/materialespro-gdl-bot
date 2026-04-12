@@ -127,24 +127,46 @@ function _parseItems(order) {
   return items;
 }
 
+function _normalizeName(str) {
+  if (!str) return '';
+  return str.toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
 function _enrichItems(items, catalogRef) {
   if (!catalogRef || !catalogRef.productos || !items || !items.length) return items;
   return items.map(function(item) {
-    var match = catalogRef.productos.find(function(p) {
-      return p.nombre && item.nombre &&
-             p.nombre.toLowerCase().trim() === item.nombre.toLowerCase().trim();
+    var itemNorm = _normalizeName(item.nombre);
+    var match = null;
+
+    // 1. Match exacto normalizado
+    match = catalogRef.productos.find(function(p) {
+      return _normalizeName(p.nombre) === itemNorm;
     });
+
+    // 2. startsWith bidireccional (cubre abreviaciones de Haiku)
+    if (!match && itemNorm.length >= 10) {
+      match = catalogRef.productos.find(function(p) {
+        var pNorm = _normalizeName(p.nombre);
+        return pNorm.startsWith(itemNorm) || itemNorm.startsWith(pNorm);
+      });
+    }
+
+    // 3. Fallback por codigo
     if (!match && item.codigo) {
       match = catalogRef.productos.find(function(p) {
         return p.codigo && p.codigo === item.codigo;
       });
     }
+
     if (match) {
       item.codigo      = match.codigo || null;
       item.producto_id = match.id     || null;
     } else {
       item.codigo      = item.codigo      || null;
       item.producto_id = item.producto_id || null;
+      console.warn('[ENRICH] Sin match:', item.nombre);
     }
     return item;
   });
