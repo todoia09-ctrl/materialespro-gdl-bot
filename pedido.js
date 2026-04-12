@@ -512,7 +512,7 @@ function parseHoraMsg(msg) {
   return null;
 }
 
-async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, negocioNombre) {
+async function processOrderFlow(from, msg, clientName, lastQuote, sendToClient, negocioNombre, catalogRef) {
   const key      = 'order:' + from;
   const existing = activeOrders.get(key) || { state: S.IDLE, order: {} };
   const { state, order } = existing;
@@ -857,7 +857,7 @@ if (state === S.IDLE) {
 
     // ── Guardar pedido en DB ────────────────────────
     try {
-      const _result = await guardarPedido(from, order, 'whatsapp');
+      const _result = await guardarPedido(from, order, 'whatsapp', catalogRef);
       if (_result && _result.folio) {
         order.pedidoId = _result.pedidoId;
         order.folio = _result.folio;

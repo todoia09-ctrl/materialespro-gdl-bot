@@ -588,7 +588,7 @@ app.post('/webhook/whatsapp', async (req, res) => {
     if (!reply && !hasMedia && textBody) {
       reply = await processOrderFlow(
         from, textBody, name, getLastQuote(from), sendToClient,
-        CATALOG.negocio.nombre
+        CATALOG.negocio.nombre, getCatalog()
       );
     }
 

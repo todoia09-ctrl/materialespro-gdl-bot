@@ -315,7 +315,7 @@ async function processWhatsAppMessage(value, getAIResponse, getHistory, saveHist
       if (!reply) {
         reply = await processOrderFlow(
           fromNorm, textContent, firstName, getLastQuote(fromNorm), sendToClient,
-          (catalog.negocio && catalog.negocio.nombre) || 'MaterialesPro GDL'
+          (catalog.negocio && catalog.negocio.nombre) || 'MaterialesPro GDL', catalog
         );
       }
 

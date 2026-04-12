@@ -127,7 +127,30 @@ function _parseItems(order) {
   return items;
 }
 
-async function guardarPedido(whatsapp, order, canal) {
+function _enrichItems(items, catalogRef) {
+  if (!catalogRef || !catalogRef.productos || !items || !items.length) return items;
+  return items.map(function(item) {
+    var match = catalogRef.productos.find(function(p) {
+      return p.nombre && item.nombre &&
+             p.nombre.toLowerCase().trim() === item.nombre.toLowerCase().trim();
+    });
+    if (!match && item.codigo) {
+      match = catalogRef.productos.find(function(p) {
+        return p.codigo && p.codigo === item.codigo;
+      });
+    }
+    if (match) {
+      item.codigo      = match.codigo || null;
+      item.producto_id = match.id     || null;
+    } else {
+      item.codigo      = item.codigo      || null;
+      item.producto_id = item.producto_id || null;
+    }
+    return item;
+  });
+}
+
+async function guardarPedido(whatsapp, order, canal, catalogRef) {
   try {
     const cliente = await getCliente(whatsapp);
     if (!cliente) return null;
@@ -152,7 +175,7 @@ async function guardarPedido(whatsapp, order, canal) {
       [
         folio, cliente.id, canal||'whatsapp',
         order.type||'pickup', 'pendiente',
-        JSON.stringify(_parseItems(order)),
+        JSON.stringify(_enrichItems(_parseItems(order), catalogRef)),
         order.subtotal||0, order.costoEnvio||0, order.total||0,
         order.payment||null,
         order.invoice||false, order.cfdi||null, order.invEmail||null,
