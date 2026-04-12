@@ -142,7 +142,7 @@ async function getInventarioCompleto() {
     const r = await query(
       'SELECT i.id, cp.codigo AS producto_id, cp.nombre, ' +
       '       cp.unidad_medida AS unidad, cp.categoria, cp.marca, ' +
-      '       cp.precio_unitario AS precio_venta, ' +
+      '       cp.precio_venta, ' +
       '       i.stock_physical AS stock, i.stock_reserved, ' +
       '       i.stock_available, i.stock_minimo, i.stock_maximo, ' +
       '       i.version ' +
