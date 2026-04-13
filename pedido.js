@@ -264,8 +264,20 @@ function formatOrderSummary(order, forVendor, negocioNombre) {
     : '📋 *Resumen de tu pedido:*';
   const lines = [title, ''];
 
-  if (order.rawQuote) {
-    lines.push('*Cotización:*');
+  if (order.items && order.items.length > 0) {
+    lines.push('\uD83D\uDCE6 *Productos:*');
+    order.items.forEach(function(i) {
+      var _qty = (i.qty || 1);
+      var _nom = (i.nombre || 'Producto');
+      var _prc = '';
+      if (i.precio && i.precio > 0) {
+        _prc = ' - ' + Number(i.precio).toLocaleString('es-MX') + '/u';
+      }
+      lines.push('  * ' + _qty + 'x ' + _nom + _prc);
+    });
+    lines.push('');
+  } else if (order.rawQuote && order.rawQuote !== 'Cotización del chat') {
+    lines.push('\uD83D\uDCCB *Cotización:*');
     lines.push('  ' + order.rawQuote.replace(/\n/g, '\n  '));
     lines.push('');
   }
