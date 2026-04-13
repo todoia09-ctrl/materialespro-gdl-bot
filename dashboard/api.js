@@ -212,8 +212,8 @@ router.get('/clientes', authMiddleware(), async (req, res) => {
     const { q, zona, activo, limit = 50, offset = 0 } = req.query;
     let sql = 'SELECT * FROM clientes WHERE 1=1';
     const params = [];
-    if (activo === 'true')  { sql += ' AND activo=TRUE'; }
-    if (activo === 'false') { sql += ' AND activo=FALSE'; }
+    if (activo === 'true')  { sql += " AND estado='activo'"; }
+    if (activo === 'false') { sql += " AND estado='inactivo'"; }
     if (q)    { params.push('%' + q + '%'); sql += ` AND (nombre ILIKE $${params.length} OR whatsapp ILIKE $${params.length})`; }
     if (zona) { params.push(zona);          sql += ` AND zona=$${params.length}`; }
     params.push(parseInt(limit));  sql += ` ORDER BY ultimo_contacto DESC LIMIT $${params.length}`;
@@ -292,7 +292,8 @@ router.patch('/clientes/:id/nocampana', authMiddleware(), async (req, res) => {
   try {
     const idParam = req.params.id;
     const valor = req.body && req.body.valor !== false;
-    const isNumeric = /^\d+$/.test(idParam);
+    const estadoVal = activo ? 'activo' : 'inactivo';
+      const isNumeric = /^\d+$/.test(idParam);
     if (isNumeric) {
       await query('UPDATE clientes SET no_campana=$1 WHERE id=$2', [valor, parseInt(idParam)]);
     } else {
@@ -309,10 +310,10 @@ router.patch('/clientes/:id/deshabilitar', authMiddleware(), async (req, res) =>
     const activo = req.body && req.body.activo !== false;
     const isNumeric = /^\d+$/.test(idParam);
     if (isNumeric) {
-      await query('UPDATE clientes SET activo=$1 WHERE id=$2', [activo, parseInt(idParam)]);
+      await query('UPDATE clientes SET estado=$1 WHERE id=$2', [estadoVal, parseInt(idParam)]);
     } else {
       const wa = decodeURIComponent(idParam);
-      await query('UPDATE clientes SET activo=$1 WHERE whatsapp=$2', [activo, wa]);
+      await query('UPDATE clientes SET estado=$1 WHERE whatsapp=$2', [estadoVal, wa]);
     }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -974,8 +975,8 @@ router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) =>
 router.get('/inventario/exportar-stock', authMiddleware(['admin','bodega']), async (req, res) => {
   try {
     const result = await query(
-      'SELECT i.producto_id as codigo, c.nombre, c.marca, c.categoria, c.unidad, i.stock, i.stock_minimo, c.activo ' +
-      'FROM inventario i LEFT JOIN catalogo_productos c ON c.codigo = i.producto_id ' +
+      'SELECT c.codigo, c.nombre, c.marca, c.categoria, c.unidad, i.stock_physical as stock, i.stock_minimo, c.activo ' +
+      'FROM inventario i LEFT JOIN catalogo_productos c ON c.id = i.catalogo_id ' +
       'ORDER BY c.marca ASC, c.nombre ASC',
       []
     );
