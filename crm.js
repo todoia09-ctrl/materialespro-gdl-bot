@@ -246,19 +246,21 @@ async function programarSeguimiento(whatsapp, cotizacionId) {
     const cliente = await getCliente(whatsapp);
     if (!cliente) return;
 
+    const nota = cotizacionId ? 'Cotizacion: ' + cotizacionId : null;
+
     // 24 horas después
-    await query(`
-      INSERT INTO seguimientos(cotizacion_id,cliente_id,whatsapp,tipo,programado_en)
-      VALUES($1,$2,$3,'24h', NOW() + INTERVAL '24 hours')
-      ON CONFLICT DO NOTHING`,
-      [cotizacionId, cliente.id, whatsapp]
+    await query(
+      'INSERT INTO seguimientos(cliente_id, tipo, programado_para, estado, notas) ' +
+      "VALUES($1,'24h', NOW() + INTERVAL '24 hours', 'pendiente', $2) " +
+      'ON CONFLICT DO NOTHING',
+      [cliente.id, nota]
     );
     // 48 horas después
-    await query(`
-      INSERT INTO seguimientos(cotizacion_id,cliente_id,whatsapp,tipo,programado_en)
-      VALUES($1,$2,$3,'48h', NOW() + INTERVAL '48 hours')
-      ON CONFLICT DO NOTHING`,
-      [cotizacionId, cliente.id, whatsapp]
+    await query(
+      'INSERT INTO seguimientos(cliente_id, tipo, programado_para, estado, notas) ' +
+      "VALUES($1,'48h', NOW() + INTERVAL '48 hours', 'pendiente', $2) " +
+      'ON CONFLICT DO NOTHING',
+      [cliente.id, nota]
     );
   } catch (e) { console.error('[CRM] programarSeguimiento:', e.message); }
 }

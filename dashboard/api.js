@@ -95,8 +95,8 @@ router.get('/resumen', authMiddleware(), async (req, res) => {
         [], { rows: [] }
       ),
       safeQuery(
-        "SELECT i.producto_id, i.stock, i.stock_minimo, i.unidad, c.nombre"
-        + " FROM inventario i LEFT JOIN catalogo_productos c ON c.codigo=i.producto_id"
+        "SELECT cp.codigo AS producto_id, i.stock_physical AS stock, i.stock_minimo, i.unidad, cp.nombre"
+        + " FROM inventario i JOIN catalogo_productos cp ON cp.id = i.catalogo_id"
         + " WHERE i.stock <= i.stock_minimo AND i.stock_minimo > 0"
         + " ORDER BY i.stock ASC LIMIT 10",
         [], { rows: [] }
@@ -958,7 +958,7 @@ router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) =>
       invUpdates.push("unidad = $" + invParams.length);
     }
     if (invUpdates.length) {
-      var invSql = "UPDATE inventario SET " + invUpdates.join(", ") + ", actualizado_en = NOW() WHERE producto_id = $1";
+      var invSql = "UPDATE inventario SET " + invUpdates.join(", ") + ", actualizado_en = NOW() WHERE catalogo_id = (SELECT id FROM catalogo_productos WHERE codigo = $1)";
       await query(invSql, invParams);
     }
 

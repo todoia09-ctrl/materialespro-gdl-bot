@@ -29,15 +29,13 @@ async function sendWA(to, body) {
 async function procesarSeguimientos() {
   try {
     // Buscar seguimientos vencidos no enviados
-    const r = await query(`
-      SELECT s.id, s.whatsapp, s.tipo, s.cotizacion_id,
-             c.folio, c.total, cl.nombre
-      FROM seguimientos s
-      JOIN cotizaciones c  ON c.id = s.cotizacion_id
-      JOIN clientes    cl  ON cl.id = s.cliente_id
-      WHERE s.estado = 'pendiente'
-        AND s.programado_en <= NOW()
-      LIMIT 20`
+    const r = await query(
+      'SELECT s.id, s.tipo, s.notas, cl.whatsapp, cl.nombre ' +
+      'FROM seguimientos s ' +
+      'JOIN clientes cl ON cl.id = s.cliente_id ' +
+      "WHERE s.estado = 'pendiente' " +
+      '  AND s.programado_para <= NOW() ' +
+      'LIMIT 20'
     );
 
     for (const seg of r.rows) {
@@ -58,8 +56,8 @@ async function procesarSeguimientos() {
       if (msg) {
         await sendWA(seg.whatsapp, msg);
         await query(
-          'UPDATE seguimientos SET estado=$1, enviado_en=NOW() WHERE id=$2',
-          ['enviado', seg.id]
+          'UPDATE seguimientos SET estado=$1, completado_at=NOW() WHERE id=$2',
+          ['completado', seg.id]
         );
         console.log('[SCHEDULER] Seguimiento', seg.tipo, 'enviado a', seg.whatsapp);
       }
