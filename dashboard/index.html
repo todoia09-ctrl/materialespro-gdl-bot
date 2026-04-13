@@ -1033,10 +1033,10 @@ async function verCliente(wa) {
     var btnNC = document.getElementById('btnNoCampana');
     var btnDes = document.getElementById('btnDesactivar');
     if (btnNC) btnNC.innerHTML = c.no_campana ? '&#x2705; Campana activa' : '&#x1F6AB; No campana';
-    if (btnDes) btnDes.innerHTML = c.activo ? '&#x23F8; Deshabilitar' : '&#x25B6; Habilitar';
-    if (btnDes) btnDes.style.background = c.activo ? 'rgba(220,50,50,.15)' : 'rgba(50,200,50,.15)';
-    if (btnDes) btnDes.style.color = c.activo ? '#ff6b6b' : '#4caf50';
-    if (btnDes) btnDes.style.border = c.activo ? '1px solid rgba(220,50,50,.3)' : '1px solid rgba(50,200,50,.3)';
+    if (btnDes) btnDes.innerHTML = c.estado === 'activo' ? '&#x23F8; Deshabilitar' : '&#x25B6; Habilitar';
+    if (btnDes) btnDes.style.background = c.estado === 'activo' ? 'rgba(220,50,50,.15)' : 'rgba(50,200,50,.15)';
+    if (btnDes) btnDes.style.color = c.estado === 'activo' ? '#ff6b6b' : '#4caf50';
+    if (btnDes) btnDes.style.border = c.estado === 'activo' ? '1px solid rgba(220,50,50,.3)' : '1px solid rgba(50,200,50,.3)';
     if (btnNC) btnNC.style.background = c.no_campana ? 'rgba(50,200,50,.15)' : 'rgba(255,200,0,.12)';
     if (btnNC) btnNC.style.color = c.no_campana ? '#4caf50' : '#ffc800';
     if (btnNC) btnNC.style.border = c.no_campana ? '1px solid rgba(50,200,50,.3)' : '1px solid rgba(255,200,0,.3)';
@@ -1442,6 +1442,38 @@ async function crearCampana() {
     await api('/usuarios/'+id,{method:'PATCH',body:{activo}});
     loadVendedores();
   }
+  window.editarVendedor = function(id,nombre,email,rol,zona,whatsapp,empresa,telefono){
+    document.getElementById('eVId').value       = id;
+    document.getElementById('eVNombre').value   = nombre   || '';
+    document.getElementById('eVEmail').value    = email    || '';
+    document.getElementById('eVEmpresa').value  = empresa  || '';
+    document.getElementById('eVTelefono').value = telefono || '';
+    document.getElementById('eVWhatsapp').value = whatsapp || '';
+    document.getElementById('eVRol').value      = rol      || 'vendedor';
+    document.getElementById('eVZona').value     = zona     || '';
+    document.getElementById('editVendedorForm').style.display = 'block';
+    document.getElementById('editVendedorForm').scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  window.guardarEdicionVendedor = async function(){
+    const id = document.getElementById('eVId').value;
+    if (!id) return toast('ID faltante','error');
+    const body = {
+      nombre:   document.getElementById('eVNombre').value.trim(),
+      empresa:  document.getElementById('eVEmpresa').value.trim(),
+      telefono: document.getElementById('eVTelefono').value.trim(),
+      whatsapp: document.getElementById('eVWhatsapp').value.trim(),
+      rol:      document.getElementById('eVRol').value,
+      zona:     document.getElementById('eVZona').value
+    };
+    const r = await api('/usuarios/'+id,{method:'PATCH',body});
+    if (r?.ok || r?.id) {
+      toast('Vendedor actualizado \u2705','success');
+      document.getElementById('editVendedorForm').style.display = 'none';
+      loadVendedores();
+    } else {
+      toast('Error al guardar','error');
+    }
+  };
 
 // ── CONFIG ────────────────────────────────────────
   let _tarifasData = {};

@@ -191,8 +191,8 @@ async function guardarPedido(whatsapp, order, canal, catalogRef) {
         folio,cliente_id,canal,tipo,estado,items_json,subtotal,costo_envio,total,
         metodo_pago,factura,cfdi_uso,cfdi_email,
         calle,colonia,referencia,contacto_obra,tel_alterno,maps_link,
-        fecha_entrega,fecha_recoger,zona
-      ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+        fecha_entrega,fecha_recoger,zona,creado_en
+      ) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,NOW())
       RETURNING id`,
       [
         folio, cliente.id, canal||'whatsapp',
