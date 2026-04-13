@@ -308,6 +308,7 @@ router.patch('/clientes/:id/deshabilitar', authMiddleware(), async (req, res) =>
   try {
     const idParam = req.params.id;
     const activo = req.body && req.body.activo !== false;
+    const estadoVal = activo ? 'activo' : 'inactivo';
     const isNumeric = /^\d+$/.test(idParam);
     if (isNumeric) {
       await query('UPDATE clientes SET estado=$1 WHERE id=$2', [estadoVal, parseInt(idParam)]);
