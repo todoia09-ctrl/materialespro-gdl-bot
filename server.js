@@ -120,7 +120,38 @@ async function loadPriorityProducts() {
   }
 }
 
-function buildCatalogText(cat, nivelInfo) {
+// ─────────────────────────────────────────────────
+//  DETECTOR DE MARCA/CATEGORÍA PARA FILTRADO
+// ─────────────────────────────────────────────────
+function detectFiltro(msgText) {
+  if (!msgText) return { marca: null, categoria: null };
+  var t = msgText.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, ' ');
+  // Deteccion de marca (orden importa — mas especifico primero)
+  if (t.includes('pegaduro'))          return { marca: 'PEGADURO',  categoria: null };
+  if (t.includes('perdura'))           return { marca: 'PERDURA',   categoria: null };
+  if (t.includes('fester'))            return { marca: 'FESTER',    categoria: null };
+  if (t.includes('crest'))             return { marca: 'CREST',     categoria: null };
+  if (t.includes('sika'))              return { marca: 'SIKA',      categoria: null };
+  // Deteccion de categoria
+  if (t.includes('impermeabil') || t.includes('imperme') || t.includes('techo') || t.includes('azotea'))
+    return { marca: null, categoria: 'impermeabilizantes' };
+  if (t.includes('adhesivo') || t.includes('pega piso') || t.includes('pegamento') || t.includes('porcelanico') || t.includes('ceramica'))
+    return { marca: null, categoria: 'adhesivos' };
+  if (t.includes('mortero') || t.includes('concreto') || t.includes('aplanado'))
+    return { marca: null, categoria: 'morteros' };
+  if (t.includes('sellador') || t.includes('sello') || t.includes('grieta') || t.includes('fisura'))
+    return { marca: null, categoria: 'selladores' };
+  if (t.includes('piso') || t.includes('marmol') || t.includes('loseta'))
+    return { marca: null, categoria: 'pisos' };
+  if (t.includes('aditivo') || t.includes('acelerante') || t.includes('retardante'))
+    return { marca: null, categoria: 'aditivos' };
+  if (t.includes('anclaje') || t.includes('ancla') || t.includes('varilla'))
+    return { marca: null, categoria: 'anclajes' };
+  return { marca: null, categoria: null };
+}
+
+function buildCatalogText(cat, nivelInfo, filtro) {
     const _nivel = nivelInfo ? nivelInfo.nivel : 1;
     const _dp2   = nivelInfo ? nivelInfo.descuento_p2 : 5;
     const _dp3   = nivelInfo ? nivelInfo.descuento_p3 : 10;
@@ -201,9 +232,19 @@ function buildCatalogText(cat, nivelInfo) {
   }
 
   // Resto de productos (excluir los que ya están en prioritarios)
-  const restProds = (cat.productos || []).filter(p => p.activo !== false && !priorityCodigos.has(p.codigo || p.id))
-    .map(p => formatLine(p))
-    .join("\n- ");
+  // Filtrar por marca o categoria si se detectó en el mensaje
+  var _prods = (cat.productos || []).filter(function(p) { return p.activo !== false && !priorityCodigos.has(p.codigo || p.id); });
+  if (filtro && filtro.marca) {
+    var _fm = filtro.marca.toLowerCase();
+    _prods = _prods.filter(function(p) { return p.marca && String(p.marca).toLowerCase() === _fm; });
+  } else if (filtro && filtro.categoria) {
+    var _fc = filtro.categoria.toLowerCase();
+    _prods = _prods.filter(function(p) { return p.categoria && String(p.categoria).toLowerCase().includes(_fc); });
+  } else {
+    // Sin filtro — limitar a 80 productos para reducir tokens
+    _prods = _prods.slice(0, 80);
+  }
+  var restProds = _prods.map(function(p) { return formatLine(p); }).join("\n- ");
 
   var allProds = priorityLines.length > 0
     ? priorityLines.join('\n- ') + '\n\nCAT\u00c1LOGO COMPLETO:\n- ' + restProds
@@ -318,14 +359,15 @@ var SINONIMOS_TXT = 'SIN\u00d3NIMOS Y EQUIVALENCIAS (interpreta el lenguaje del 
   + '- carretera, junta expansion, pavimento \u2192 Sellado de juntas, especialidad carreteras\n'
   + '- diluyente, limpiador, rodillo, esp\u00e1tula \u2192 Complementos para aplicaci\u00f3n de pisos industriales\n';
 
-function buildSystemPrompt(clientName, channel, nivelInfo) {
+function buildSystemPrompt(clientName, channel, nivelInfo, msgText) {
   channel = channel || 'WhatsApp';
   const saludo  = clientName ? 'El cliente se llama ' + clientName + '. Úsalo solo al saludar.' : '';
   const formato = channel === 'comment'
     ? 'Comentario público FB. Máximo 2 líneas. Invita a escribir por Messenger o WhatsApp.'
     : 'Máximo 4 líneas por respuesta.';
   const d = CATALOG.descuentos_volumen;
-  const catalogTxt = nivelInfo ? buildCatalogText(CATALOG, nivelInfo) : CATALOG_TXT;
+  var _filtro = detectFiltro(msgText);
+  const catalogTxt = buildCatalogText(CATALOG, nivelInfo || null, _filtro);
   const nivelLabel = nivelInfo && nivelInfo.nivel > 1 ? etiquetaNivel(nivelInfo.nivel) : null;
   const nivelMsg   = nivelLabel ? '- Este cliente tiene nivel ' + nivelLabel + '. Precios ya incluyen descuento.\n' : '';
   return 'Eres asesor de ' + CATALOG.negocio.nombre + ' (' + CATALOG.negocio.ciudad + '). Canal: ' + channel + '. Fecha actual: ' + new Date().toLocaleDateString('es-MX', {weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'America/Mexico_City'}) + '.\n'
@@ -480,7 +522,7 @@ async function getAIResponse(userMessage, history, clientName, channel, nivelInf
   const res = await aiClient.messages.create({
     model:      'claude-haiku-4-5-20251001',
     max_tokens: channel === 'comment' ? 150 : 300,
-    system:     buildSystemPrompt(clientName, channel, nivelInfo),
+    system:     buildSystemPrompt(clientName, channel, nivelInfo, userMessage),
     messages:   [...history, { role: 'user', content: userMessage }]
   });
   return res.content[0].text;
