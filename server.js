@@ -693,12 +693,10 @@ const PORT = process.env.PORT || 3000;
 app.get('/ping', (_, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 
 (async () => {
-  // Inicializar base de datos ANTES de aceptar conexiones
+  // Solo operaciones criticas ANTES de abrir el puerto
   try {
     await initSchema();
     await initActiveOrders();
-    await syncFromCatalog(CATALOG.productos);
-    await loadPriorityProducts();
     CATALOG_TXT = buildCatalogText(CATALOG);
     console.log('\u2705 Base de datos lista');
   } catch (e) {
@@ -709,6 +707,17 @@ app.get('/ping', (_, res) => res.json({ ok: true, ts: new Date().toISOString() }
     console.log('\ud83d\ude80 ' + CATALOG.negocio.nombre + ' Enterprise v10 \u2192 puerto ' + PORT);
     console.log('\ud83d\udce6 Productos:', CATALOG.productos.filter(p => p.activo).length);
     console.log('\ud83d\uddc4\ufe0f  Dashboard: /dashboard');
+
+    // Sync catalogo + productos prioritarios en background (no bloquea puerto)
+    (async () => {
+      try {
+        await syncFromCatalog(CATALOG.productos);
+        await loadPriorityProducts();
+        console.log('[STARTUP] Sync catalogo completado en background');
+      } catch (e) {
+        console.warn('[STARTUP] Sync catalogo error:', e.message);
+      }
+    })();
 
     // Iniciar tareas programadas
     try {
