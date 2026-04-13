@@ -1257,8 +1257,8 @@ async function loadInventario() {
       marca: item.marca || cat.marca || '',
       presentacion: item.presentacion || cat.presentacion || '',
       precio: Number(cat.precio_venta || 0),
-      stock: item.stock || 0,
-      stock_minimo: item.stock_minimo || 0,
+      stock: Math.round(Number(item.stock) || 0),
+      stock_minimo: Math.round(Number(item.stock_minimo) || 0),
       unidad: item.unidad || 'pza',
       activo: cat.activo !== false
     };
@@ -1327,11 +1327,11 @@ function filterInventario() {
       + '<td style="font-size:.78rem;color:var(--light)">' + p.categoria + '</td>'
       + '<td style="font-size:.78rem;color:var(--gray)">' + p.marca + '</td>'
       + '<td style="color:var(--sand);font-weight:600">' + (p.precio ? '$' + Number(p.precio).toLocaleString('es-MX') : '-') + '</td>'
-      + '<td style="color:' + color + ';font-weight:600">' + p.stock + '</td>'
-      + '<td style="color:var(--gray)">' + p.stock_minimo + '</td>'
+      + '<td style="color:' + color + ';font-weight:600">' + Math.round(p.stock) + '</td>'
+      + '<td style="color:var(--gray)">' + Math.round(p.stock_minimo) + '</td>'
       + '<td style="font-size:.78rem">' + p.unidad + '</td>'
       + '<td style="text-align:center;font-size:1.1rem">' + (p.activo !== false ? '<span title="Activo" style="color:#22c55e">&#x25CF;</span>' : '<span title="Inactivo" style="color:#ef4444">&#x25CF;</span>') + '</td>'
-      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + p.stock + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button><button class="btn btn-secondary btn-sm" onclick="openEditProducto(\'' + p.producto_id + '\')">✏️</button></div></td>'
+      + '<td><div style="display:flex;gap:.3rem;align-items:center"><input class="inv-input" type="number" id="inv-' + p.producto_id + '" value="' + Math.round(p.stock) + '" min="0" style="width:70px;padding:.25rem .4rem;font-size:.82rem"><button class="btn btn-primary btn-sm" onclick="saveStock(\'' + p.producto_id + '\')">💾</button><button class="btn btn-secondary btn-sm" onclick="openEditProducto(\'' + p.producto_id + '\')">✏️</button></div></td>'
       + '</tr>';
   }).join('');
 }

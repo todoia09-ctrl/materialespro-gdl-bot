@@ -355,7 +355,10 @@ router.patch('/inventario/:id', authMiddleware(['admin','bodega']), async (req, 
   const { stock } = req.body;
   if (stock === undefined) return res.status(400).json({ error: 'stock requerido' });
   try {
-    await actualizarStock(req.params.id, parseInt(stock), req.user.email);
+    await query(
+      'UPDATE inventario SET stock_physical=$1, actualizado_en=NOW() WHERE id=$2',
+      [parseInt(stock), parseInt(req.params.id)]
+    );
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -378,18 +381,26 @@ router.post('/inventario/importar-stock', authMiddleware(['admin','bodega']), ex
       const stockVal = row['stock'] !== undefined ? row['stock'] : row['Stock'];
       const stock    = parseInt(stockVal);
       const stockMin = (row['stock_minimo'] !== undefined) ? parseInt(row['stock_minimo']) : null;
+      const activoRaw = row['activo'] !== undefined ? row['activo'] : row['Activo'];
+      const activoVal = activoRaw === undefined ? null : (Number(activoRaw) === 0 || activoRaw === 'false' || activoRaw === 0 ? false : true);
       if (!codigo) continue;
       if (isNaN(stock) || stock < 0) { errores.push(codigo + ': stock invalido'); continue; }
       try {
         if (stockMin !== null && !isNaN(stockMin)) {
           await query(
-            'UPDATE inventario SET stock=$2, stock_minimo=$3, actualizado_en=NOW() WHERE producto_id=$1',
+            'UPDATE inventario SET stock_physical=$2, stock_minimo=$3, actualizado_en=NOW() WHERE catalogo_id=(SELECT id FROM catalogo_productos WHERE codigo=$1)',
             [codigo, stock, stockMin]
           );
         } else {
           await query(
-            'UPDATE inventario SET stock=$2, actualizado_en=NOW() WHERE producto_id=$1',
+            'UPDATE inventario SET stock_physical=$2, actualizado_en=NOW() WHERE catalogo_id=(SELECT id FROM catalogo_productos WHERE codigo=$1)',
             [codigo, stock]
+          );
+        }
+        if (activoVal !== null) {
+          await query(
+            'UPDATE catalogo_productos SET activo=$2, actualizado_en=NOW() WHERE codigo=$1',
+            [codigo, activoVal]
           );
         }
         actualizados++;
@@ -963,7 +974,7 @@ router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) =>
 router.get('/inventario/exportar-stock', authMiddleware(['admin','bodega']), async (req, res) => {
   try {
     const result = await query(
-      'SELECT i.producto_id as codigo, c.nombre, c.marca, c.categoria, c.unidad, i.stock, i.stock_minimo ' +
+      'SELECT i.producto_id as codigo, c.nombre, c.marca, c.categoria, c.unidad, i.stock, i.stock_minimo, c.activo ' +
       'FROM inventario i LEFT JOIN catalogo_productos c ON c.codigo = i.producto_id ' +
       'ORDER BY c.marca ASC, c.nombre ASC',
       []
@@ -975,6 +986,7 @@ router.get('/inventario/exportar-stock', authMiddleware(['admin','bodega']), asy
       'Marca':       r.marca        || '',
       stock:         r.stock        || 0,
       stock_minimo:  r.stock_minimo || 0,
+        activo:        r.activo !== false ? 1 : 0,
     }));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
