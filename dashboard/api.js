@@ -930,7 +930,7 @@ router.patch('/catalogo/:codigo', authMiddleware(['admin']), async (req, res) =>
     var invParams  = [codigo];
     if (b.stock !== undefined && b.stock !== "") {
       invParams.push(pi(b.stock));
-      invUpdates.push("stock = $" + invParams.length);
+      invUpdates.push("stock_physical = $" + invParams.length);
     }
     if (b.stock_minimo !== undefined && b.stock_minimo !== "") {
       invParams.push(pi(b.stock_minimo));
