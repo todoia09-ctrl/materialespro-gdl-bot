@@ -951,7 +951,7 @@ function renderClientes(list) {
   const tbody = document.getElementById('clientesTable');
   if (list.length) {
     tbody.innerHTML = list.map(c => `
-      <tr style="${!c.activo ? 'opacity:.45;background:rgba(255,80,80,.06)' : ''}">
+      <tr style="${c.estado !== 'activo' ? 'opacity:.45;background:rgba(255,80,80,.06)' : ''}">
         <td>${c.nombre || '<i style="color:var(--gray)">Sin nombre</i>'}</td>
         <td><code style="font-size:.75rem">${c.whatsapp}</code></td>
         <td>${zonaLabel(c.zona)}</td>
@@ -960,7 +960,7 @@ function renderClientes(list) {
         <td style="color:var(--gray);font-size:.75rem">${fmtDate(c.ultimo_contacto)}</td>
         <td>${c.credito_limite > 0 ? '<span style="color:var(--green)">$' + Number(c.credito_limite).toLocaleString('es-MX') + '</span>' : '—'}</td>
         <td>${badgeNivel(c.nivel_precio || 1)}</td>
-        <td style="text-align:center;font-size:1rem">${!c.activo ? '<span title="Deshabilitado" style="color:#ff6b6b">&#x26D4;</span>' : '<span title="Activo" style="color:#4caf50">&#x2714;</span>'} ${c.no_campana ? '<span title="No campana" style="color:#ffc800">&#x1F6AB;</span>' : ''}</td>
+        <td style="text-align:center;font-size:1rem">${c.estado !== 'activo' ? '<span title="Deshabilitado" style="color:#ff6b6b">&#x26D4;</span>' : '<span title="Activo" style="color:#4caf50">&#x2714;</span>'} ${c.no_campana ? '<span title="No campana" style="color:#ffc800">&#x1F6AB;</span>' : ''}</td>
         <td><button class="btn btn-secondary btn-sm" onclick="verCliente('${c.whatsapp}')">Ver</button></td>
       </tr>`).join('');
   } else {
@@ -1026,7 +1026,7 @@ async function verCliente(wa) {
 `;
   window._clienteWA = c.whatsapp;
   window._clienteId = c.id;
-  window._clienteActivo = c.activo;
+  window._clienteActivo = c.estado === 'activo';
   window._clienteNoCampana = c.no_campana;
   // Actualizar textos de botones segun estado
   setTimeout(function() {
