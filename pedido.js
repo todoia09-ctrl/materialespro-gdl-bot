@@ -351,6 +351,20 @@ async function notifyVendorWhatsApp(order, token, negocioNombre) {
 }
 
 // ─────────────────────────────────────────────────
+//  NOTIFICAR BODEGA — WhatsApp
+// ─────────────────────────────────────────────────
+async function notifyBodegaWhatsApp(msg) {
+  try {
+    const bodegaNum = process.env.BODEGA_WHATSAPP || '';
+    if (!bodegaNum) return;
+    const toNum = bodegaNum.replace('whatsapp:', '').replace('+', '');
+    const { sendMetaWAMessage } = require('./meta');
+    await sendMetaWAMessage(toNum, msg);
+    console.log('[BODEGA WA] Notificacion enviada a', toNum);
+  } catch (err) { console.error('[BODEGA WA]', err.message); }
+}
+
+// ─────────────────────────────────────────────────
 //  NOTIFICAR VENDEDOR — Email
 // ─────────────────────────────────────────────────
 async function notifyVendorEmail(order, token, negocioNombre) {
@@ -841,6 +855,16 @@ if (state === S.IDLE) {
     if (!_stockCheck.ok) {
       activeOrders.delete(key);
       await deleteActiveOrder(key).catch(()=>{});
+      // Alerta stock a BODEGA_WHATSAPP (Fase 1)
+      notifyBodegaWhatsApp(
+        '\u26A0\uFE0F *STOCK INSUFICIENTE*\n\n'
+        + '\uD83D\uDC64 Cliente: ' + (order.clientName || from) + '\n'
+        + '\uD83D\uDECD Tipo: ' + (order.type === 'pickup' ? 'Pickup' : 'Entrega') + '\n\n'
+        + _stockCheck.faltantes.map(function(f) {
+            return '\u2022 ' + f.producto + ': pedido ' + f.pedido + ', disponible ' + f.disponible;
+          }).join('\n')
+      ).catch(function() {});
+
       const _falt = _stockCheck.faltantes.map(f =>
         '• ' + f.producto + ': pedido ' + f.pedido + ' ' + f.unidad + ', disponible ' + f.disponible
       ).join('\n');
@@ -910,6 +934,23 @@ if (state === S.IDLE) {
         + '\uD83D\uDD50 Horario: Lun\u2013Vie 8am\u20136pm \u00B7 S\u00E1b 8am\u20132pm\n'
         + '\uD83D\uDCC5 ' + _pickupDate + '\n\n'
         + '\u00BFAlgo m\u00E1s en lo que te pueda ayudar?';
+      // Alerta info a VENDOR_WHATSAPP (Fase 1)
+      try {
+        var _vn = (process.env.VENDOR_WHATSAPP || '').replace('whatsapp:', '').replace('+', '');
+        if (_vn) {
+          var _vaMsg = '\uD83D\uDCE6 *PICKUP AUTO-CONFIRMADO*\n\n'
+            + '\uD83D\uDC64 Cliente: ' + (order.clientName || from) + '\n'
+            + '\uD83D\uDCC5 Fecha: ' + _pickupDate + '\n\n'
+            + (order.items && order.items.length > 0
+              ? '\uD83D\uDCE6 Productos:\n' + order.items.map(function(i) {
+                  return '\u2022 ' + (i.qty||1) + 'x ' + (i.nombre||'Producto');
+                }).join('\n') + '\n\n' : '')
+            + '\uD83D\uDCB3 Pago: ' + (order.payment || 'efectivo') + '\n'
+            + '\uD83D\uDCB0 Total: ' + Number(order.total||0).toLocaleString('es-MX');
+          const { sendMetaWAMessage: _swa } = require('./meta');
+          await _swa(_vn, _vaMsg);
+        }
+      } catch(_ve) { console.error('[PICKUP VENDOR ALERT]', _ve.message); }
       return _pickupMsg;
     }
 
