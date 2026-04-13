@@ -356,8 +356,8 @@ router.patch('/inventario/:id', authMiddleware(['admin','bodega']), async (req, 
   if (stock === undefined) return res.status(400).json({ error: 'stock requerido' });
   try {
     await query(
-      'UPDATE inventario SET stock_physical=$1, actualizado_en=NOW() WHERE id=$2',
-      [parseInt(stock), parseInt(req.params.id)]
+      'UPDATE inventario SET stock_physical=$1, actualizado_en=NOW() WHERE catalogo_id=(SELECT id FROM catalogo_productos WHERE codigo=$2)',
+      [parseInt(stock), req.params.id]
     );
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
