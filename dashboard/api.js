@@ -292,8 +292,7 @@ router.patch('/clientes/:id/nocampana', authMiddleware(), async (req, res) => {
   try {
     const idParam = req.params.id;
     const valor = req.body && req.body.valor !== false;
-    const estadoVal = activo ? 'activo' : 'inactivo';
-      const isNumeric = /^\d+$/.test(idParam);
+    const isNumeric = /^\d+$/.test(idParam);
     if (isNumeric) {
       await query('UPDATE clientes SET no_campana=$1 WHERE id=$2', [valor, parseInt(idParam)]);
     } else {
