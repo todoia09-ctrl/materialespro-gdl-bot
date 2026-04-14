@@ -815,6 +815,8 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.getAttribute('onclick')?.includes("'" + name + "'")) n.classList.add('active');
   });
+  if (name === 'tablero') { setTimeout(loadTablero, 50); }
+  if (name === 'pedidos')  { setTimeout(loadPedidos,  50); }
   const titles = { dashboard:'Dashboard', pedidos:'Pedidos', clientes:'Clientes (CRM)',
                    inventario:'Inventario', campanas:'Campañas WhatsApp', catalogo:'Catálogo / Precios', reportes:'Reportes', vendedores:'Vendedores', config:'Configuración' };
   document.getElementById('pageTitle').textContent = titles[name] || name;
@@ -2005,7 +2007,7 @@ function tbRender() {
   var base = _tbAll.filter(function(p){ return excl.indexOf(p.estado) < 0; });
   var lista = base;
   if (_tbF === "pickup") lista = lista.filter(function(p){ return p.tipo === "pickup"; });
-  else if (_tbF === "entrega") lista = lista.filter(function(p){ return p.tipo === "entrega" || p.tipo === "domicilio"; });
+  else if (_tbF === "entrega") lista = lista.filter(function(p){ return p.tipo === "entrega" || p.tipo === "domicilio" || p.tipo === "delivery"; });
   else if (_tbF === "pendiente") lista = lista.filter(function(p){ return p.estado === "pendiente"; });
   else if (_tbF === "confirmado") lista = lista.filter(function(p){ return p.estado === "confirmado"; });
 
