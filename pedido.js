@@ -114,6 +114,7 @@ function parseItemsFromQuote(rawQuote) {
   var lines = rawQuote.split('\n');
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].replace(/\*/g, '').trim();
+    line = line.replace(/^[\u2022\u00b7\-]\s*/, '').trim(); // strip bullet •
     if (!line) continue;
     // Patron 1: "11xNombre: 11 × $2,315 = $25,465"
     // Patron 2: "Nombre $2,315/pza: 11 × $2,315 = $25,465"
@@ -132,7 +133,9 @@ function parseItemsFromQuote(rawQuote) {
       } else {
         // "Nombre: qty × ..."
         var nameMatch2 = line.match(/^(.+?):\s*\d+\s*[x×]/i);
-        if (nameMatch2) producto = nameMatch2[1].trim();
+        if (nameMatch2) producto = nameMatch2[1].trim()
+          .replace(/^[\u2022\u00b7\-]\s*/, '')  // strip bullet residual
+          .replace(/^\d+\s*[x\u00d7]\s*/i, ''); // strip qty residual '248x '
       }
       items.push({ nombre: producto, qty: qty, precio: precio, unidad: 'pza' });
     }
