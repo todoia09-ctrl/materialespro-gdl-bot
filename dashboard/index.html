@@ -157,6 +157,39 @@ select:focus{border-color:var(--rust)}
   .form-row{grid-template-columns:1fr}
   .report-grid{grid-template-columns:1fr}
 }
+.tb-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.tb-stat{background:var(--dark);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:.75rem 1rem}
+.tb-stat-val{font-size:22px;font-weight:600;color:var(--white)}
+.tb-stat-lbl{font-size:11px;color:var(--gray);margin-top:2px}
+.tb-filters{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.tb-filter{padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--gray);font-size:12px;cursor:pointer}
+.tb-filter.active{background:rgba(200,92,42,.15);border-color:var(--rust);color:var(--sand)}
+.tb-section{margin-bottom:1.5rem}
+.tb-lbl{font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem;display:flex;align-items:center;gap:8px}
+.tb-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tb-dot-hoy{background:#E24B4A}.tb-dot-man{background:#EF9F27}.tb-dot-fut{background:#1D9E75}
+.tb-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.tb-card{background:var(--dark);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:1rem;position:relative;overflow:hidden}
+.tb-card:hover{border-color:rgba(255,255,255,.18)}
+.tb-acc{position:absolute;left:0;top:0;bottom:0;width:4px}
+.tb-acc-p{background:#378ADD}.tb-acc-e{background:#D85A30}
+.tb-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem;padding-left:10px}
+.tb-folio{font-size:10px;color:var(--gray);font-family:monospace}
+.tb-bgs{display:flex;gap:4px}
+.tb-bg{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px}
+.tb-bg-p{background:rgba(55,138,221,.15);color:#85B7EB}
+.tb-bg-e{background:rgba(216,90,48,.15);color:#F0997B}
+.tb-bg-ok{background:rgba(99,153,34,.15);color:#97C459}
+.tb-bg-nd{background:rgba(186,117,23,.15);color:#FAC775}
+.tb-cli{font-size:14px;font-weight:600;color:var(--white);padding-left:10px;margin-bottom:3px}
+.tb-fec{font-size:12px;color:var(--gray);padding-left:10px;margin-bottom:.5rem}
+.tb-prd{font-size:11px;color:var(--gray);padding-left:10px;margin-bottom:.65rem;line-height:1.5}
+.tb-foot{display:flex;justify-content:space-between;align-items:center;padding-left:10px;border-top:1px solid rgba(255,255,255,.06);padding-top:.6rem}
+.tb-tot{font-size:13px;font-weight:600;color:var(--sand)}
+.tb-pag{font-size:10px;color:var(--gray);margin-top:2px}
+.tb-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--sand);cursor:pointer}
+.tb-btn:hover{background:rgba(200,92,42,.15);border-color:var(--rust)}
+.tb-empty{color:var(--gray);font-size:13px;padding:.4rem 0}
 </style>
 </head>
 <body>
@@ -188,6 +221,7 @@ select:focus{border-color:var(--rust)}
   <nav>
     <div class="nav-section">Principal</div>
     <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('tablero')"><span class="icon">📋</span> Tablero</div>
     <div class="nav-item" onclick="showPage('pedidos')"><span class="icon">📦</span> Pedidos</div>
     <div class="nav-item" onclick="showPage('clientes')"><span class="icon">👥</span> Clientes</div>
     <div class="nav-section">Operaciones</div>
@@ -253,7 +287,21 @@ select:focus{border-color:var(--rust)}
     </div>
 
     <!-- PEDIDOS -->
-    <div class="page" id="page-pedidos">
+    <div class="page" id="page-tablero">
+  <div class="page-header"><h1 class="page-title">Tablero de despacho</h1>
+  <button class="btn btn-secondary btn-sm" onclick="loadTablero()">🔄 Actualizar</button></div>
+  <div class="tb-stats" id="tbStats"><div class="tb-stat"><div class="tb-stat-val">-</div><div class="tb-stat-lbl">Cargando...</div></div></div>
+  <div class="tb-filters">
+    <button class="tb-filter active" onclick="tbFiltro('todos',this)">Todos</button>
+    <button class="tb-filter" onclick="tbFiltro('pickup',this)">Recoger</button>
+    <button class="tb-filter" onclick="tbFiltro('entrega',this)">Entrega</button>
+    <button class="tb-filter" onclick="tbFiltro('pendiente',this)">Pendientes</button>
+    <button class="tb-filter" onclick="tbFiltro('confirmado',this)">Confirmados</button>
+  </div>
+  <div id="tbBoard"><div class="tb-empty">Cargando pedidos...</div></div>
+</div>
+
+<div class="page" id="page-pedidos">
       <div style="display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
         <select id="filterEstado" onchange="loadPedidos()" style="width:auto">
           <option value="">Todos los estados</option>
@@ -1918,5 +1966,116 @@ async function guardarEditProducto() {
 }
 </script>
 
+
+<script>
+var _tbAll = [];
+var _tbF = "todos";
+
+async function loadTablero() {
+  try {
+    var tk = localStorage.getItem("mp_token");
+    var r = await fetch("/api/pedidos?limit=100", { headers: { Authorization: "Bearer " + tk } });
+    _tbAll = await r.json();
+    if (!Array.isArray(_tbAll)) _tbAll = [];
+    tbRender();
+  } catch(e) { document.getElementById("tbBoard").innerHTML = "<div class=\"tb-empty\">Error cargando pedidos</div>"; }
+}
+
+function tbDia(p) {
+  var f = p.tipo === "pickup" ? (p.fecha_recoger || "") : (p.fecha_entrega || "");
+  f = String(f).toLowerCase();
+  if (!f || f.length < 2) return "futuro";
+  if (f.includes("hoy") || f.includes("ahora")) return "hoy";
+  if (f.includes("ma\u00F1ana") || f.includes("manana")) return "man";
+  var hoyNom = new Date().toLocaleDateString("es-MX",{weekday:"long"}).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  var fNorm = f.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  if (fNorm.includes(hoyNom)) return "hoy";
+  return "futuro";
+}
+
+function tbFiltro(f, el) {
+  _tbF = f;
+  document.querySelectorAll(".tb-filter").forEach(function(b){ b.classList.remove("active"); });
+  if (el) el.classList.add("active");
+  tbRender();
+}
+
+function tbRender() {
+  var excl = ["cancelado","entregado"];
+  var base = _tbAll.filter(function(p){ return excl.indexOf(p.estado) < 0; });
+  var lista = base;
+  if (_tbF === "pickup") lista = lista.filter(function(p){ return p.tipo === "pickup"; });
+  else if (_tbF === "entrega") lista = lista.filter(function(p){ return p.tipo === "entrega" || p.tipo === "domicilio"; });
+  else if (_tbF === "pendiente") lista = lista.filter(function(p){ return p.estado === "pendiente"; });
+  else if (_tbF === "confirmado") lista = lista.filter(function(p){ return p.estado === "confirmado"; });
+
+  var g = { hoy: [], man: [], futuro: [] };
+  lista.forEach(function(p){ var d = tbDia(p); if (g[d]) g[d].push(p); else g.futuro.push(p); });
+
+  var nHoy = base.filter(function(p){ return tbDia(p)==="hoy"; }).length;
+  var nMan = base.filter(function(p){ return tbDia(p)==="man"; }).length;
+  var nPend = base.filter(function(p){ return p.estado==="pendiente"; }).length;
+  var nMxn = lista.reduce(function(s,p){ return s+(parseFloat(p.total)||0); },0);
+  document.getElementById("tbStats").innerHTML =
+    "<div class=\"tb-stat\"><div class=\"tb-stat-val\">" + nHoy + "</div><div class=\"tb-stat-lbl\">Para hoy</div></div>"
+    + "<div class=\"tb-stat\"><div class=\"tb-stat-val\">" + nMan + "</div><div class=\"tb-stat-lbl\">Para ma\u00F1ana</div></div>"
+    + "<div class=\"tb-stat\"><div class=\"tb-stat-val\">" + nPend + "</div><div class=\"tb-stat-lbl\">Pendientes</div></div>"
+    + "<div class=\"tb-stat\"><div class=\"tb-stat-val\">$" + Math.round(nMxn).toLocaleString("es-MX") + "</div><div class=\"tb-stat-lbl\">En tr\u00E1nsito</div></div>";
+
+  var secs = [
+    { k:"hoy", lbl:"Hoy", dot:"tb-dot-hoy" },
+    { k:"man", lbl:"Ma\u00F1ana", dot:"tb-dot-man" },
+    { k:"futuro", lbl:"Pr\u00F3ximos d\u00EDas", dot:"tb-dot-fut" }
+  ];
+  var html = "";
+  secs.forEach(function(s) {
+    var items = g[s.k] || [];
+    html += "<div class=\"tb-section\">";
+    html += "<div class=\"tb-lbl\"><span class=\"tb-dot " + s.dot + "\"></span>" + s.lbl + " (" + items.length + ")</div>";
+    html += "<div class=\"tb-cards\">";
+    if (!items.length) { html += "<div class=\"tb-empty\">Sin pedidos</div>"; }
+    items.forEach(function(p) {
+      var isPU = p.tipo === "pickup";
+      var fecha = isPU ? (p.fecha_recoger || "Fecha por confirmar") : (p.fecha_entrega || "Fecha por confirmar");
+      var bTipo = isPU ? "<span class=\"tb-bg tb-bg-p\">Recoger</span>" : "<span class=\"tb-bg tb-bg-e\">Entrega</span>";
+      var bEst = p.estado === "confirmado" ? "<span class=\"tb-bg tb-bg-ok\">Confirmado</span>" : "<span class=\"tb-bg tb-bg-nd\">Pendiente</span>";
+      var arr = [];
+      try { arr = Array.isArray(p.items_json) ? p.items_json : (p.items_json ? JSON.parse(p.items_json) : []); } catch(e){}
+      var prods = arr.length ? arr.map(function(i){ return "\u2022 " + (i.qty||1) + "x " + (i.nombre||"Producto"); }).join("<br>") : (p.folio || "-");
+      var aLbl = isPU ? "Marcar recogido" : "Marcar entregado";
+      html += "<div class=\"tb-card\">";
+      html += "<div class=\"tb-acc " + (isPU?"tb-acc-p":"tb-acc-e") + "\"></div>";
+      html += "<div class=\"tb-top\"><span class=\"tb-folio\">" + String(p.folio||p.id||"").substring(0,22) + "</span>";
+      html += "<div class=\"tb-bgs\">" + bTipo + bEst + "</div></div>";
+      html += "<div class=\"tb-cli\">" + (p.cliente_nombre||"Cliente") + "</div>";
+      html += "<div class=\"tb-fec\">📅 " + fecha + "</div>";
+      html += "<div class=\"tb-prd\">" + prods + "</div>";
+      html += "<div class=\"tb-foot\">";
+      html += "<div><div class=\"tb-tot\">$" + Number(p.total||0).toLocaleString("es-MX") + "</div><div class=\"tb-pag\">" + (p.metodo_pago||"") + "</div></div>";
+      html += "<button class=\"tb-btn\" onclick=\"tbMarcar(" + p.id + ")\">" + aLbl + "</button>";
+      html += "</div></div>";
+    });
+    html += "</div></div>";
+  });
+  document.getElementById("tbBoard").innerHTML = html;
+}
+
+async function tbMarcar(id) {
+  if (!confirm("\u00BFMarcar pedido como entregado/recogido?\nEsto actualizar\u00E1 el estado.")) return;
+  try {
+    var tk = localStorage.getItem("mp_token");
+    var r = await fetch("/api/pedidos/" + id + "/estado", {
+      method: "PATCH",
+      headers: { Authorization: "Bearer " + tk, "Content-Type": "application/json" },
+      body: JSON.stringify({ estado: "entregado" })
+    });
+    var d = await r.json();
+    if (d.ok || d.id || d.estado) {
+      if (typeof toast === "function") toast("\u2705 Pedido actualizado", "success");
+      loadTablero();
+    } else { alert("Error: " + (d.error || "respuesta inesperada")); }
+  } catch(e) { alert("Error: " + e.message); }
+}
+</script>
 </body>
 </html>
