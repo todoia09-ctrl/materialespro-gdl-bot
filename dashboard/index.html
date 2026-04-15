@@ -1989,9 +1989,13 @@ function tbDia(p) {
   if (!f || f.length < 2) return "futuro";
   if (f.includes("hoy") || f.includes("ahora")) return "hoy";
   if (f.includes("ma\u00F1ana") || f.includes("manana")) return "man";
-  var hoyNom = new Date().toLocaleDateString("es-MX",{weekday:"long"}).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-  var fNorm = f.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  var _tbNow  = new Date();
+  var hoyNom  = _tbNow.toLocaleDateString("es-MX",{weekday:"long"}).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  var _tbTmw  = new Date(_tbNow); _tbTmw.setDate(_tbTmw.getDate()+1);
+  var manNom  = _tbTmw.toLocaleDateString("es-MX",{weekday:"long"}).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  var fNorm   = f.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   if (fNorm.includes(hoyNom)) return "hoy";
+  if (fNorm.includes(manNom)) return "man";
   return "futuro";
 }
 
