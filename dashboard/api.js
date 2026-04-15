@@ -200,6 +200,13 @@ router.patch('/pedidos/:id/estado', authMiddleware(), async (req, res) => {
         }
       } catch(we) { console.error('[WA notify dashboard]', we.message); }
     }
+    // WMS: reducir stock físico al marcar entregado
+    if (estado === 'entregado') {
+      try {
+        await query('SELECT wms_fulfill($1)', [req.params.id]);
+        console.log('[wms_fulfill] pedido', req.params.id, 'fulfilled — stock reducido');
+      } catch(wf) { console.error('[wms_fulfill]', req.params.id, wf.message); }
+    }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
