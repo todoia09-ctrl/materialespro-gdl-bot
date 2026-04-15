@@ -1,4 +1,4 @@
-﻿// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 //  MaterialesPro GDL — Bot ENTERPRISE v10
 //  WhatsApp · Facebook · Instagram · FB Comments
 //  CRM PostgreSQL · Inventario · Dashboard · Scheduler · Campañas
@@ -630,9 +630,97 @@ app.post('/webhook/whatsapp', async (req, res) => {
             _n++;
           }
           _msg += '\u00bfQu\u00e9 categor\u00eda te interesa? Responde el n\u00famero o escr\u00edbeme qu\u00e9 necesitas.';
+          // ── Guardar _cats en campaign_sessions para Paso 2 ──
+          var _catsArr = Object.keys(_cats);
+          var _catsSave = {};
+          for (var _ci = 0; _ci < _catsArr.length; _ci++) {
+            _catsSave[String(_ci + 1)] = { nombre: _catsArr[_ci], productos: _cats[_catsArr[_ci]] };
+          }
+          try {
+            await query(
+              `INSERT INTO campaign_sessions(phone, cat_data)
+               VALUES($1,$2)
+               ON CONFLICT(phone) DO UPDATE SET cat_data=$2, prod_data=NULL`,
+              [from, JSON.stringify(_catsSave)]
+            );
+          } catch (_se) { console.error('[CAMP SAVE CAT]', _se.message); }
           reply = _msg;
         }
       } catch (_e) { console.error('[CAMPAIGN INTEREST]', _e.message); }
+    }
+
+    // ── 3c. Campaña Paso 2 — cliente elige categoría (solo dígito) ──
+    if (!reply && textBody && /^\d+$/.test(textBody.trim())) {
+      try {
+        var _cs2 = await query('SELECT cat_data, prod_data FROM campaign_sessions WHERE phone=$1', [from]);
+        var _csRow2 = _cs2 && _cs2.rows && _cs2.rows[0];
+        if (_csRow2 && _csRow2.cat_data && !_csRow2.prod_data) {
+          var _savedCats2 = JSON.parse(_csRow2.cat_data);
+          var _keyChosen  = textBody.trim();
+          var _chosenCat  = _savedCats2[_keyChosen];
+          if (_chosenCat && _chosenCat.productos && _chosenCat.productos.length > 0) {
+            var _pMsg2 = '\uD83C\uDFE0 *' + _chosenCat.nombre + '* en oferta:\n\n';
+            for (var _pi2 = 0; _pi2 < _chosenCat.productos.length; _pi2++) {
+              var _pp2  = _chosenCat.productos[_pi2];
+              var _ppo2 = Number(_pp2.precio_oferta).toLocaleString('es-MX');
+              _pMsg2 += (_pi2 + 1) + '. ' + _pp2.nombre + ' \u2014 *$' + _ppo2 + '*\n';
+            }
+            var _optsLbl = _chosenCat.productos.length === 1 ? '*1*' : '*1* o *' + _chosenCat.productos.length + '*';
+            _pMsg2 += '\n\u00bfCu\u00e1l te interesa? Responde ' + _optsLbl + '.';
+            await query('UPDATE campaign_sessions SET prod_data=$1 WHERE phone=$2',
+              [JSON.stringify(_chosenCat.productos), from]);
+            reply = _pMsg2;
+          } else {
+            // dígito no coincide — limpiar sesión huérfana
+            await query('DELETE FROM campaign_sessions WHERE phone=$1', [from]).catch(function(){});
+          }
+        }
+      } catch (_e3) { console.error('[CAMP PASO2]', _e3.message); }
+    }
+
+    // ── 3d. Campaña Paso 3 — cliente elige producto ──
+    if (!reply && textBody && /^\d+$/.test(textBody.trim())) {
+      try {
+        var _cs3    = await query('SELECT prod_data FROM campaign_sessions WHERE phone=$1', [from]);
+        var _csRow3 = _cs3 && _cs3.rows && _cs3.rows[0];
+        if (_csRow3 && _csRow3.prod_data) {
+          var _prodList3 = JSON.parse(_csRow3.prod_data);
+          if (Array.isArray(_prodList3)) {
+            var _chosen3 = _prodList3[parseInt(textBody.trim(), 10) - 1];
+            if (_chosen3 && _chosen3.nombre) {
+              await query('UPDATE campaign_sessions SET prod_data=$1 WHERE phone=$2',
+                [JSON.stringify(_chosen3), from]);
+              reply = '\u00bfCu\u00e1ntas unidades de *' + _chosen3.nombre + '* necesitas?';
+            } else {
+              await query('DELETE FROM campaign_sessions WHERE phone=$1', [from]).catch(function(){});
+            }
+          }
+        }
+      } catch (_e4) { console.error('[CAMP PASO3]', _e4.message); }
+    }
+
+    // ── 3e. Campaña Paso 4 — cliente da cantidad → cotizar ──
+    if (!reply && textBody && /^\d+$/.test(textBody.trim())) {
+      try {
+        var _cs4    = await query('SELECT prod_data FROM campaign_sessions WHERE phone=$1', [from]);
+        var _csRow4 = _cs4 && _cs4.rows && _cs4.rows[0];
+        if (_csRow4 && _csRow4.prod_data) {
+          var _prodObj4 = JSON.parse(_csRow4.prod_data);
+          if (_prodObj4 && !Array.isArray(_prodObj4) && _prodObj4.nombre) {
+            var _qty4    = parseInt(textBody.trim(), 10);
+            var _prec4   = Number(_prodObj4.precio_oferta || _prodObj4.precio_venta);
+            var _tot4    = _qty4 * _prec4;
+            var _precFmt = _prec4.toLocaleString('es-MX');
+            var _totFmt4 = _tot4.toLocaleString('es-MX');
+            var _rawQ4   = _prodObj4.nombre + ': ' + _qty4 + ' \u00d7 $' + _precFmt + ' = $' + _totFmt4;
+            saveLastQuote(from, _rawQ4);
+            await query('DELETE FROM campaign_sessions WHERE phone=$1', [from]).catch(function(){});
+            reply = '\u00a1Perfecto! Cotizando ' + _qty4 + ' x *' + _prodObj4.nombre
+                  + '* a precio de oferta *$' + _precFmt + '*:\n\n'
+                  + _qty4 + ' x $' + _precFmt + ' = *$' + _totFmt4 + '*\n\n\u00bfHacemos el pedido?';
+          }
+        }
+      } catch (_e5) { console.error('[CAMP PASO4]', _e5.message); }
     }
 
     // ── 4. Flujo de pedido ────────────────────────
