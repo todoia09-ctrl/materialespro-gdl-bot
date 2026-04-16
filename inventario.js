@@ -145,7 +145,8 @@ async function getInventarioCompleto() {
       '       cp.precio_venta, ' +
       '       i.stock_physical AS stock, i.stock_reserved, ' +
       '       i.stock_available, i.stock_minimo, i.stock_maximo, ' +
-      '       i.version ' +
+      '       i.version, ' +
+      '       i.en_oferta, i.precio_oferta, i.destacado, i.mas_vendido ' +
       'FROM inventario i ' +
       'JOIN catalogo_productos cp ON cp.id = i.catalogo_id ' +
       'ORDER BY cp.nombre ASC'
