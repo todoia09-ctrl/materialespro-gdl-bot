@@ -1310,7 +1310,11 @@ async function loadInventario() {
       stock: Math.round(Number(item.stock) || 0),
       stock_minimo: Math.round(Number(item.stock_minimo) || 0),
       unidad: item.unidad || 'pza',
-      activo: cat.activo !== false
+      activo: cat.activo !== false,
+      en_oferta: item.en_oferta || cat.en_oferta || false,
+      precio_oferta: item.precio_oferta || cat.precio_oferta || null,
+      destacado: item.destacado || cat.destacado || false,
+      mas_vendido: item.mas_vendido || cat.mas_vendido || false
     };
   });
   // Poblar filtros
